@@ -1,7 +1,7 @@
 {
   "name": "humanizer-ru",
-  "description": "Removes AI-generation markers from Russian text. 37 patterns + 5 article formulas. With voice calibration. | Убирает признаки AI-генерации из русскоязычного текста. 37 паттернов + 5 формул статей с калибровкой под авторский стиль.",
-  "version": "1.0.0",
+  "description": "Kills AI smell in Russian text. 42 patterns, 12 hard bans, 3 modes (rewrite / audit / targeted fix), voice calibration. | Убивает запах нейросети в русском тексте. 42 паттерна, 12 жёстких банов, 3 режима (переписывание / аудит / точечная правка), калибровка голоса.",
+  "version": "2.0.0",
   "author": {
     "name": "Ilya Utov",
     "email": "ilyautov@gmail.com"
