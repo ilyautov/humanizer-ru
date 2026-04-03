@@ -1,0 +1,24 @@
+{
+  "name": "ilyautov-plugins",
+  "owner": {
+    "name": "Ilya Utov",
+    "email": "ilyautov@gmail.com"
+  },
+  "plugins": [
+    {
+      "name": "humanizer-ru",
+      "source": "./",
+      "description": "Removes AI-generation markers from Russian text. 37 patterns + 5 article formulas with voice calibration. | Убирает признаки AI-генерации из русскоязычного текста. 37 паттернов + 5 формул статей с калибровкой под авторский стиль.",
+      "version": "1.0.0",
+      "author": {
+        "name": "Ilya Utov",
+        "email": "ilyautov@gmail.com"
+      },
+      "homepage": "https://github.com/ilyautov/humanizer-ru",
+      "repository": "https://github.com/ilyautov/humanizer-ru",
+      "license": "MIT",
+      "keywords": ["humanizer", "russian", "writing", "ai-detection", "русский", "очеловечивание"],
+      "category": "writing"
+    }
+  ]
+}
