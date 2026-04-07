@@ -8,7 +8,7 @@ The English [humanizer](https://github.com/blader/humanizer) won't help you here
 
 ## What you get
 
-42 patterns across 9 categories, from канцелярит and calques to emotional sterility and suspiciously perfect typography. A list of hard-banned constructions that scream "GPT wrote this." Five article formulas (blog, expert, sales, news, storytelling). Voice calibration if you feed it your writing samples.
+44 patterns across 10 categories, from канцелярит and calques to emotional sterility, persuasion tricks, and information rhythm. Hard-banned constructions that scream "GPT wrote this" (including em-dashes, which detectors now count statistically). A section on how detectors actually work (perplexity, burstiness, morphology). Five article formulas (blog, expert, sales, news, storytelling). Voice calibration if you feed it your writing samples.
 
 ## Install
 
@@ -35,9 +35,9 @@ curl -o ~/.claude/skills/humanizer-ru/SKILL.md \
 
 ## Modes
 
-**Full rewrite** (default). All 42 patterns, voice calibration, dual-pass audit. For text that needs to sound human.
+**Full rewrite** (default). All 44 patterns, voice calibration, triple-pass audit. For text that needs to sound human.
 
-**Audit**. Diagnosis only — returns a list of detected patterns with priority (A-D). Doesn't touch the text.
+**Audit**. Diagnosis only - returns a list of detected patterns with priority (A-D). Doesn't touch the text.
 ```
 Проверь этот текст на AI-маркеры: [paste text]
 ```
