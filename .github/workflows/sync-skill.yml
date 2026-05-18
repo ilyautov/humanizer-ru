@@ -1,0 +1,40 @@
+name: Sync root SKILL.md
+
+# Когда skills/humanizer-ru/SKILL.md меняется в main, копируем содержимое
+# в корневой SKILL.md и коммитим обратно. Так короткий raw-URL
+# https://raw.githubusercontent.com/ilyautov/humanizer-ru/main/SKILL.md
+# всегда остаётся актуальным, и при этом репо безопасен для Windows-клонов
+# (нет git-симлинков).
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'skills/humanizer-ru/SKILL.md'
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Copy SKILL.md to repo root
+        run: cp skills/humanizer-ru/SKILL.md SKILL.md
+
+      - name: Commit and push if changed
+        run: |
+          if git diff --quiet SKILL.md; then
+            echo "SKILL.md уже синхронизирован, ничего не делаем."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add SKILL.md
+          git commit -m "chore: auto-sync root SKILL.md with skills/humanizer-ru/SKILL.md"
+          git push

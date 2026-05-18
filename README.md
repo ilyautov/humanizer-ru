@@ -183,7 +183,6 @@ git clone https://github.com/ilyautov/humanizer-ru.git ~/.claude/skills/humanize
 
 - **Wikipedia: WikiProject AI Cleanup**: базовый каталог признаков AI-текста на русском
 - **15+ русскоязычных публикаций**: Habr, vc.ru, Gramota.ru, стилометрические исследования ВШЭ, Dialog Conference (RuATD-2022 и AINL-Eval 2025), TechInsider, Kokoc.com
-- **Статья Ники Смирновой на vc.ru** (май 2026): стилистические фингерпринты 2025-2026, регистр псевдо-терапии
 - **106 arxiv-статей** (2024-2026): Biber framework, DivEye, CoPA EMNLP 2025, PIFE, MASH, Antislop, AINL-Eval, NeurIPS 2025
 
 Полный changelog с источниками: внутри [SKILL.md](skills/humanizer-ru/SKILL.md).
