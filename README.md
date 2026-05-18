@@ -5,7 +5,7 @@
 > [English version](README.en.md)
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Версия](https://img.shields.io/badge/версия-3.3.0-blueviolet)](https://github.com/ilyautov/humanizer-ru/releases)
+[![Версия](https://img.shields.io/badge/версия-3.4.0-blueviolet)](https://github.com/ilyautov/humanizer-ru/releases)
 [![Звёзды](https://img.shields.io/github/stars/ilyautov/humanizer-ru?style=social)](https://github.com/ilyautov/humanizer-ru/stargazers)
 [![skills.sh](https://skills.sh/b/ilyautov/humanizer-ru)](https://skills.sh/ilyautov/humanizer-ru/humanizer-ru)
 
