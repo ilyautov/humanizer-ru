@@ -5,9 +5,15 @@
 > [English version](README.en.md)
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Версия](https://img.shields.io/badge/версия-3.5.0-blueviolet)](https://github.com/ilyautov/humanizer-ru/releases)
+[![Версия](https://img.shields.io/badge/версия-3.8.0-blueviolet)](https://github.com/ilyautov/humanizer-ru/blob/main/CHANGELOG.md)
 [![Звёзды](https://img.shields.io/github/stars/ilyautov/humanizer-ru?style=social)](https://github.com/ilyautov/humanizer-ru/stargazers)
 [![skills.sh](https://skills.sh/b/ilyautov/humanizer-ru)](https://skills.sh/ilyautov/humanizer-ru/humanizer-ru)
+
+<p align="center">
+  <a href="https://ilyautov.github.io/humanizer-ru/">
+    <img src="assets/social-preview.png" alt="humanizer-ru: убирает следы нейросети из русского текста. 52 признака, 20 запретов, сканер в комплекте" width="720">
+  </a>
+</p>
 
 📖 **Документация и разборы:** [ilyautov.github.io/humanizer-ru](https://ilyautov.github.io/humanizer-ru/) — [работают ли AI-детекторы на русском](https://ilyautov.github.io/humanizer-ru/ai-detektory-na-russkom.html), [52 признака AI-текста](https://ilyautov.github.io/humanizer-ru/52-priznaka-ai-teksta.html), [антиплагиат и нейросеть](https://ilyautov.github.io/humanizer-ru/antiplagiat-i-neyroset.html).
 

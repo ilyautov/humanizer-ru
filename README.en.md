@@ -5,9 +5,15 @@
 Claude Code / Cowork plugin. Kills AI smell in Russian text. The English [humanizer](https://github.com/blader/humanizer) won't help here. Russian AI markers are their own beast: bureaucratic noun-chains (канцелярит), English-syntax calques, missing particles like "же" and "ведь" that make Russian sound alive.
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-3.5.0-blueviolet)](https://github.com/ilyautov/humanizer-ru/releases)
+[![Version](https://img.shields.io/badge/version-3.8.0-blueviolet)](https://github.com/ilyautov/humanizer-ru/blob/main/CHANGELOG.md)
 [![Stars](https://img.shields.io/github/stars/ilyautov/humanizer-ru?style=social)](https://github.com/ilyautov/humanizer-ru/stargazers)
 [![skills.sh](https://skills.sh/b/ilyautov/humanizer-ru)](https://skills.sh/ilyautov/humanizer-ru/humanizer-ru)
+
+<p align="center">
+  <a href="https://ilyautov.github.io/humanizer-ru/">
+    <img src="assets/social-preview.png" alt="humanizer-ru: removes AI tells from Russian text. 52 patterns, 20 hard bans, scanner included" width="720">
+  </a>
+</p>
 
 📖 **Docs & write-ups (RU):** [ilyautov.github.io/humanizer-ru](https://ilyautov.github.io/humanizer-ru/) — do AI detectors work on Russian, the 52 markers, plagiarism vs AI detection.
 
