@@ -13,7 +13,7 @@
 
 # HTTP-клиент: нужен и для локальной Ollama (детекторы/судья/faithfulness),
 # и для облачных детекторов GPTZero/Originality (если используешь их ключи).
-requests>=2.31
+requests>=2.34.2
 
 # LLM-судья опционально может ходить в Anthropic API (ANTHROPIC_API_KEY).
 # НЕ обязателен: по умолчанию судья работает на локальной Ollama.
