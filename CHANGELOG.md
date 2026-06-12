@@ -24,10 +24,8 @@
   чат-бота): `:contentReference[oaicite:N]`, `oai_citation`, `utm_source=chatgpt.com/openai`,
   `grok_card://`, `attached_file://`, `vertexaisearch`-redirect, `turnN(search|fetch|file)N`,
   `citeturn...`, `【N†source】`, `[citation:N]`, `](sandbox:/mnt/data/`, невидимые U+E200-E204,
-  `</think>`. Сканер научился regex-маркерам (префикс `re:`). Каждый маркер проверен по
-  первоисточнику (enwiki «Signs of AI writing» §6-7, форум/доки OpenAI, доки DeepSeek,
-  доки Google Gemini grounding — таблица ссылок в SOURCES.md). Копайлот-сноски `[^N^]`
-  НЕ включены: формат не подтвердился документацией Microsoft. Один артефакт =
+  `</think>`. Сканер научился regex-маркерам (префикс `re:`). Копайлот-сноски `[^N^]`
+  НЕ включены: высокий риск ложных срабатываний на Markdown-сноски. Один артефакт =
   однозначный вердикт сканера, минуя шкалу. + тесты, секция в SKILL.md.
 
 ## v3.6 — Сканер едет со скиллом, машинная половина «Аудита» подключена

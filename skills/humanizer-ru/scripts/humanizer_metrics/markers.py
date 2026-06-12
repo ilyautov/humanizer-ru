@@ -107,14 +107,7 @@ SCANNER: dict[str, list[str]] = {
         "стоит помнить", "следует учитывать", "необходимо отметить",
     ],
     # Технические следы копирования из интерфейса чат-бота. Однозначные улики:
-    # в человеческом тексте не встречаются. Каждый маркер проверен по
-    # первоисточнику (ссылки — SOURCES.md, раздел «Артефакты копипасты»):
-    # enwiki «Signs of AI writing» §6.3-6.5/§7.6 (contentReference, oaicite,
-    # oai_citation, attached_file, grok_card, turnNsearchN, attributableIndex,
-    # utm_source=), форум разработчиков OpenAI (filecite/turnNfileN, GPT-5.x),
-    # доки OpenAI Assistants (【N†source】), доки DeepSeek + Trend Micro (think-теги),
-    # доки Google Gemini grounding (vertexaisearch-redirect), разбор экспорта
-    # диалогов OpenAI (невидимые U+E200-E204), треды OpenAI/Make (sandbox:/mnt/data).
+    # в человеческом тексте не встречаются.
     # Префикс "re:" = регулярное выражение, остальное — подстрока.
     "Артефакты копипасты": [
         ":contentReference", "oai_citation", "utm_source=chatgpt.com",

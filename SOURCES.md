@@ -67,21 +67,3 @@ arxiv.org и первоисточникам. Непроверяемые точн
 операционные правила (контрастное вычитание, burstiness, noun/verb, бан тире,
 морфология) верны независимо от цитат и сохранены. Численные доказательства и
 ссылки живут здесь и в README, где их можно перепроверить.
-
-## Артефакты копипасты (категория сканера, v3.7)
-
-Каждый маркер категории «Артефакты копипасты» проверен по первоисточнику 12.06.2026:
-
-| Маркер | Первоисточник |
-|---|---|
-| `:contentReference`, `oaicite:N`, `oai_citation`, `attached_file`, `grok_card`, `turnNsearchN`, `attribution`/`attributableIndex`, `utm_source=` | [enwiki «Signs of AI writing»](https://en.wikipedia.org/wiki/Wikipedia:Signs_of_AI_writing) §6.3-6.5, §7.6 |
-| `filecite`/`turnNfileN` (file_search, GPT-5.x) | [Форум разработчиков OpenAI](https://community.openai.com/t/unexpected-citation-markers-appearing-in-text-output-when-using-file-search/1362380) (подтверждено OpenAI Support) |
-| `【N†source】`, `【N:M†файл】` | [Доки OpenAI Assistants file search](https://platform.openai.com/docs/assistants/tools/file-search) + [баг-тред про сырые метки](https://community.openai.com/t/citation-format-differs-in-gpt-4-1-mini-file-search-annotations-missing-replaced-with-raw-references/1290591) |
-| Невидимые U+E200-E204 | [Разбор приватных управляющих символов в экспортах OpenAI](https://github.com/sanand0/openai-conversations/blob/main/private-unicode-control-characters.md) |
-| `](sandbox:/mnt/data/...)` | [OpenAI community: нерабочие download-ссылки](https://community.openai.com/t/error-report-download-link-not-working-for-generated-files-in-chatgpt-code-interpreter/1220959), [Make community](https://community.make.com/t/how-can-i-download-a-file-from-a-sandbox-mnt-data-url-generated-by-chatgpt/77162) |
-| `</think>` (DeepSeek R1 и наследники) | [Доки DeepSeek Thinking Mode](https://api-docs.deepseek.com/guides/thinking_mode), [Trend Micro про утечки CoT](https://www.trendmicro.com/en_us/research/25/c/exploiting-deepseek-r1.html), [aider#3008](https://github.com/Aider-AI/aider/issues/3008) |
-| `[citation:N]` (Perplexity-стиль) | [Perplexity docs: streaming citations](https://docs.perplexity.ai/docs/cookbook/articles/streaming-citations/README) + интеграционные обсуждения (LibreChat#4692) |
-| `vertexaisearch.cloud.google.com/grounding-api-redirect` | [Доки Google Gemini: Grounding with Google Search](https://ai.google.dev/gemini-api/docs/google-search) |
-
-Не прошло верификацию и НЕ включено: копайлот-сноски `[^N^]` — формат не подтверждён
-документацией Microsoft (Copilot документирует `[1]`), а FP-риск к Markdown-сноскам высокий.
