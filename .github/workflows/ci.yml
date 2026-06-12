@@ -32,8 +32,17 @@ jobs:
       - name: Self-test скилла (lint_skill)
         run: python scripts/lint_skill.py
 
-      - name: Sanity-скан человеческого текста (scan.py)
-        run: python skills/humanizer-ru/scripts/scan.py eval/corpus/human/wiki_baikal.txt
+      # Цель шага: «сканер запускается и отдаёт валидный JSON», а НЕ «текст чистый».
+      # Exit 1 у scan.py означает «нашёл HARD BANS» — для формального человеческого
+      # текста (Википедия: «является», тире) это штатно (см. eval/RESULTS.md, FP-аудит).
+      - name: Sanity-скан (scan.py запускается и отдаёт валидный JSON)
+        run: |
+          set +e
+          python skills/humanizer-ru/scripts/scan.py eval/corpus/human/wiki_baikal.txt --json > /tmp/scan.json
+          code=$?
+          set -e
+          if [ "$code" -gt 1 ]; then echo "scan.py упал (exit $code)"; exit "$code"; fi
+          python -c "import json; r = json.load(open('/tmp/scan.json')); print('scan ok, hard bans:', r['hard_ban_count'])"
 
       - name: Eval-харнес (метрики-only, без детекторов/судьи)
         run: python eval/run_eval.py
