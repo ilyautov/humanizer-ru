@@ -15,6 +15,8 @@
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Работают ли AI-детекторы на русском языке?">
 <meta name="twitter:description" content="Почему детекторы AI-текста на русском ненадёжны. Данные из eval-харнеса.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="style.css">
 <script type="application/ld+json">
 {
@@ -92,6 +94,14 @@
       <a href="ai-detektory-na-russkom.html" aria-current="page">AI-детекторы</a>
       <a href="antiplagiat-i-neyroset.html">Антиплагиат и ИИ</a>
     </nav>
+    <div class="head-icons">
+      <a href="https://github.com/ilyautov/humanizer-ru" aria-label="GitHub-репозиторий humanizer-ru">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.55 0-.27-.01-1.17-.02-2.12-3.2.7-3.87-1.36-3.87-1.36-.52-1.33-1.28-1.68-1.28-1.68-1.04-.71.08-.7.08-.7 1.15.08 1.76 1.19 1.76 1.19 1.03 1.76 2.69 1.25 3.35.96.1-.75.4-1.25.73-1.54-2.55-.29-5.23-1.28-5.23-5.68 0-1.26.45-2.28 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.78 0c2.2-1.49 3.16-1.18 3.16-1.18.63 1.59.24 2.76.12 3.05.74.81 1.18 1.83 1.18 3.09 0 4.41-2.69 5.38-5.25 5.67.41.35.78 1.05.78 2.12 0 1.53-.01 2.76-.01 3.14 0 .3.2.66.8.55A11.5 11.5 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z"/></svg>
+      </a>
+      <a href="https://t.me/gorilla_under_hood" aria-label="Telegram-канал автора Under the Hood">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21.94 3.27a1.5 1.5 0 0 0-1.62-.22L2.9 10.66c-1.22.54-1.16 2.3.1 2.74l4.4 1.54 1.7 5.32c.36 1.12 1.78 1.4 2.54.51l2.4-2.8 4.43 3.25c.9.66 2.18.17 2.4-.92l2.52-15.4a1.5 1.5 0 0 0-.45-1.63ZM9.5 14.4l8.4-7.6c.27-.24-.06-.65-.37-.46L7.4 12.6l-3.9-1.36 16.7-7.13-2.3 14.1-4.7-3.46-1.96 2.28-.74-2.63Z"/></svg>
+      </a>
+    </div>
   </div>
 </header>
 
@@ -193,13 +203,48 @@
     <a class="cta-secondary" href="kak-ubrat-sledy-neyroseti.html">Как убрать следы нейросети →</a>
   </div>
 
+  <section class="tg-banner">
+    <div class="tg-card">
+      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21.94 3.27a1.5 1.5 0 0 0-1.62-.22L2.9 10.66c-1.22.54-1.16 2.3.1 2.74l4.4 1.54 1.7 5.32c.36 1.12 1.78 1.4 2.54.51l2.4-2.8 4.43 3.25c.9.66 2.18.17 2.4-.92l2.52-15.4a1.5 1.5 0 0 0-.45-1.63ZM9.5 14.4l8.4-7.6c.27-.24-.06-.65-.37-.46L7.4 12.6l-3.9-1.36 16.7-7.13-2.3 14.1-4.7-3.46-1.96 2.28-.74-2.63Z"/></svg>
+      <div class="tg-text">
+        <strong>Telegram-канал автора: Under the Hood</strong>
+        <p>Про AI, безопасность и то, как всё устроено под капотом. Разборы вроде этого выходят там первыми.</p>
+      </div>
+      <a class="cta cta-tg" href="https://t.me/gorilla_under_hood">Подписаться</a>
+    </div>
+  </section>
+
 </div>
 </main>
 
 <footer class="site-footer">
   <div class="wrap">
-    <span>humanizer-ru: open-source скилл для Claude, MIT.</span>
-    <a class="foot-cta" href="https://github.com/ilyautov/humanizer-ru">Репозиторий и установка →</a>
+    <div class="foot-grid">
+      <div>
+        <a class="brand" href="index.html">humanizer<span>-ru</span></a>
+        <p>Open-source скилл для Claude, который убирает следы нейросети из русского текста и возвращает ему живой голос. Лицензия MIT.</p>
+      </div>
+      <div>
+        <h4>Материалы</h4>
+        <ul>
+          <li><a href="kak-ubrat-sledy-neyroseti.html">Убрать следы нейросети</a></li>
+          <li><a href="52-priznaka-ai-teksta.html">52 признака AI-текста</a></li>
+          <li><a href="ai-detektory-na-russkom.html">AI-детекторы на русском</a></li>
+          <li><a href="antiplagiat-i-neyroset.html">Антиплагиат и нейросеть</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Автор</h4>
+        <ul>
+          <li><a href="https://github.com/ilyautov/humanizer-ru">GitHub: репозиторий и установка</a></li>
+          <li><a href="https://t.me/gorilla_under_hood">Telegram: Under the Hood</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="foot-bottom">
+      <span>humanizer-ru · MIT</span>
+      <a class="foot-cta" href="https://github.com/ilyautov/humanizer-ru">Поставить звезду на GitHub →</a>
+    </div>
   </div>
 </footer>
 

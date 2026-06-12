@@ -10,3 +10,7 @@ eval/out/
 
 # секреты детекторов / API
 .env
+
+# macOS / локальный тулинг
+.DS_Store
+.claude/
