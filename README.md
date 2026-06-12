@@ -98,6 +98,21 @@ curl -o ~/.claude/skills/humanizer-ru/SKILL.md \
   https://raw.githubusercontent.com/ilyautov/humanizer-ru/main/skills/humanizer-ru/SKILL.md
 ```
 
+### 4. Codex CLI (OpenAI)
+
+Codex использует тот же формат Agent Skills, отдельная версия не нужна:
+
+```bash
+git clone --depth 1 https://github.com/ilyautov/humanizer-ru
+mkdir -p ~/.codex/skills
+cp -r humanizer-ru/skills/humanizer-ru ~/.codex/skills/
+```
+
+Либо изнутри Codex через `skill-installer`: укажите путь
+`ilyautov/humanizer-ru/skills/humanizer-ru`. После установки перезапустите Codex;
+вызов — `$humanizer-ru` или автоматически по триггер-фразам («очеловечь»,
+«убери канцелярит»). Проектная установка: та же папка в `.codex/skills/` внутри репозитория.
+
 Или клонированием:
 
 ```bash

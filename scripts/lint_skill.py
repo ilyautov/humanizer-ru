@@ -121,6 +121,22 @@ def check_examples_pass_scanner(text: str) -> None:
         notes.append("✓ все одобренные примеры проходят сканер HARD BANS")
 
 
+MAX_DESCRIPTION_CHARS = 1024  # лимит Claude Code на frontmatter description
+
+
+def check_frontmatter(text: str) -> None:
+    m = re.search(r'^description:\s*"(.*)"\s*$', text, re.MULTILINE)
+    if not m:
+        errors.append("frontmatter: не найден description в кавычках")
+        return
+    n = len(m.group(1))  # символы, не байты: кириллица в UTF-8 двухбайтовая
+    if n > MAX_DESCRIPTION_CHARS:
+        errors.append(f"frontmatter: description {n} символов > {MAX_DESCRIPTION_CHARS} "
+                      "(длиннее лимита Claude Code — автотриггеринг под угрозой)")
+    else:
+        notes.append(f"✓ description: {n} символов (лимит {MAX_DESCRIPTION_CHARS})")
+
+
 def check_sync() -> None:
     if not CANON.exists():
         errors.append(f"нет канонического файла {CANON}")
@@ -138,6 +154,7 @@ def main() -> int:
     text = CANON.read_text(encoding="utf-8") if CANON.exists() else MIRROR.read_text(encoding="utf-8")
     check_patterns(text)
     check_counts(text)
+    check_frontmatter(text)
     check_em_dash_in_examples(text)
     check_examples_pass_scanner(text)
     check_sync()

@@ -70,6 +70,21 @@ Or via git clone:
 git clone https://github.com/ilyautov/humanizer-ru.git ~/.claude/skills/humanizer-ru
 ```
 
+### 4. Codex CLI (OpenAI)
+
+Codex uses the same Agent Skills format, so no separate build is needed:
+
+```bash
+git clone --depth 1 https://github.com/ilyautov/humanizer-ru
+mkdir -p ~/.codex/skills
+cp -r humanizer-ru/skills/humanizer-ru ~/.codex/skills/
+```
+
+Or from inside Codex via `skill-installer` with the path
+`ilyautov/humanizer-ru/skills/humanizer-ru`. Restart Codex after installing;
+invoke with `$humanizer-ru` or let it auto-trigger. For a per-project install,
+put the same folder under `.codex/skills/` in your repository.
+
 ## Modes
 
 - **Full rewrite** (default): all 52 patterns, voice calibration, quad-pass audit.
