@@ -1,0 +1,39 @@
+name: CI
+
+# Бесплатный детерминированный гейт: self-test скилла, sanity-скан и
+# eval-харнес в метрики-режиме (без реальных детекторов и LLM-судьи, без
+# ключей и сети). Тяжёлые детекторы (torch/transformers) и облачные API в CI
+# НЕ запускаются — это сделало бы прогон платным и недетерминированным.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  eval:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install core deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Регресс-тесты метрик (test_markers)
+        run: python scripts/test_markers.py
+
+      - name: Self-test скилла (lint_skill)
+        run: python scripts/lint_skill.py
+
+      - name: Sanity-скан человеческого текста (scan.py)
+        run: python scripts/scan.py eval/corpus/human/human_blog_01.txt
+
+      - name: Eval-харнес (метрики-only, без детекторов/судьи)
+        run: python eval/run_eval.py

@@ -1,0 +1,195 @@
+# Eval-харнес humanizer-ru
+
+Измеряет, насколько хорошо скилл `humanizer-ru` очеловечивает русский AI-текст,
+и страхует от регрессий. Главный артефакт — [`RESULTS.md`](./RESULTS.md)
+(автогенерируется, на него ссылается корневой README).
+
+## Что меряем
+
+Три слоя, по нарастанию стоимости и «семантичности»:
+
+1. **Детерминированные метрики** (всегда, без ключей и сети) — движок
+   `scripts/humanizer_metrics`:
+   - **HARD BANS** — 20 запрещённых конструкций (длинное тире, «является»,
+     «в современном мире», «не просто X, а Y» и т.д.). Любое попадание = провал.
+   - **Маркеры** — 19 категорий быстрого сканера (канцелярит, кальки, раздувание…).
+   - **CV ритма** — коэффициент вариации длины предложений. У AI ритм ровный
+     (CV низкий), у людей рваный (CV ≥ 0.45). Считается дисперсией, а не на глаз.
+   - **Сущ./глаг.** — морфологическое соотношение через pymorphy3 (цель ≤ 2.5:1;
+     у AI-русского ~3:1, признак канцелярита).
+
+2. **Реальные детекторы** (опционально, флаг `--detectors`) — модели,
+   возвращающие вероятность «текст написан AI» 0..1:
+   - **ollama_llm** — ЛОКАЛЬНАЯ Ollama (по умолчанию), без ключей и сети наружу;
+   - **GPTZero** (облако, ключ `GPTZERO_API_KEY`);
+   - **Originality.ai** (облако, ключ `ORIGINALITY_API_KEY`);
+   - **ru_roberta** (локальная HF-модель, transformers + torch);
+   - **ollama_ppl** — приближённый perplexity-детектор (флаг `--perplexity`, см. ниже).
+
+   Любой недоступный детектор молча пропускается (`score → None`).
+
+3. **LLM-судья** (опционально, флаг `--judge`) — по умолчанию ЛОКАЛЬНАЯ Ollama
+   ставит оценку 0..100 «насколько это похоже на живой человеческий русский» и
+   перечисляет оставшиеся AI-паттерны. Anthropic — опция (см. бэкенды ниже).
+   Без Ollama и без `ANTHROPIC_API_KEY` судья пропускается.
+
+4. **Faithfulness — защита смысла** (опционально, флаг `--faithfulness`) — чтобы
+   не геймить метрики ценой содержания. Для пар raw→humanized считает:
+   - **cosine** — косинус эмбеддингов (Ollama-модель `nomic-embed-text`);
+   - **meaning** — LLM-проверка (Ollama): сохранены ли факты, цифры, ключевые
+     утверждения; оценка 0..100 + список потерянного/искажённого;
+   - **вердикт**: «ок», если `cosine ≥ 0.75` и `meaning ≥ 70`, иначе
+     «⚠ смысл пострадал».
+
+Семантику (кальки, ирония, translationese, живость голоса) ловит только судья —
+детерминированные метрики на это не претендуют.
+
+### Ollama-бэкенд (локальный LLM-слой, без облачных ключей)
+
+LLM-слой (детектор `ollama_llm`, судья, faithfulness, perplexity) ходит в
+**локальную Ollama** (`ollama serve`, по умолчанию `http://localhost:11434`).
+Ключ Anthropic **больше не нужен**. Клиент — [`llm_backend.py`](./llm_backend.py):
+graceful — при недоступной Ollama всё деградирует в `None`/`False`, метрики-режим
+не страдает.
+
+Подготовка (один раз):
+
+```bash
+ollama pull gemma3:4b          # чат-модель по умолчанию (знает русский)
+ollama pull nomic-embed-text   # эмбеддинги для faithfulness
+ollama pull gemma3:1b          # быстрая модель для --perplexity (опц.)
+```
+
+Судья выбирает бэкенд так (`JUDGE_BACKEND`, по умолчанию `auto`): Anthropic —
+только если задан `ANTHROPIC_API_KEY` И установлен пакет `anthropic`; иначе
+локальная Ollama. Любой LLM-раздел в `RESULTS.md` помечен, какой моделью Ollama
+он получен.
+
+**`ollama_ppl` (perplexity, флаг `--perplexity`)** — teacher-forcing: идём по
+тексту, на каждой выбранной позиции запрашиваем 1 токен с `top_logprobs`, ищем
+фактический следующий токен, копим NLL → perplexity. Низкая perplexity ⇒ выше
+«AI-вероятность». Это **приближение по семплу** (≤ 40 позиций; токенизация razdel
+≠ сабворды модели), дорогое (десятки вызовов на текст). Поэтому он **не входит**
+в дефолтный `--detectors` и включается только отдельным флагом.
+
+## Как запускать
+
+```bash
+# Метрики-only (детерминированно, без ключей и Ollama) — этот режим гоняется в CI:
+python eval/run_eval.py
+
+# Полный режим на ЛОКАЛЬНОЙ Ollama: до/после + детекторы + судья + защита смысла:
+python eval/run_eval.py --humanized eval/corpus/humanized \
+    --detectors --judge --faithfulness
+
+# Только локальный LLM-детектор, без судьи:
+python eval/run_eval.py --detectors
+
+# Добавить приближённый perplexity-детектор (дорого, по семплу):
+python eval/run_eval.py --detectors --perplexity
+```
+
+Опциональные зависимости (requests / anthropic / transformers / torch) — в
+[`requirements-eval.txt`](./requirements-eval.txt), в core их нет:
+
+```bash
+pip install -r eval/requirements-eval.txt
+```
+
+### Аргументы
+
+| флаг | назначение |
+|---|---|
+| `--corpus DIR` | каталог корпуса с `meta.json` (по умолчанию `eval/corpus`) |
+| `--humanized DIR` | каталог с очеловеченными версиями `<id>.txt` для сравнения до/после; без него — baseline только по raw |
+| `--detectors` | включить реальные детекторы (`ollama_llm` на локальной Ollama; облачные при наличии ключей) |
+| `--perplexity` | добавить приближённый perplexity-детектор `ollama_ppl` (дорогой, по семплу; нужны Ollama + razdel) |
+| `--judge` | включить LLM-судью (по умолчанию локальная Ollama; Anthropic опционально) |
+| `--faithfulness` | защита смысла raw→humanized: cosine + meaning + вердикт (локальная Ollama + `nomic-embed-text`) |
+| `--out DIR` | куда писать `results.json` (по умолчанию `eval/out`) |
+| `--baseline FILE` | regression-гейт: сравнить с эталоном, `exit 1` при просадке |
+| `--save-baseline` | записать текущий снимок метрик как эталон `baseline.json` |
+
+## Переменные окружения
+
+| переменная | для чего | по умолчанию |
+|---|---|---|
+| `OLLAMA_HOST` | база API локальной Ollama | `http://localhost:11434` |
+| `OLLAMA_MODEL` | чат-модель Ollama (детектор/судья/meaning) | `gemma3:4b` |
+| `OLLAMA_EMBED` | embedding-модель Ollama (faithfulness cosine) | `nomic-embed-text` |
+| `OLLAMA_PPL_MODEL` | модель для perplexity-детектора `ollama_ppl` | `gemma3:1b` |
+| `JUDGE_BACKEND` | бэкенд судьи: `auto` / `ollama` / `anthropic` | `auto` |
+| `GPTZERO_API_KEY` | облачный детектор GPTZero (опц.) | — |
+| `ORIGINALITY_API_KEY` | облачный детектор Originality.ai (опц.) | — |
+| `ANTHROPIC_API_KEY` | LLM-судья через Anthropic (опц., НЕ обязателен) | — |
+| `JUDGE_MODEL` | модель Anthropic-судьи (если выбран этот бэкенд) | `claude-sonnet-4-6` |
+| `RU_DETECTOR_MODEL` | HF-имя локального детектора `ru_roberta` | — |
+
+Все они опциональны: без Ollama и без ключей харнес считает детерминированные
+метрики и деградирует, помечая в футере `RESULTS.md`, что было недоступно.
+**Ключ Anthropic больше не обязателен** — LLM-слой по умолчанию работает на
+локальной Ollama.
+
+## Корпус
+
+`eval/corpus/meta.json` — манифест: `{id, type, source_model, is_human, file}`.
+Корпус стратифицирован по матрице из таблицы классификации скилла:
+
+- **типы**: `marketing`, `expert`, `business`, `docs`;
+- **модели-источники**: `gpt`, `claude`, `gemini`, `human`.
+
+Два раздела:
+
+- `raw/*.txt` — насыщенные маркерами AI-тексты (вход скилла). На них проверяем,
+  что харнес уверенно видит AI и что скилл их чистит.
+- `human/*.txt` — живые человеческие тексты (**контроль переусердствования**).
+
+### Контроль переусердствования
+
+Скилл не должен «лечить здоровых»: на живом человеческом тексте он не должен
+находить много того, что хочется править. Харнес отдельной секцией считает на
+`is_human`-текстах HARD BANS и маркеры. Тревога (ложное срабатывание), если
+HARD BANS > 0 или маркеров > 5. Так мы ловим переусердствование скилла/сканера.
+
+## Regression-гейт
+
+Чтобы изменения в скилле/метриках не ухудшали результат незаметно:
+
+```bash
+# зафиксировать эталон (после хорошего прогона):
+python eval/run_eval.py --save-baseline
+
+# проверить, что метрики не просели (для CI/pre-push):
+python eval/run_eval.py --baseline eval/out/baseline.json
+```
+
+Гейт сравнивает «после»-метрики (или raw, если humanized нет) с эталоном по id и
+выходит с кодом 1, если для какого-то текста стало **больше** HARD BANS/маркеров
+или **ниже** CV ритма (ритм стал ровнее). Снимок эталона лежит в `eval/out/`
+(каталог в `.gitignore` — артефакты не коммитятся).
+
+## Структура
+
+```
+eval/
+├── README.md              — этот файл
+├── RESULTS.md             — публичный автогенерируемый отчёт
+├── run_eval.py            — оркестратор (главный вход)
+├── llm_backend.py         — клиент локальной Ollama (generate/json/embed/logprobs)
+├── judge.py               — LLM-судья (Ollama по умолчанию, Anthropic опц.)
+├── faithfulness.py        — защита смысла (cosine + meaning через Ollama)
+├── requirements-eval.txt  — опц. зависимости (requests + опц. anthropic/transformers)
+├── corpus/
+│   ├── meta.json          — манифест корпуса
+│   ├── raw/*.txt          — AI-тексты
+│   └── human/*.txt        — человеческие тексты (контроль)
+├── detectors/
+│   ├── base.py            — ABC Detector + контракт
+│   ├── gptzero.py         — адаптер GPTZero (облако)
+│   ├── originality.py     — адаптер Originality.ai (облако)
+│   ├── ru_roberta.py      — локальный HF-детектор
+│   ├── ollama_llm.py      — локальный LLM-детектор (Ollama)
+│   ├── ollama_ppl.py      — приближённый perplexity-детектор (Ollama, --perplexity)
+│   └── __init__.py        — registry: available_detectors() / perplexity_detectors()
+└── out/                   — results.json, baseline.json (gitignored)
+```

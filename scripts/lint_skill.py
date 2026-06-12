@@ -1,0 +1,158 @@
+#!/usr/bin/env python3
+"""Self-test скилла: тестирует SKILL.md против собственных правил.
+
+Ловит ровно те классы регрессий, которые иначе ловятся только глазами:
+  1. Пропавший/задвоенный паттерн (нумерация 1..52 без дыр).
+  2. Число HARD BANS и категорий сканера разошлось с markers.py.
+  3. Длинное тире «—» в СОБСТВЕННЫХ одобренных примерах скилла (После:/Стало:/
+     блок «## Примеры»). Скилл велит ноль тире — он не имеет права показывать
+     тире в «хорошем» выводе.
+  4. Каждый одобренный пример скилла («Стало:»/«После:») сам проходит сканер:
+     ноль HARD BANS. Скилл, нарушающий свои баны в примерах, не пройдёт CI.
+  5. Корневой SKILL.md идентичен skills/humanizer-ru/SKILL.md.
+
+Запуск:  python scripts/lint_skill.py
+Exit code 1 при любой ошибке — гейт для CI/pre-commit.
+"""
+
+from __future__ import annotations
+
+import re
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT / "scripts"))
+
+from humanizer_metrics.markers import HARD_BANS, SCANNER, scan_hard_bans
+
+CANON = ROOT / "skills" / "humanizer-ru" / "SKILL.md"
+MIRROR = ROOT / "SKILL.md"
+
+EXPECTED_PATTERNS = 52
+EXPECTED_HARD_BANS = 20
+EXPECTED_SCANNER_CATS = 19
+
+errors: list[str] = []
+notes: list[str] = []
+
+
+def check_patterns(text: str) -> None:
+    found = set()
+    # Заголовки паттернов: «**6.**» и диапазоны «**17-18.**».
+    for m in re.finditer(r"^\*\*(\d{1,2})(?:-(\d{1,2}))?\.", text, re.MULTILINE):
+        start = int(m.group(1))
+        end = int(m.group(2)) if m.group(2) else start
+        for n in range(start, end + 1):
+            if 1 <= n <= EXPECTED_PATTERNS:
+                found.add(n)
+    missing = sorted(set(range(1, EXPECTED_PATTERNS + 1)) - found)
+    if missing:
+        errors.append(f"Пропущены паттерны: {missing}")
+    else:
+        notes.append(f"✓ все {EXPECTED_PATTERNS} паттернов на месте")
+
+
+def check_counts(text: str) -> None:
+    if len(HARD_BANS) != EXPECTED_HARD_BANS:
+        errors.append(f"markers.HARD_BANS={len(HARD_BANS)}, ожидалось {EXPECTED_HARD_BANS}")
+    else:
+        notes.append(f"✓ HARD BANS: {len(HARD_BANS)}")
+
+    # Категорий в разделе «## Быстрый сканер» (жирные метки «**...:**»).
+    # markers.SCANNER — лексический ПОДСЕТ этих категорий (часть категорий
+    # сканера нелексические: ритм, структура, фигуративный ноль), поэтому его
+    # размер не обязан совпадать — он просто покрытие движка.
+    sect = re.search(r"## Быстрый сканер.*?(?=\n## |\Z)", text, re.DOTALL)
+    scanner_cats = len(re.findall(r"^\*\*[^*\n]+:\*\*", sect.group(0), re.MULTILINE)) if sect else 0
+    if scanner_cats != EXPECTED_SCANNER_CATS:
+        errors.append(f"Категорий в разделе сканера: {scanner_cats}, ожидалось {EXPECTED_SCANNER_CATS}")
+    else:
+        notes.append(f"✓ категорий сканера в SKILL.md: {scanner_cats}")
+    notes.append(f"  (лексический движок markers.SCANNER покрывает {len(SCANNER)})")
+
+
+def _approved_examples(text: str) -> list[tuple[int, str]]:
+    """Строки ОДОБРЕННОГО вывода скилла: 'После:'/'Стало:' (как inline, так и
+    blockquote на следующей строке). 'Было:'/'До:' — намеренно плохие, их НЕ берём.
+
+    Метка ('Было:'/'Стало:'/'До:'/'После:') часто стоит на отдельной строке от
+    самой цитаты-blockquote, поэтому ведём текущую метку и одобряем blockquote
+    только если он идёт после Стало/После."""
+    out: list[tuple[int, str]] = []
+    label: str | None = None
+    for i, line in enumerate(text.splitlines(), 1):
+        s = line.strip()
+        m = re.match(r"^(Было|Стало|До|После):\s*(.*)$", s)
+        if m:
+            label = m.group(1)
+            if m.group(2) and label in ("Стало", "После"):
+                out.append((i, m.group(2)))
+            continue
+        if s.startswith("> "):
+            if label in ("Стало", "После"):
+                out.append((i, s[2:]))
+            continue
+        if s:  # любая прозовая строка сбрасывает метку
+            label = None
+    return out
+
+
+def check_em_dash_in_examples(text: str) -> None:
+    bad = [(i, ln) for i, ln in _approved_examples(text) if "—" in ln]
+    if bad:
+        for i, ln in bad:
+            errors.append(f"Длинное тире в одобренном примере (строка {i}): {ln[:70]}")
+    else:
+        notes.append("✓ ноль длинных тире в одобренных примерах")
+
+
+def check_examples_pass_scanner(text: str) -> None:
+    failed = 0
+    for i, ln in _approved_examples(text):
+        hits = scan_hard_bans(ln)
+        # «Было:» намеренно содержит баны; мы берём только После/Стало/>-good,
+        # но на всякий случай фильтруем строки, где это явно «плохой» пример.
+        if hits:
+            failed += 1
+            errors.append(f"Одобренный пример нарушает HARD BAN (строка {i}): "
+                          f"{', '.join(h.marker for h in hits)}")
+    if not failed:
+        notes.append("✓ все одобренные примеры проходят сканер HARD BANS")
+
+
+def check_sync() -> None:
+    if not CANON.exists():
+        errors.append(f"нет канонического файла {CANON}")
+        return
+    if not MIRROR.exists():
+        errors.append(f"нет зеркала {MIRROR}")
+        return
+    if CANON.read_text(encoding="utf-8") != MIRROR.read_text(encoding="utf-8"):
+        errors.append("SKILL.md в корне и в skills/humanizer-ru/ разошлись (нужен sync)")
+    else:
+        notes.append("✓ корневой SKILL.md синхронизирован со skills/")
+
+
+def main() -> int:
+    text = CANON.read_text(encoding="utf-8") if CANON.exists() else MIRROR.read_text(encoding="utf-8")
+    check_patterns(text)
+    check_counts(text)
+    check_em_dash_in_examples(text)
+    check_examples_pass_scanner(text)
+    check_sync()
+
+    print("=== lint_skill ===")
+    for n in notes:
+        print(" ", n)
+    if errors:
+        print("\nОШИБКИ:")
+        for e in errors:
+            print("  ✗", e)
+        return 1
+    print("\nВсё чисто.")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

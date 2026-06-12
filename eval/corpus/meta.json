@@ -1,0 +1,17 @@
+{
+  "description": "Стратифицированный корпус eval-харнеса humanizer-ru. raw/* — насыщенные маркерами AI-тексты разных типов и моделей (вход для скилла). human/* — ЗАВЕДОМО человеческий контроль: дословные отрывки статей русской Википедии (CC BY-SA, до-AI редактура), используются для FP-аудита детекторов. См. ATTRIBUTION.md.",
+  "types": ["marketing", "expert", "business", "docs", "reference"],
+  "source_models": ["gpt", "claude", "gemini", "human_wikipedia"],
+  "items": [
+    { "id": "marketing_gpt_01", "type": "marketing", "source_model": "gpt", "is_human": false, "file": "raw/marketing_gpt_01.txt" },
+    { "id": "marketing_gemini_02", "type": "marketing", "source_model": "gemini", "is_human": false, "file": "raw/marketing_gemini_02.txt" },
+    { "id": "expert_claude_03", "type": "expert", "source_model": "claude", "is_human": false, "file": "raw/expert_claude_03.txt" },
+    { "id": "expert_gpt_04", "type": "expert", "source_model": "gpt", "is_human": false, "file": "raw/expert_gpt_04.txt" },
+    { "id": "business_claude_05", "type": "business", "source_model": "claude", "is_human": false, "file": "raw/business_claude_05.txt" },
+    { "id": "business_gemini_06", "type": "business", "source_model": "gemini", "is_human": false, "file": "raw/business_gemini_06.txt" },
+    { "id": "docs_gpt_07", "type": "docs", "source_model": "gpt", "is_human": false, "file": "raw/docs_gpt_07.txt" },
+    { "id": "wiki_baikal", "type": "reference", "source_model": "human_wikipedia", "is_human": true, "file": "human/wiki_baikal.txt", "provenance": "ru.wikipedia.org/wiki/Байкал", "license": "CC BY-SA 4.0" },
+    { "id": "wiki_chaikovsky", "type": "reference", "source_model": "human_wikipedia", "is_human": true, "file": "human/wiki_chaikovsky.txt", "provenance": "ru.wikipedia.org/wiki/Чайковский,_Пётр_Ильич", "license": "CC BY-SA 4.0" },
+    { "id": "wiki_programmirovanie", "type": "reference", "source_model": "human_wikipedia", "is_human": true, "file": "human/wiki_programmirovanie.txt", "provenance": "ru.wikipedia.org/wiki/Программирование", "license": "CC BY-SA 4.0" }
+  ]
+}

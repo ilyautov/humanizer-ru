@@ -1,0 +1,25 @@
+# Опциональные зависимости оценочного слоя eval-харнеса humanizer-ru.
+# В core (../requirements.txt) их нет: метрики и regression-гейт работают без них.
+# Ставь только для реальных детекторов, LLM-судьи и проверки смысла:
+#     pip install -r eval/requirements-eval.txt
+#
+# В CI НЕ ставятся — там гоняется только метрики-режим (детерминированный, бесплатный).
+#
+# ВАЖНО: LLM-слой (детекторы Ollama, судья, faithfulness) работает на ЛОКАЛЬНОЙ
+# Ollama (http://localhost:11434). Ключ Anthropic БОЛЬШЕ НЕ ОБЯЗАТЕЛЕН — нужен
+# только запущенный `ollama serve`. Для faithfulness дополнительно нужна
+# embedding-модель: `ollama pull nomic-embed-text`. Рекомендуемая чат-модель —
+# gemma3:4b (`ollama pull gemma3:4b`); для --perplexity — gemma3:1b.
+
+# HTTP-клиент: нужен и для локальной Ollama (детекторы/судья/faithfulness),
+# и для облачных детекторов GPTZero/Originality (если используешь их ключи).
+requests>=2.31
+
+# LLM-судья опционально может ходить в Anthropic API (ANTHROPIC_API_KEY).
+# НЕ обязателен: по умолчанию судья работает на локальной Ollama.
+anthropic>=0.39
+
+# Локальный офлайн-детектор AI-текста на transformers (eval/detectors/ru_roberta.py).
+# Самые тяжёлые зависимости — ставь только под локальный прогон с GPU/CPU-инференсом.
+transformers>=4.40
+torch>=2.2

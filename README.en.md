@@ -5,13 +5,15 @@
 Claude Code / Cowork plugin. Kills AI smell in Russian text. The English [humanizer](https://github.com/blader/humanizer) won't help here. Russian AI markers are their own beast: bureaucratic noun-chains (канцелярит), English-syntax calques, missing particles like "же" and "ведь" that make Russian sound alive.
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-3.4.0-blueviolet)](https://github.com/ilyautov/humanizer-ru/releases)
+[![Version](https://img.shields.io/badge/version-3.5.0-blueviolet)](https://github.com/ilyautov/humanizer-ru/releases)
 [![Stars](https://img.shields.io/github/stars/ilyautov/humanizer-ru?style=social)](https://github.com/ilyautov/humanizer-ru/stargazers)
 [![skills.sh](https://skills.sh/b/ilyautov/humanizer-ru)](https://skills.sh/ilyautov/humanizer-ru/humanizer-ru)
 
+📖 **Docs & write-ups (RU):** [ilyautov.github.io/humanizer-ru](https://ilyautov.github.io/humanizer-ru/) — do AI detectors work on Russian, the 52 markers, plagiarism vs AI detection.
+
 ## What you get
 
-52 patterns across 12 categories: канцелярит, English calques, emotional sterility, persuasion tricks, information rhythm, hedging specifics, plus the 2025-2026 stylistic fingerprints (jagged-meditation single-word sentences, pseudo-Socratic Q-A chains, decorative emoji per list item, pseudo-therapeutic register). 20 hard-banned constructions that scream "GPT wrote this", including em-dashes (detectors count their frequency). A research-backed section on how detectors actually work (perplexity, burstiness, morphology) with concrete numbers from DivEye, CoPA, PIFE, AINL-Eval 2025. Five article formulas. Voice calibration. Quad-pass audit with a "Skeleton" pass that reads only the first lines of list items to catch templated openings.
+52 patterns across 12 categories: канцелярит, English calques, emotional sterility, persuasion tricks, information rhythm, hedging specifics, plus the 2025-2026 stylistic fingerprints (jagged-meditation single-word sentences, pseudo-Socratic Q-A chains, decorative emoji per list item, pseudo-therapeutic register). 20 hard-banned constructions that scream "GPT wrote this", including em-dashes (detectors count their frequency). A research-backed section on how detectors actually work (perplexity, burstiness, morphology) with verified numbers from DivEye, PIFE, AINL-Eval 2025 (every citation checked, see SOURCES.md). Five article formulas. Voice calibration. Quad-pass audit with a "Skeleton" pass that reads only the first lines of list items to catch templated openings.
 
 ## Install
 
@@ -95,11 +97,24 @@ After:
 
 Five hard bans triggered in two sentences. Typical.
 
+## Do AI detectors work on Russian?
+
+Short answer: poorly, and it matters.
+
+GPTZero, Originality.ai, ZeroGPT and most popular AI-text detectors are trained mostly on English. On Russian they are unreliable and fail both ways:
+
+- **False positives:** text written by a real human routinely gets flagged as "AI-generated". English perplexity thresholds aren't calibrated for Russian, and Russian's rich morphology inflates "unpredictability" on its own.
+- **False negatives:** careful AI text passes as human.
+
+Even the best Russian-specific detector (RuRoBERTa on the AINL-Eval 2025 benchmark) lands around 86% accuracy — one verdict in seven is wrong. And detectors don't generalize across domains (verified, see [SOURCES.md](SOURCES.md)).
+
+**What this means for humanizing.** Chasing "detector bypass" on Russian means tuning text to an unreliable, moving target. So humanizer-ru optimizes genuine text quality — removing bureaucratic noun-chains, calques and clichés, restoring author voice and live rhythm — rather than gaming a classifier. Those are measurable language properties (see [`eval/`](eval/)) independent of how bad any given detector is. Perplexity and burstiness rise as a side effect, which is what detectors try (and often fail) to measure. We run detectors against real human Russian texts in the harness and publish the false-positive rate: [eval/RESULTS.md](eval/RESULTS.md).
+
 ## Sources
 
-Patterns drawn from 15+ Russian-language sources (Habr, vc.ru, Gramota.ru, HSE stylometry research, Dialog Conference RuATD, TechInsider, Kokoc.com) plus 106 arxiv papers (Biber framework 2024-2025, DivEye 2025, CoPA EMNLP 2025, PIFE 2025, Antislop 2025, MASH 2025, AINL-Eval 2025) and Wikipedia AI Cleanup Project.
+Patterns drawn from 15+ Russian-language sources (Habr, vc.ru, Gramota.ru, HSE stylometry research, Dialog Conference RuATD, TechInsider, Kokoc.com), verified academic papers (DivEye, PIFE, MASH, Antislop, AINL-Eval, RuATD, NeurIPS 2025), and the Wikipedia AI Cleanup Project. Every citation and figure is checked against primary sources; unverified ones were removed. Full provenance: [SOURCES.md](SOURCES.md).
 
-Full Russian documentation: [README.md](README.md).
+Changelog: [CHANGELOG.md](CHANGELOG.md). Metrics and eval harness: [`scripts/`](scripts/) and [`eval/`](eval/). Full Russian documentation: [README.md](README.md).
 
 ## License
 

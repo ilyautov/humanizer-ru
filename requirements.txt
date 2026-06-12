@@ -1,0 +1,7 @@
+# Ядро детерминированных метрик (scripts/humanizer_metrics, scripts/scan.py,
+# scripts/lint_skill.py). Этого достаточно для self-test скилла и метрик-MVP.
+pymorphy3>=2.0
+razdel>=0.5
+
+# Доп-зависимости eval-харнеса (детекторы, LLM-судья) вынесены в
+# eval/requirements-eval.txt — они тяжёлые (torch/transformers) и нужны не всем.

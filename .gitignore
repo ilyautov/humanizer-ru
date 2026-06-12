@@ -1,0 +1,12 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# eval артефакты (генерируемые)
+eval/out/
+*.local.json
+
+# секреты детекторов / API
+.env
