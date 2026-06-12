@@ -31,10 +31,10 @@ import sys
 from dataclasses import dataclass, field
 from pathlib import Path
 
-# Доступ к scripts/humanizer_metrics (см. соглашение из ТЗ).
+# Доступ к humanizer_metrics: пакет живёт внутри скилла (едет с установкой).
 EVAL_DIR = Path(__file__).resolve().parent
 ROOT = EVAL_DIR.parent
-sys.path.insert(0, str(ROOT / "scripts"))
+sys.path.insert(0, str(ROOT / "skills" / "humanizer-ru" / "scripts"))
 
 from humanizer_metrics import Report, analyze  # noqa: E402
 

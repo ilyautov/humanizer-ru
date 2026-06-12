@@ -93,10 +93,15 @@ CLI кладёт `SKILL.md` в `~/.claude/skills/humanizer-ru/` и регист�
 **Вручную** (если ничего из выше не подошло):
 
 ```bash
-mkdir -p ~/.claude/skills/humanizer-ru
-curl -o ~/.claude/skills/humanizer-ru/SKILL.md \
-  https://raw.githubusercontent.com/ilyautov/humanizer-ru/main/skills/humanizer-ru/SKILL.md
+git clone --depth 1 https://github.com/ilyautov/humanizer-ru /tmp/humanizer-ru
+mkdir -p ~/.claude/skills
+cp -r /tmp/humanizer-ru/skills/humanizer-ru ~/.claude/skills/
 ```
+
+Копируйте папку целиком, а не один SKILL.md: вместе со скиллом едет
+детерминированный сканер `scripts/scan.py` (машинная половина режима «Аудит»;
+работает при наличии `pip install razdel pymorphy3`, без них скилл просто
+проводит аудит вручную).
 
 ### 4. Codex CLI (OpenAI)
 

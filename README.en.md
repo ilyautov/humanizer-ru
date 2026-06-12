@@ -59,16 +59,15 @@ The CLI drops `SKILL.md` into `~/.claude/skills/humanizer-ru/` and registers the
 **Manual:**
 
 ```bash
-mkdir -p ~/.claude/skills/humanizer-ru
-curl -o ~/.claude/skills/humanizer-ru/SKILL.md \
-  https://raw.githubusercontent.com/ilyautov/humanizer-ru/main/skills/humanizer-ru/SKILL.md
+git clone --depth 1 https://github.com/ilyautov/humanizer-ru /tmp/humanizer-ru
+mkdir -p ~/.claude/skills
+cp -r /tmp/humanizer-ru/skills/humanizer-ru ~/.claude/skills/
 ```
 
-Or via git clone:
-
-```bash
-git clone https://github.com/ilyautov/humanizer-ru.git ~/.claude/skills/humanizer-ru
-```
+Copy the whole folder, not just SKILL.md: the skill ships with a deterministic
+scanner, `scripts/scan.py` (the machine half of Audit mode; needs
+`pip install razdel pymorphy3`, and the skill gracefully falls back to a manual
+audit without them).
 
 ### 4. Codex CLI (OpenAI)
 

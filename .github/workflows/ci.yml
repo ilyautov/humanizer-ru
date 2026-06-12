@@ -33,7 +33,7 @@ jobs:
         run: python scripts/lint_skill.py
 
       - name: Sanity-скан человеческого текста (scan.py)
-        run: python scripts/scan.py eval/corpus/human/human_blog_01.txt
+        run: python skills/humanizer-ru/scripts/scan.py eval/corpus/human/wiki_baikal.txt
 
       - name: Eval-харнес (метрики-only, без детекторов/судьи)
         run: python eval/run_eval.py

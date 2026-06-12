@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """CLI-сканер: прогоняет текст через детерминированные метрики humanizer-ru.
 
-Использование:
-    python scripts/scan.py path/to/text.txt
-    echo "ваш текст" | python scripts/scan.py -
-    python scripts/scan.py text.txt --json
+Использование (из корня репо; у установленного скилла путь: <папка скилла>/scripts/scan.py):
+    python skills/humanizer-ru/scripts/scan.py path/to/text.txt
+    echo "ваш текст" | python skills/humanizer-ru/scripts/scan.py -
+    python skills/humanizer-ru/scripts/scan.py text.txt --json
 
 Это машинная половина режима «Аудит». Для полного очеловечивания (семантика,
 голос, рерайт) нужен сам скилл — этот сканер только подсвечивает грепабельные

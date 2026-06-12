@@ -1,5 +1,5 @@
-# Ядро детерминированных метрик (scripts/humanizer_metrics, scripts/scan.py,
-# scripts/lint_skill.py). Этого достаточно для self-test скилла и метрик-MVP.
+# Ядро детерминированных метрик (skills/humanizer-ru/scripts/: humanizer_metrics,
+# scan.py; dev-тулы в scripts/). Этого достаточно для self-test скилла и метрик-MVP.
 pymorphy3>=2.0
 razdel>=0.5
 

@@ -14,7 +14,7 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "skills" / "humanizer-ru" / "scripts"))
 
 from humanizer_metrics import analyze
 from humanizer_metrics.markers import scan_hard_bans, scan_markers

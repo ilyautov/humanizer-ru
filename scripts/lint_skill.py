@@ -22,7 +22,8 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(ROOT / "scripts"))
+# Пакет метрик живёт ВНУТРИ скилла (едет с установкой), dev-тулы — в корневом scripts/.
+sys.path.insert(0, str(ROOT / "skills" / "humanizer-ru" / "scripts"))
 
 from humanizer_metrics.markers import HARD_BANS, SCANNER, scan_hard_bans
 
@@ -137,6 +138,19 @@ def check_frontmatter(text: str) -> None:
         notes.append(f"✓ description: {n} символов (лимит {MAX_DESCRIPTION_CHARS})")
 
 
+def check_scanner_ships_with_skill() -> None:
+    """Сканер обязан лежать ВНУТРИ папки скилла (он едет с установкой),
+    а SKILL.md — ссылаться на него в режиме «Аудит»."""
+    scan = CANON.parent / "scripts" / "scan.py"
+    if not scan.exists():
+        errors.append(f"сканер не едет со скиллом: нет {scan}")
+        return
+    if "scripts/scan.py" not in CANON.read_text(encoding="utf-8"):
+        errors.append("SKILL.md не ссылается на scripts/scan.py (провод аудита потерян)")
+        return
+    notes.append("✓ сканер внутри скилла и подключён в режим «Аудит»")
+
+
 def check_sync() -> None:
     if not CANON.exists():
         errors.append(f"нет канонического файла {CANON}")
@@ -155,6 +169,7 @@ def main() -> int:
     check_patterns(text)
     check_counts(text)
     check_frontmatter(text)
+    check_scanner_ships_with_skill()
     check_em_dash_in_examples(text)
     check_examples_pass_scanner(text)
     check_sync()
