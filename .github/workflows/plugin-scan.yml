@@ -1,0 +1,16 @@
+# Security-гейт HOL AI Plugin Scanner: требование каталога awesome-codex-plugins
+# (score >= 80, без high/critical). Локальный прогон: pip install plugin-scanner
+# && plugin-scanner lint .
+name: plugin-scan
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: hashgraph-online/ai-plugin-scanner-action@fce39dc970f86bc9b831233723e1091808d695ae # v1

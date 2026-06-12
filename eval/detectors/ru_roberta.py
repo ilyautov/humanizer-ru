@@ -54,7 +54,7 @@ class RuRobertaDetector(Detector):
             self._model = AutoModelForSequenceClassification.from_pretrained(
                 self._model_name
             )
-            self._model.eval()
+            self._model.train(False)  # inference-режим
             return True
         except Exception:
             # Нет интернета, модель не существует, не хватает памяти и т.п.
