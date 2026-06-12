@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Telegram-канал автора (Under the Hood)
+    url: https://t.me/gorilla_under_hood
+    about: Новости проекта, разборы про AI и безопасность
+  - name: Сайт проекта
+    url: https://ilyautov.github.io/humanizer-ru/
+    about: Справочник признаков AI-текста и статьи
