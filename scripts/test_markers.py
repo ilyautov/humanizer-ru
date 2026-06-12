@@ -53,6 +53,37 @@ check("В современном мире" in ban_names("В современно
 check("Является" in ban_names("Python является языком."), "«является» ловится")
 check(len(scan_markers("осуществление реализация внедрение")) >= 1, "канцелярит-маркеры ловятся")
 
+# --- артефакты копипасты из чат-ботов -------------------------------------
+def marker_cats(text: str) -> set[str]:
+    return {h.category for h in scan_markers(text)}
+
+check("Артефакты копипасты" in marker_cats(
+    "Подробнее в источнике :contentReference[oaicite:3]{index=3} об этом."),
+    "oaicite-сноска ловится")
+check("Артефакты копипасты" in marker_cats(
+    "Ссылка https://example.com/?utm_source=chatgpt.com ведёт на сайт."),
+    "utm_source=chatgpt.com ловится")
+check("Артефакты копипасты" in marker_cats("Смотри turn3search7 и turn12file1."),
+    "метки turnN с любыми номерами ловятся (regex)")
+check("Артефакты копипасты" in marker_cats("Вывод citeturn0file2 сохранился."),
+    "слитный citeturn ловится")
+check("Артефакты копипасты" in marker_cats("Файл: [скачать](sandbox:/mnt/data/report.pdf)"),
+    "sandbox-ссылка ловится")
+check("Артефакты копипасты" in marker_cats("Текст сciteневидимыми метками."),
+    "невидимые U+E200-E204 ловятся")
+check("Артефакты копипасты" in marker_cats("Осталось </think> от рассуждения."),
+    "остаток think-тега ловится")
+check("Артефакты копипасты" not in marker_cats(
+    "Обычный текст со сносками Markdown [^1] и [^3^], и ссылкой https://example.com?utm_source=newsletter."),
+    "Markdown-сноски и чужой utm_source не дают ложных артефактов")
+check("Артефакты копипасты" not in marker_cats(
+    "Обычный текст со ссылкой https://example.com и сноской [3]."),
+    "чистый текст не даёт ложных артефактов")
+
+from humanizer_metrics.markers import marker_verdict
+check("вставлен из ответа" in marker_verdict(scan_markers("Смотри citeturn0search1.")),
+    "один артефакт = однозначный вердикт, минуя шкалу")
+
 # --- разделение AI vs человек по метрикам --------------------------------
 ai = analyze("В современном мире технология является инструментом. "
              "Стоит отметить, что данный подход открывает новые горизонты.")

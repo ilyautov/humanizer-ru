@@ -32,7 +32,7 @@ MIRROR = ROOT / "SKILL.md"
 
 EXPECTED_PATTERNS = 52
 EXPECTED_HARD_BANS = 20
-EXPECTED_SCANNER_CATS = 19
+EXPECTED_SCANNER_CATS = 20
 
 errors: list[str] = []
 notes: list[str] = []

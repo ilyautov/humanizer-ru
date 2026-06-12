@@ -44,7 +44,7 @@ HARD_BANS: list[tuple[str, str]] = [
 ]
 
 # --- Быстрый сканер: категории слов-маркеров -----------------------------
-# Ровно 19 категорий из SKILL.md. Значения — фразы для подстрочного поиска
+# Ровно 20 категорий из SKILL.md. Значения — фразы для подстрочного поиска
 # (регистронезависимо). Часть фраз — основы, чтобы ловить словоформы.
 SCANNER: dict[str, list[str]] = {
     "Канцелярит": [
@@ -106,6 +106,29 @@ SCANNER: dict[str, list[str]] = {
     "Деепричастные-кальки": [
         "стоит помнить", "следует учитывать", "необходимо отметить",
     ],
+    # Технические следы копирования из интерфейса чат-бота. Однозначные улики:
+    # в человеческом тексте не встречаются. Каждый маркер проверен по
+    # первоисточнику (ссылки — SOURCES.md, раздел «Артефакты копипасты»):
+    # enwiki «Signs of AI writing» §6.3-6.5/§7.6 (contentReference, oaicite,
+    # oai_citation, attached_file, grok_card, turnNsearchN, attributableIndex,
+    # utm_source=), форум разработчиков OpenAI (filecite/turnNfileN, GPT-5.x),
+    # доки OpenAI Assistants (【N†source】), доки DeepSeek + Trend Micro (think-теги),
+    # доки Google Gemini grounding (vertexaisearch-redirect), разбор экспорта
+    # диалогов OpenAI (невидимые U+E200-E204), треды OpenAI/Make (sandbox:/mnt/data).
+    # Префикс "re:" = регулярное выражение, остальное — подстрока.
+    "Артефакты копипасты": [
+        ":contentReference", "oai_citation", "utm_source=chatgpt.com",
+        "utm_source=openai", "grok_card://", "attached_file://",
+        "vertexaisearch.cloud.google.com/grounding-api-redirect",
+        "](sandbox:/mnt/data/", "attributableIndex",
+        r"re:oaicite:\d+",
+        r"re:turn\d+(?:search|fetch|file)\d+",          # turnNsearchN и родня
+        r"re:citeturn\d+[a-z]+\d+",                     # слитная метка цитаты
+        r"re:【\d+(?::\d+)?†source】",                    # OpenAI Assistants
+        r"re:\[citation:\d+\]",                         # Perplexity-стиль
+        "re:[\ue200-\ue204]",                        # невидимые разделители цитат ChatGPT
+        r"re:</?think>",                                # остатки рассуждения DeepSeek и др.
+    ],
 }
 
 # Канцелярит-номинализации: суффиксы отглагольных существительных, которые
@@ -136,18 +159,26 @@ def scan_hard_bans(text: str) -> list[MarkerHit]:
 
 
 def scan_markers(text: str) -> list[MarkerHit]:
-    """Прогоняет 19 категорий быстрого сканера. Возвращает только попадания."""
+    """Прогоняет 20 категорий быстрого сканера. Возвращает только попадания.
+
+    Элемент с префиксом "re:" трактуется как регулярное выражение,
+    остальные — как литеральная подстрока (регистронезависимо).
+    """
     hits: list[MarkerHit] = []
     for cat, phrases in SCANNER.items():
         for phrase in phrases:
-            pos = _find_all(text, re.escape(phrase))
+            pat = phrase[3:] if phrase.startswith("re:") else re.escape(phrase)
+            pos = _find_all(text, pat)
             if pos:
-                hits.append(MarkerHit(cat, phrase, len(pos), pos))
+                hits.append(MarkerHit(cat, phrase.removeprefix("re:"), len(pos), pos))
     return hits
 
 
 def marker_verdict(marker_hits: list[MarkerHit]) -> str:
-    """Шкала из SKILL.md: 0-2 чисто, 3-5 подозрительно, 6+ AI."""
+    """Шкала из SKILL.md: 0-2 чисто, 3-5 подозрительно, 6+ AI.
+    Артефакт копипасты — однозначная улика: вердикт сразу, без шкалы."""
+    if any(h.category == "Артефакты копипасты" for h in marker_hits):
+        return "артефакты копипасты из чат-бота — текст вставлен из ответа ИИ"
     total = sum(h.count for h in marker_hits)
     if total <= 2:
         return f"{total} — скорее всего чистый текст"
