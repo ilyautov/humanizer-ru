@@ -1,0 +1,157 @@
+{
+  "description": "Корпус trigger-eval для humanizer-ru. Проверяет НЕ качество очеловечивания (это делает meta.json + run_eval.py), а границу активации: на каких запросах скилл ДОЛЖЕН срабатывать, а на каких молчать (near-miss: код, английский). Прогон — лёгкий детерминированный слой (run_triggers.py): guard scope-фраз в описании + модальность запроса (русский/английский/код). Без LLM, ключей и сети, гоняется в CI. Описание скилла здесь НЕ дублируется — берётся живьём из SKILL.md, чтобы тест ловил рассинхрон описания.",
+  "fields": {
+    "id": "уникальный id кейса",
+    "prompt": "пользовательский запрос целиком (как пришёл бы ассистенту)",
+    "lang": "ru | en | code — доминирующая модальность запроса (для разбивки в отчёте)",
+    "expect": "trigger | no_trigger — должен ли humanizer-ru активироваться",
+    "category": "подгруппа для разбивки и near-miss анализа",
+    "note": "почему именно такой вердикт (фальсифицируемость)"
+  },
+  "cases": [
+    {
+      "id": "trig_ochelovech_01",
+      "prompt": "Очеловечь этот текст: «Данная статья является комплексным решением, которое позволяет оптимизировать рабочие процессы в современных условиях цифровой трансформации.»",
+      "lang": "ru",
+      "expect": "trigger",
+      "category": "explicit_request",
+      "note": "Прямой глагол «очеловечь» + русский AI-текст с канцеляритом. Ядро триггера."
+    },
+    {
+      "id": "trig_sledy_neyroseti_02",
+      "prompt": "Убери следы нейросети из текста ниже:\nВ современном мире важно понимать, что эффективная коммуникация является ключевым фактором успеха любого предприятия.",
+      "lang": "ru",
+      "expect": "trigger",
+      "category": "explicit_request",
+      "note": "Формулировка «убрать следы нейросети» прямо названа в description."
+    },
+    {
+      "id": "trig_zhivoy_estestvenny_03",
+      "prompt": "Сделай этот текст живым и естественным, а то слишком сухо: Реализация данного подхода обеспечивает повышение качества обслуживания клиентов.",
+      "lang": "ru",
+      "expect": "trigger",
+      "category": "explicit_request",
+      "note": "«живым/естественным» — дословный триггер из description."
+    },
+    {
+      "id": "trig_kak_chelovek_04",
+      "prompt": "Перепиши как человек, звучит как робот: Необходимо отметить, что внедрение инновационных технологий способствует достижению поставленных целей.",
+      "lang": "ru",
+      "expect": "trigger",
+      "category": "explicit_request",
+      "note": "«переписать как человек» + «звучит как робот» — два триггера сразу."
+    },
+    {
+      "id": "trig_humanize_ru_05",
+      "prompt": "humanize, только по-русски: Таким образом, можно сделать вывод о высокой эффективности предложенного решения.",
+      "lang": "ru",
+      "expect": "trigger",
+      "category": "explicit_request",
+      "note": "«humanize на русском» — явно в scope (русский, не английский)."
+    },
+    {
+      "id": "trig_kancelyarit_06",
+      "prompt": "Убери канцелярит из абзаца: Осуществление контроля за исполнением поручений производится в рамках установленного регламента.",
+      "lang": "ru",
+      "expect": "trigger",
+      "category": "explicit_request",
+      "note": "«убрать канцелярит» — дословный триггер."
+    },
+    {
+      "id": "trig_vodyanistost_formal_07",
+      "prompt": "Слишком водянисто и формально, сделай менее формальным и суше: Хотелось бы подчеркнуть особую значимость комплексного подхода к решению поставленной задачи.",
+      "lang": "ru",
+      "expect": "trigger",
+      "category": "explicit_request",
+      "note": "«водянистость» + «менее формальным» — оба в description."
+    },
+    {
+      "id": "trig_paste_perepishi_08",
+      "prompt": "Наша компания предоставляет широкий спектр услуг, направленных на удовлетворение потребностей клиентов в современных условиях рынка. Мы стремимся обеспечить максимальное качество и индивидуальный подход к каждому клиенту.\n\nперепиши",
+      "lang": "ru",
+      "expect": "trigger",
+      "category": "paste_vague",
+      "note": "Вставлен русский AI-текст + короткое «перепиши» — описание прямо ловит этот паттерн."
+    },
+    {
+      "id": "trig_paste_robot_09",
+      "prompt": "Искусственный интеллект представляет собой мощный инструмент, который открывает новые возможности и позволяет решать широкий круг задач.\n\nкак-то слишком искусственно звучит, поправь",
+      "lang": "ru",
+      "expect": "trigger",
+      "category": "paste_vague",
+      "note": "Вставка RU-текста + «слишком искусственно» — триггер по вставке."
+    },
+    {
+      "id": "trig_sdelay_luchshe_10",
+      "prompt": "Внедрение системы позволило значительно улучшить показатели и обеспечить устойчивый рост эффективности на всех этапах производственного цикла.\n\nсделай лучше",
+      "lang": "ru",
+      "expect": "trigger",
+      "category": "paste_vague",
+      "note": "RU-текст + «сделай лучше» — пограничный, но описание относит к триггеру."
+    },
+    {
+      "id": "near_code_refactor_py_01",
+      "prompt": "Отрефактори эту функцию, слишком громоздкая:\n```python\ndef calc(items):\n    total = 0\n    for i in items:\n        total = total + i.price * i.qty\n    return total\n```",
+      "lang": "code",
+      "expect": "no_trigger",
+      "category": "code",
+      "note": "Запрос про КОД (хоть инструкция и по-русски). description: «НЕ используй для: код»."
+    },
+    {
+      "id": "near_code_explain_js_02",
+      "prompt": "Объясни, что делает этот код:\n```js\nconst result = arr.filter(x => x.active).map(x => x.id);\n```",
+      "lang": "code",
+      "expect": "no_trigger",
+      "category": "code",
+      "note": "Объяснение кода — не очеловечивание текста."
+    },
+    {
+      "id": "near_code_bug_py_03",
+      "prompt": "Почему тут IndexError?\n```python\nfor i in range(len(a)):\n    print(a[i+1])\n```",
+      "lang": "code",
+      "expect": "no_trigger",
+      "category": "code",
+      "note": "Дебаг кода вне scope скилла."
+    },
+    {
+      "id": "near_code_sql_04",
+      "prompt": "Оптимизируй запрос, медленно работает:\n```sql\nSELECT * FROM orders WHERE status = 'new' ORDER BY created_at;\n```",
+      "lang": "code",
+      "expect": "no_trigger",
+      "category": "code",
+      "note": "SQL-оптимизация — техническая задача, не текст."
+    },
+    {
+      "id": "near_en_humanize_01",
+      "prompt": "Humanize this text so it doesn't sound like AI: In today's fast-paced world, leveraging cutting-edge solutions is essential for driving meaningful results across the organization.",
+      "lang": "en",
+      "expect": "no_trigger",
+      "category": "english",
+      "note": "Английский текст. description: «Для английского используй оригинальный humanizer»."
+    },
+    {
+      "id": "near_en_rewrite_02",
+      "prompt": "Rewrite this to sound more natural and less robotic: It is important to note that effective communication serves as a key driver of success.",
+      "lang": "en",
+      "expect": "no_trigger",
+      "category": "english",
+      "note": "Запрос на английском про английский текст — не RU-скилл."
+    },
+    {
+      "id": "near_en_remove_tells_03",
+      "prompt": "Remove the AI tells from this paragraph: Furthermore, this comprehensive approach not only enhances efficiency but also fosters innovation.",
+      "lang": "en",
+      "expect": "no_trigger",
+      "category": "english",
+      "note": "«Remove AI tells» по-английски — задача для английского humanizer."
+    },
+    {
+      "id": "near_en_robotic_04",
+      "prompt": "This sounds way too robotic, can you fix it? Our platform delivers seamless, end-to-end solutions tailored to your needs.",
+      "lang": "en",
+      "expect": "no_trigger",
+      "category": "english",
+      "note": "Английская вставка + английская просьба — вне русского scope."
+    }
+  ]
+}
