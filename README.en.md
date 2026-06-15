@@ -5,7 +5,7 @@
 Claude Code / Cowork plugin. Kills AI smell in Russian text. The English [humanizer](https://github.com/blader/humanizer) won't help here. Russian AI markers are their own beast: bureaucratic noun-chains (канцелярит), English-syntax calques, missing particles like "же" and "ведь" that make Russian sound alive.
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-3.8.0-blueviolet)](https://github.com/ilyautov/humanizer-ru/blob/main/CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-3.9.0-blueviolet)](https://github.com/ilyautov/humanizer-ru/blob/main/CHANGELOG.md)
 [![Stars](https://img.shields.io/github/stars/ilyautov/humanizer-ru?style=social)](https://github.com/ilyautov/humanizer-ru/stargazers)
 [![skills.sh](https://skills.sh/b/ilyautov/humanizer-ru)](https://skills.sh/ilyautov/humanizer-ru/humanizer-ru)
 
@@ -96,7 +96,7 @@ The Agent Skills format is now cross-platform, so humanizer-ru runs beyond the f
 
 | How it connects | Agents | What to do |
 |---|---|---|
-| Read `SKILL.md` natively | GitHub Copilot, Cline, Roo Code, Kilo Code, Goose, OpenCode, Kimi Code CLI, OpenClaw, OpenHuman, Hermes | Copy the `skills/humanizer-ru` folder into the agent's skills dir (e.g. `~/.hermes/skills/`, `~/.kimi/skills/`, `.agents/skills/`) |
+| Read `SKILL.md` natively | GitHub Copilot, Cline, Roo Code, Kilo Code, Goose, OpenCode, OpenWork, Kimi Code CLI, OpenClaw, OpenHuman, Hermes | Copy the `skills/humanizer-ru` folder into the agent's skills dir (e.g. `~/.hermes/skills/`, `~/.kimi/skills/`, `.agents/skills/`) |
 | Installer conversion | Windsurf, Trae, Junie | Install via their skill installer, pointing at `ilyautov/humanizer-ru` |
 | Manual paste | Zed, Aider, Continue.dev | Paste the `SKILL.md` body into the agent's rules or instructions file |
 
