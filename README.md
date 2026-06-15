@@ -5,7 +5,7 @@
 > [English version](README.en.md)
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Версия](https://img.shields.io/badge/версия-3.8.0-blueviolet)](https://github.com/ilyautov/humanizer-ru/blob/main/CHANGELOG.md)
+[![Версия](https://img.shields.io/badge/версия-3.9.0-blueviolet)](https://github.com/ilyautov/humanizer-ru/blob/main/CHANGELOG.md)
 [![Звёзды](https://img.shields.io/github/stars/ilyautov/humanizer-ru?style=social)](https://github.com/ilyautov/humanizer-ru/stargazers)
 [![skills.sh](https://skills.sh/b/ilyautov/humanizer-ru)](https://skills.sh/ilyautov/humanizer-ru/humanizer-ru)
 
@@ -136,7 +136,7 @@ git clone https://github.com/ilyautov/humanizer-ru.git ~/.claude/skills/humanize
 
 | Как подключается | Агенты | Что делать |
 |---|---|---|
-| Читают `SKILL.md` нативно | GitHub Copilot, Cline, Roo Code, Kilo Code, Goose, OpenCode, Kimi Code CLI, OpenClaw, OpenHuman, Hermes | Скопировать папку `skills/humanizer-ru` в каталог скиллов агента (например `~/.hermes/skills/`, `~/.kimi/skills/`, `.agents/skills/`) |
+| Читают `SKILL.md` нативно | GitHub Copilot, Cline, Roo Code, Kilo Code, Goose, OpenCode, OpenWork, Kimi Code CLI, OpenClaw, OpenHuman, Hermes | Скопировать папку `skills/humanizer-ru` в каталог скиллов агента (например `~/.hermes/skills/`, `~/.kimi/skills/`, `.agents/skills/`) |
 | Конвертация инсталлером | Windsurf, Trae, Junie | Поставить через их установщик скиллов, указав репозиторий `ilyautov/humanizer-ru` |
 | Ручная вставка | Zed, Aider, Continue.dev | Вставить тело `SKILL.md` в файл правил или инструкций агента |
 
