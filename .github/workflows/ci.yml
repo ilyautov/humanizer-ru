@@ -29,6 +29,9 @@ jobs:
       - name: Регресс-тесты метрик (test_markers)
         run: python scripts/test_markers.py
 
+      - name: Регресс-тесты score чистоты (test_score)
+        run: python scripts/test_score.py
+
       - name: Self-test скилла (lint_skill)
         run: python scripts/lint_skill.py
 

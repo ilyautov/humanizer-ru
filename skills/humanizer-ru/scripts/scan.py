@@ -20,7 +20,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from humanizer_metrics import analyze
+from humanizer_metrics import analyze, cleanliness_score
 from humanizer_metrics.burstiness import rhythm_verdict
 from humanizer_metrics.markers import marker_verdict
 from humanizer_metrics.morphology import morph_verdict
@@ -40,12 +40,21 @@ def main() -> int:
 
     text = _read(args.source)
     rep = analyze(text)
+    sc = cleanliness_score(rep)
 
     if args.json:
-        print(json.dumps(rep.as_dict(), ensure_ascii=False, indent=2))
+        out = rep.as_dict()
+        out["score"] = sc.as_dict()
+        print(json.dumps(out, ensure_ascii=False, indent=2))
         return 1 if rep.hard_ban_count else 0
 
     print(f"=== humanizer-ru scan: {args.source} ===\n")
+
+    print(f"ЧИСТОТА: {sc.score}/100  [{sc.band}]")
+    print("  (≥85 чисто · 60-84 точечная правка · <60 рерайт)")
+    for reason, pts in sc.penalties:
+        print(f"  {pts:+d}  {reason}")
+    print()
 
     print("HARD BANS:")
     if rep.hard_bans:

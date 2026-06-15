@@ -21,6 +21,7 @@ from .markers import (
     scan_markers,
 )
 from .morphology import MorphStats, morph_stats, morph_verdict
+from .score import ScoreResult, cleanliness_score
 
 __all__ = [
     "Report",
@@ -28,6 +29,8 @@ __all__ = [
     "RhythmStats",
     "MorphStats",
     "MarkerHit",
+    "ScoreResult",
+    "cleanliness_score",
     "rhythm",
     "morph_stats",
     "scan_hard_bans",
