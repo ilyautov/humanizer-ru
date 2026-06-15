@@ -15,7 +15,7 @@ Claude Code / Cowork plugin. Kills AI smell in Russian text. The English [humani
   </a>
 </p>
 
-📖 **Docs & write-ups (RU):** [ilyautov.github.io/humanizer-ru](https://ilyautov.github.io/humanizer-ru/) — do AI detectors work on Russian, the 52 markers, plagiarism vs AI detection.
+📖 **Docs & write-ups (RU):** [ilyautov.github.io/humanizer-ru](https://ilyautov.github.io/humanizer-ru/): do AI detectors work on Russian, the 52 markers, plagiarism vs AI detection.
 
 ## What you get
 
@@ -90,6 +90,20 @@ Or from inside Codex via `skill-installer` with the path
 invoke with `$humanizer-ru` or let it auto-trigger. For a per-project install,
 put the same folder under `.codex/skills/` in your repository.
 
+### 5. Other agents (shared SKILL.md standard)
+
+The Agent Skills format is now cross-platform, so humanizer-ru runs beyond the four packaged stacks above. Officially packaged and verified: Claude Code, Codex CLI, Cursor, Gemini CLI. Other agents read the same `SKILL.md`, no separate build needed.
+
+| How it connects | Agents | What to do |
+|---|---|---|
+| Read `SKILL.md` natively | GitHub Copilot, Cline, Roo Code, Kilo Code, Goose, OpenCode, Kimi Code CLI, OpenClaw, OpenHuman, Hermes | Copy the `skills/humanizer-ru` folder into the agent's skills dir (e.g. `~/.hermes/skills/`, `~/.kimi/skills/`, `.agents/skills/`) |
+| Installer conversion | Windsurf, Trae, Junie | Install via their skill installer, pointing at `ilyautov/humanizer-ru` |
+| Manual paste | Zed, Aider, Continue.dev | Paste the `SKILL.md` body into the agent's rules or instructions file |
+
+Generic path for native readers: drop the skill folder into the directory the agent scans (usually `<project root>/.agents/skills/` or `~/.config/agents/skills/`) and restart it. Same activation triggers.
+
+> Several of these agents (OpenClaw, Kimi, Hermes) have public skill registries (ClawHub and similar). Listing there adds reach with no extra code: the format is shared.
+
 ## Modes
 
 - **Full rewrite** (default): all 52 patterns, voice calibration, quad-pass audit.
@@ -126,9 +140,9 @@ GPTZero, Originality.ai, ZeroGPT and most popular AI-text detectors are trained 
 - **False positives:** text written by a real human routinely gets flagged as "AI-generated". English perplexity thresholds aren't calibrated for Russian, and Russian's rich morphology inflates "unpredictability" on its own.
 - **False negatives:** careful AI text passes as human.
 
-Even the best Russian-specific detector (RuRoBERTa on the AINL-Eval 2025 benchmark) lands around 86% accuracy — one verdict in seven is wrong. And detectors don't generalize across domains (verified, see [SOURCES.md](SOURCES.md)).
+Even the best Russian-specific detector (RuRoBERTa on the AINL-Eval 2025 benchmark) lands around 86% accuracy, and one verdict in seven is wrong. And detectors don't generalize across domains (verified, see [SOURCES.md](SOURCES.md)).
 
-**What this means for humanizing.** Chasing "detector bypass" on Russian means tuning text to an unreliable, moving target. So humanizer-ru optimizes genuine text quality — removing bureaucratic noun-chains, calques and clichés, restoring author voice and live rhythm — rather than gaming a classifier. Those are measurable language properties (see [`eval/`](eval/)) independent of how bad any given detector is. Perplexity and burstiness rise as a side effect, which is what detectors try (and often fail) to measure. We run detectors against real human Russian texts in the harness and publish the false-positive rate: [eval/RESULTS.md](eval/RESULTS.md).
+**What this means for humanizing.** Chasing "detector bypass" on Russian means tuning text to an unreliable, moving target. So humanizer-ru optimizes genuine text quality (removing bureaucratic noun-chains, calques and clichés, restoring author voice and live rhythm) rather than gaming a classifier. Those are measurable language properties (see [`eval/`](eval/)) independent of how bad any given detector is. Perplexity and burstiness rise as a side effect, which is what detectors try (and often fail) to measure. We run detectors against real human Russian texts in the harness and publish the false-positive rate: [eval/RESULTS.md](eval/RESULTS.md).
 
 ## Sources
 
