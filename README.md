@@ -259,6 +259,10 @@ GPTZero, Originality.ai, ZeroGPT и другие популярные детек
 
 Changelog: [CHANGELOG.md](CHANGELOG.md). Метрики и eval-харнес: каталоги [`scripts/`](scripts/) и [`eval/`](eval/).
 
+## Автор
+
+Илья Утов. Пишу про AI и работу с текстом в Telegram: [Under the Hood](https://t.me/gorilla_under_hood).
+
 ## Лицензия
 
 MIT: используйте свободно, форкайте, дорабатывайте. Pull request с новыми паттернами приветствуются.

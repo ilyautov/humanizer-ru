@@ -150,6 +150,10 @@ Patterns drawn from 15+ Russian-language sources (Habr, vc.ru, Gramota.ru, HSE s
 
 Changelog: [CHANGELOG.md](CHANGELOG.md). Metrics and eval harness: [`scripts/`](scripts/) and [`eval/`](eval/). Full Russian documentation: [README.md](README.md).
 
+## Author
+
+Ilya Utov. I write about AI and working with text on Telegram: [Under the Hood](https://t.me/gorilla_under_hood).
+
 ## License
 
 MIT
