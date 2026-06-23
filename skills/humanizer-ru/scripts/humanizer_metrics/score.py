@@ -15,6 +15,12 @@ from dataclasses import dataclass
 
 from .burstiness import CV_HUMAN_TARGET
 from .morphology import NV_TARGET
+from .structure import (
+    LISTICLE_MIN_ITEMS,
+    LISTICLE_SHARE_AI,
+    PARA_CV_AI,
+    PARA_MIN_COUNT,
+)
 
 # Тире — отдельный случай: оно и хард-бан, и штатная русская пунктуация
 # (Википедия, диапазоны, «это —»). Поэтому в score не рубим потолком, а
@@ -22,7 +28,7 @@ from .morphology import NV_TARGET
 EM_DASH_NAME = "Длинное тире"
 COPY_PASTE_CATEGORY = "Артефакты копипасты"
 
-# Полосы. Совпадают с порогами вмешательства из SKILL.md и тёзки-конкурента.
+# Полосы. Совпадают с порогами вмешательства из SKILL.md.
 BAND_CLEAN = 85   # ≥ — следы ИИ не мешают, не править
 BAND_EDIT = 60    # ≥ — точечная правка; < — полный рерайт
 
@@ -107,6 +113,23 @@ def cleanliness_score(report) -> ScoreResult:
         if pen:
             score -= pen
             penalties.append((f"номинальность (сущ./глаг.={nv}, цель ≤{NV_TARGET})", -pen))
+
+    # 7. Document-level: ровные по длине абзацы (burstiness абзацев). Срабатывает
+    #    только на достаточно многоабзацном тексте, иначе инертно (короткая проза).
+    st = report.structure
+    if st.paragraphs >= PARA_MIN_COUNT and st.para_cv < PARA_CV_AI:
+        pen = min(10, round((PARA_CV_AI - st.para_cv) / PARA_CV_AI * 20))
+        if pen:
+            score -= pen
+            penalties.append((f"ровные абзацы (CV={st.para_cv}, цель ≥{PARA_CV_AI})", -pen))
+
+    # 8. Document-level: listicle-сигнатура (засилье однотипных пунктов). Инертно
+    #    на прозе без списков, бьёт по шаблонным гайдам/постам.
+    if st.list_items >= LISTICLE_MIN_ITEMS and st.listicle_share > LISTICLE_SHARE_AI:
+        pen = min(12, round((st.listicle_share - LISTICLE_SHARE_AI) * 30))
+        if pen:
+            score -= pen
+            penalties.append((f"листикл ({st.list_items} пунктов, {int(st.listicle_share*100)}% строк)", -pen))
 
     final = max(0, min(100, round(score)))
     return ScoreResult(score=final, band=_band(final), penalties=penalties)

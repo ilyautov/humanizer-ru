@@ -24,6 +24,7 @@ from humanizer_metrics import analyze, cleanliness_score
 from humanizer_metrics.burstiness import rhythm_verdict
 from humanizer_metrics.markers import marker_verdict
 from humanizer_metrics.morphology import morph_verdict
+from humanizer_metrics.structure import structure_verdict
 
 
 def _read(src: str) -> str:
@@ -81,6 +82,10 @@ def main() -> int:
     print(f"  {morph_verdict(rep.morph)}")
     print(f"  сущ.: {rep.morph.nouns}, глаг.форм: {rep.morph.verbs}, "
           f"номинализаций: {rep.morph.nominalizations}")
+    print()
+
+    print("Структура (уровень документа):")
+    print(f"  {structure_verdict(rep.structure)}")
 
     # Exit code: ненулевой, если есть HARD BANS — удобно для CI/pre-commit.
     return 1 if rep.hard_ban_count else 0

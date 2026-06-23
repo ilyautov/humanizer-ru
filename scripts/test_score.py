@@ -68,5 +68,52 @@ for text in (ai, human, enc, "", "одно слово"):
     check(0 <= s <= 100, f"score вне диапазона: {s}")
 
 
+# --- document-level метрики (S1 листикл, S5 ровные абзацы) ----------------
+def penalty_reasons(text: str) -> str:
+    return " | ".join(r for r, _ in cleanliness_score(analyze(text)).penalties)
+
+# Листикл: 8 однотипных пунктов должны дать штраф «листикл».
+listicle = "Преимущества\n\n" + "\n".join(f"- Пункт номер {i} про качество" for i in range(1, 9)) + "\n"
+check("листикл" in penalty_reasons(listicle), "листикл из 8 пунктов должен штрафоваться")
+
+# Ровные абзацы: 6 одинаковых по длине абзацев дают штраф «ровные абзацы».
+para = "Это первое предложение абзаца. Это второе предложение абзаца."
+uniform = "\n\n".join([para] * 6)
+check("ровные абзацы" in penalty_reasons(uniform), "6 ровных абзацев должны штрафоваться (S5)")
+
+# Инертность к короткой прозе: ни листикла, ни ровных абзацев на 1-2 абзацах без списков.
+short_prose = "Я попробовал три раза. Не вышло. Потом понял: забыл про кэш."
+check("листикл" not in penalty_reasons(short_prose), "короткая проза без списков не листикл")
+check("ровные абзацы" not in penalty_reasons(short_prose), "по короткой прозе абзацы не судим")
+
+# Меньше порога пунктов списка (3) — не листикл.
+small_list = "Список\n\n- раз\n- два\n- три\n"
+check("листикл" not in penalty_reasons(small_list), "3 пункта не дотягивают до порога листикла")
+
+
+# --- фикстура: художественная проза не должна ложно штрафоваться -----------
+# roshchin_pastiche.txt — стилизация под Толстого (провенанс неизвестен, см.
+# eval/corpus/ATTRIBUTION.md). Стресс-кейс ложных срабатываний строкового
+# детектора: омоним «таким образом, что» (образ действия, НЕ вводный вывод) и
+# литературное тире. Умные метрики (рваный ритм, разные по длине абзацы) обязаны
+# читать текст как человеческий. Был 82 [правка] из-за ложного бана на омониме,
+# стал 94 [чисто] после сужения бана.
+from humanizer_metrics.markers import scan_hard_bans  # noqa: E402
+
+_FIXTURE = (Path(__file__).resolve().parent.parent
+            / "eval" / "corpus" / "literary" / "roshchin_pastiche.txt")
+lit = _FIXTURE.read_text(encoding="utf-8")
+lit_bans = {h.marker for h in scan_hard_bans(lit)}
+check("Подводя итог / Таким образом" not in lit_bans,
+      "омоним «таким образом, что» в прозе не должен идти под HARD BAN")
+check(band(lit) == "чисто",
+      f"художественная проза должна быть «чисто», получено {score(lit)} [{band(lit)}]")
+check(score(lit) >= 88, f"проза не должна штрафоваться ниже 88, получено {score(lit)}")
+check(analyze(lit).rhythm.cv_len >= 0.45,
+      "у живой прозы ритм рваный (CV высокий) — умная метрика читает человека")
+check("ровные абзацы" not in penalty_reasons(lit),
+      "разные по длине абзацы прозы не должны штрафоваться (S5 молчит)")
+
+
 if __name__ == "__main__":
     print(f"OK — {passed} проверок прошли.")
