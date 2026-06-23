@@ -21,6 +21,7 @@ from .markers import (
     scan_markers,
 )
 from .morphology import MorphStats, morph_stats, morph_verdict
+from .structure import StructureStats, structure_stats, structure_verdict
 from .score import ScoreResult, cleanliness_score
 
 __all__ = [
@@ -28,11 +29,13 @@ __all__ = [
     "analyze",
     "RhythmStats",
     "MorphStats",
+    "StructureStats",
     "MarkerHit",
     "ScoreResult",
     "cleanliness_score",
     "rhythm",
     "morph_stats",
+    "structure_stats",
     "scan_hard_bans",
     "scan_markers",
 ]
@@ -44,6 +47,7 @@ class Report:
     markers: list[MarkerHit]
     rhythm: RhythmStats
     morph: MorphStats
+    structure: StructureStats
 
     @property
     def hard_ban_count(self) -> int:
@@ -61,6 +65,7 @@ class Report:
             "markers": [(h.category, h.marker, h.count) for h in self.markers],
             "rhythm": self.rhythm.as_dict(),
             "morph": self.morph.as_dict(),
+            "structure": self.structure.as_dict(),
         }
 
 
@@ -71,4 +76,5 @@ def analyze(text: str) -> Report:
         markers=scan_markers(text),
         rhythm=rhythm(text),
         morph=morph_stats(text),
+        structure=structure_stats(text),
     )
