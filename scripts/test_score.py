@@ -91,5 +91,29 @@ small_list = "Список\n\n- раз\n- два\n- три\n"
 check("листикл" not in penalty_reasons(small_list), "3 пункта не дотягивают до порога листикла")
 
 
+# --- фикстура: художественная проза не должна ложно штрафоваться -----------
+# roshchin_pastiche.txt — стилизация под Толстого (провенанс неизвестен, см.
+# eval/corpus/ATTRIBUTION.md). Стресс-кейс ложных срабатываний строкового
+# детектора: омоним «таким образом, что» (образ действия, НЕ вводный вывод) и
+# литературное тире. Умные метрики (рваный ритм, разные по длине абзацы) обязаны
+# читать текст как человеческий. Был 82 [правка] из-за ложного бана на омониме,
+# стал 94 [чисто] после сужения бана.
+from humanizer_metrics.markers import scan_hard_bans  # noqa: E402
+
+_FIXTURE = (Path(__file__).resolve().parent.parent
+            / "eval" / "corpus" / "literary" / "roshchin_pastiche.txt")
+lit = _FIXTURE.read_text(encoding="utf-8")
+lit_bans = {h.marker for h in scan_hard_bans(lit)}
+check("Подводя итог / Таким образом" not in lit_bans,
+      "омоним «таким образом, что» в прозе не должен идти под HARD BAN")
+check(band(lit) == "чисто",
+      f"художественная проза должна быть «чисто», получено {score(lit)} [{band(lit)}]")
+check(score(lit) >= 88, f"проза не должна штрафоваться ниже 88, получено {score(lit)}")
+check(analyze(lit).rhythm.cv_len >= 0.45,
+      "у живой прозы ритм рваный (CV высокий) — умная метрика читает человека")
+check("ровные абзацы" not in penalty_reasons(lit),
+      "разные по длине абзацы прозы не должны штрафоваться (S5 молчит)")
+
+
 if __name__ == "__main__":
     print(f"OK — {passed} проверок прошли.")
