@@ -1,5 +1,6 @@
 {
   "name": "ilyautov-plugins",
+  "description": "Plugins by Ilya Utov: humanizer-ru kills AI smell in Russian text | Плагины Ильи Утова: humanizer-ru убирает следы нейросети из русского текста",
   "owner": {
     "name": "Ilya Utov",
     "email": "ilyautov@gmail.com"
