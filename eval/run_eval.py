@@ -13,9 +13,12 @@
   7. Пишет eval/out/results.json и человекочитаемый eval/RESULTS.md.
 
 Regression-гейт:
-  --save-baseline   записать текущие метрики как эталон (eval/out/baseline.json).
-  --baseline FILE   сравнить «после»-метрики с эталоном; exit 1, если просели
-                    (больше HARD BANS / маркеров или ниже cv_len).
+  --save-baseline   записать текущие метрики как эталон (eval/baseline.json,
+                    коммитится — его использует CI).
+  --baseline FILE   сравнить метрики с эталоном; exit 1 при регрессии.
+                    Направление зависит от текста: raw AI — потеря детекции,
+                    human-контроль — новые ложные срабатывания, humanized —
+                    больше остатков или ровнее ритм.
 
 Без --detectors/--judge харнес полностью детерминирован, не требует ключей и
 сети — этот режим гоняется в CI. Запуск:
@@ -521,11 +524,13 @@ def render_markdown(results: list[ItemResult], env: dict) -> str:
 
 
 def _metric_snapshot(results: list[ItemResult]) -> dict:
-    """Снимок ключевых «после»-метрик (или raw, если humanized нет) по id."""
+    """Снимок ключевых метрик по id: «после», если есть humanized, иначе raw."""
     snap = {}
     for r in results:
         src = r.after if r.after is not None else r.before
         snap[r.id] = {
+            "is_human": r.is_human,
+            "stage": "after" if r.after is not None else "raw",
             "hard_ban_count": src["hard_ban_count"],
             "marker_count": src["marker_count"],
             "cv_len": src["rhythm"]["cv_len"],
@@ -534,7 +539,16 @@ def _metric_snapshot(results: list[ItemResult]) -> dict:
 
 
 def check_regression(results: list[ItemResult], baseline_path: Path) -> list[str]:
-    """Сравнивает текущий снимок с эталоном. Возвращает список регрессий."""
+    """Сравнивает текущий снимок с эталоном. Возвращает список регрессий.
+
+    Направление зависит от типа текста:
+    - raw AI-текст: регрессия = движок стал находить МЕНЬШЕ (потеря детекции);
+    - человеческий контроль: регрессия = находок стало БОЛЬШЕ (новые ложные
+      срабатывания);
+    - humanized («после»): регрессия = остатков больше или ритм ровнее (скилл
+      стал хуже чистить).
+    Тексты с разным stage (raw vs after) не сравниваются: снимки несопоставимы.
+    """
     baseline = json.loads(baseline_path.read_text(encoding="utf-8"))
     current = _metric_snapshot(results)
     regressions: list[str] = []
@@ -542,18 +556,43 @@ def check_regression(results: list[ItemResult], baseline_path: Path) -> list[str
         cur = current.get(item_id)
         if cur is None:
             continue  # текст исчез из корпуса — это не регрессия метрик
-        if cur["hard_ban_count"] > base["hard_ban_count"]:
-            regressions.append(
-                f"{item_id}: HARD BANS {base['hard_ban_count']} → {cur['hard_ban_count']}"
-            )
-        if cur["marker_count"] > base["marker_count"]:
-            regressions.append(
-                f"{item_id}: маркеры {base['marker_count']} → {cur['marker_count']}"
-            )
-        if cur["cv_len"] < base["cv_len"]:
-            regressions.append(
-                f"{item_id}: CV ритма {base['cv_len']} → {cur['cv_len']} (ровнее)"
-            )
+        if base.get("stage", "after") != cur["stage"]:
+            continue
+        if base.get("is_human", False):
+            if cur["hard_ban_count"] > base["hard_ban_count"]:
+                regressions.append(
+                    f"{item_id} (human): новые ложные HARD BANS "
+                    f"{base['hard_ban_count']} → {cur['hard_ban_count']}"
+                )
+            if cur["marker_count"] > base["marker_count"]:
+                regressions.append(
+                    f"{item_id} (human): новые ложные маркеры "
+                    f"{base['marker_count']} → {cur['marker_count']}"
+                )
+        elif cur["stage"] == "raw":
+            if cur["hard_ban_count"] < base["hard_ban_count"]:
+                regressions.append(
+                    f"{item_id} (raw AI): потеря детекции HARD BANS "
+                    f"{base['hard_ban_count']} → {cur['hard_ban_count']}"
+                )
+            if cur["marker_count"] < base["marker_count"]:
+                regressions.append(
+                    f"{item_id} (raw AI): потеря детекции маркеров "
+                    f"{base['marker_count']} → {cur['marker_count']}"
+                )
+        else:
+            if cur["hard_ban_count"] > base["hard_ban_count"]:
+                regressions.append(
+                    f"{item_id}: HARD BANS {base['hard_ban_count']} → {cur['hard_ban_count']}"
+                )
+            if cur["marker_count"] > base["marker_count"]:
+                regressions.append(
+                    f"{item_id}: маркеры {base['marker_count']} → {cur['marker_count']}"
+                )
+            if cur["cv_len"] < base["cv_len"]:
+                regressions.append(
+                    f"{item_id}: CV ритма {base['cv_len']} → {cur['cv_len']} (ровнее)"
+                )
     return regressions
 
 
@@ -615,12 +654,13 @@ def main() -> int:
     md = render_markdown(results, env)
     (EVAL_DIR / "RESULTS.md").write_text(md, encoding="utf-8")
 
-    # baseline.
-    baseline_path = args.out / "baseline.json"
+    # baseline. Пишем в коммитимый eval/baseline.json (не в игнорируемый out/),
+    # чтобы regression-гейт работал и в CI: --baseline eval/baseline.json.
+    baseline_path = EVAL_DIR / "baseline.json"
     if args.save_baseline:
         snap = _metric_snapshot(results)
         baseline_path.write_text(
-            json.dumps(snap, ensure_ascii=False, indent=2), encoding="utf-8"
+            json.dumps(snap, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
         )
         print(f"[baseline] эталон записан в {baseline_path}")
 
