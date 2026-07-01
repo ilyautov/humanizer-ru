@@ -99,6 +99,51 @@ def _approved_examples(text: str) -> list[tuple[int, str]]:
     return out
 
 
+# Файлы, где «—» запрещено и в собственной прозе: скилл сам себе пример.
+EM_DASH_PROSE_FILES = (
+    CANON,
+    ROOT / "commands" / "humanize.md",
+    ROOT / "commands" / "audit.md",
+    ROOT / "README.md",
+    ROOT / "README.en.md",
+)
+
+
+def _strip_quoted(line: str) -> str:
+    """Убирает `код` и «цитаты»: там тире легально (цитируем плохие примеры
+    и сам символ)."""
+    line = re.sub(r"`[^`]*`", "", line)
+    return re.sub(r"«[^«»]*»", "", line)
+
+
+def check_em_dash_in_prose() -> None:
+    """«—» запрещено в собственной прозе скилла, команд и README, не только в
+    одобренных примерах. Пропускаем blockquote-содержимое примеров (Было:/До:
+    намеренно плохие; Стало:/После: проверяет check_em_dash_in_examples)."""
+    bad: list[str] = []
+    for path in EM_DASH_PROSE_FILES:
+        if not path.exists():
+            errors.append(f"нет файла для проверки тире: {path}")
+            continue
+        label: str | None = None
+        for i, raw in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+            s = raw.strip()
+            if re.match(r"^(Было|Стало|До|После):", s):
+                label = s.split(":", 1)[0]
+            elif s.startswith(">"):
+                if label:
+                    continue
+            elif s:
+                label = None
+            if "—" in _strip_quoted(raw):
+                bad.append(f"{path.relative_to(ROOT)}:{i}")
+    if bad:
+        for loc in bad:
+            errors.append(f"Длинное тире в собственной прозе: {loc}")
+    else:
+        notes.append("✓ ноль длинных тире в прозе SKILL.md, команд и README")
+
+
 def check_em_dash_in_examples(text: str) -> None:
     bad = [(i, ln) for i, ln in _approved_examples(text) if "—" in ln]
     if bad:
@@ -171,6 +216,7 @@ def main() -> int:
     check_frontmatter(text)
     check_scanner_ships_with_skill()
     check_em_dash_in_examples(text)
+    check_em_dash_in_prose()
     check_examples_pass_scanner(text)
     check_sync()
 
