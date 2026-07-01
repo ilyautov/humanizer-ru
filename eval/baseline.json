@@ -1,0 +1,72 @@
+{
+  "marketing_gpt_01": {
+    "is_human": false,
+    "stage": "raw",
+    "hard_ban_count": 14,
+    "marker_count": 15,
+    "cv_len": 0.184
+  },
+  "marketing_gemini_02": {
+    "is_human": false,
+    "stage": "raw",
+    "hard_ban_count": 10,
+    "marker_count": 13,
+    "cv_len": 0.167
+  },
+  "expert_claude_03": {
+    "is_human": false,
+    "stage": "raw",
+    "hard_ban_count": 10,
+    "marker_count": 11,
+    "cv_len": 0.328
+  },
+  "expert_gpt_04": {
+    "is_human": false,
+    "stage": "raw",
+    "hard_ban_count": 17,
+    "marker_count": 15,
+    "cv_len": 0.287
+  },
+  "business_claude_05": {
+    "is_human": false,
+    "stage": "raw",
+    "hard_ban_count": 13,
+    "marker_count": 20,
+    "cv_len": 0.147
+  },
+  "business_gemini_06": {
+    "is_human": false,
+    "stage": "raw",
+    "hard_ban_count": 16,
+    "marker_count": 16,
+    "cv_len": 0.277
+  },
+  "docs_gpt_07": {
+    "is_human": false,
+    "stage": "raw",
+    "hard_ban_count": 11,
+    "marker_count": 13,
+    "cv_len": 0.204
+  },
+  "wiki_baikal": {
+    "is_human": true,
+    "stage": "raw",
+    "hard_ban_count": 3,
+    "marker_count": 1,
+    "cv_len": 0.572
+  },
+  "wiki_chaikovsky": {
+    "is_human": true,
+    "stage": "raw",
+    "hard_ban_count": 3,
+    "marker_count": 0,
+    "cv_len": 0.129
+  },
+  "wiki_programmirovanie": {
+    "is_human": true,
+    "stage": "raw",
+    "hard_ban_count": 1,
+    "marker_count": 0,
+    "cv_len": 0.406
+  }
+}

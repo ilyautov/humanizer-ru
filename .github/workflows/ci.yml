@@ -32,6 +32,9 @@ jobs:
       - name: Регресс-тесты score чистоты (test_score)
         run: python scripts/test_score.py
 
+      - name: Смоук-тесты CLI-сканера (test_scan)
+        run: python scripts/test_scan.py
+
       - name: Self-test скилла (lint_skill)
         run: python scripts/lint_skill.py
 
@@ -47,8 +50,11 @@ jobs:
           if [ "$code" -gt 1 ]; then echo "scan.py упал (exit $code)"; exit "$code"; fi
           python -c "import json; r = json.load(open('/tmp/scan.json')); print('scan ok, hard bans:', r['hard_ban_count'])"
 
-      - name: Eval-харнес (метрики-only, без детекторов/судьи)
-        run: python eval/run_eval.py
+      # Regression-гейт против eval/baseline.json (коммитится): raw AI не должен
+      # терять детекцию, human-контроль не должен получать новые ложные
+      # срабатывания. Обновление эталона: python eval/run_eval.py --save-baseline.
+      - name: Eval-харнес (метрики-only) + regression-гейт
+        run: python eval/run_eval.py --baseline eval/baseline.json
 
       # Граница активации скилла: детерминированный слой (язык/модальность +
       # guard scope-фраз в описании из SKILL.md). LLM-роутер опционален и в CI
