@@ -14,6 +14,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from .burstiness import CV_HUMAN_TARGET
+from .markers import effective_hard_bans
 from .morphology import NV_TARGET
 from .structure import (
     LISTICLE_MIN_ITEMS,
@@ -66,7 +67,9 @@ def cleanliness_score(report) -> ScoreResult:
     score = 100.0
 
     # 1. Фразовые хард-баны (кроме тире). Однозначные AI-обороты: дорого.
-    hard_phrase = sum(h.count for h in report.hard_bans if h.marker != EM_DASH_NAME)
+    #    Частотные баны («Является») штрафуются только выше порога плотности.
+    eff_bans = effective_hard_bans(report.hard_bans, report.rhythm.words)
+    hard_phrase = sum(h.count for h in eff_bans if h.marker != EM_DASH_NAME)
     if hard_phrase:
         pen = min(45, 12 * hard_phrase)
         score -= pen
