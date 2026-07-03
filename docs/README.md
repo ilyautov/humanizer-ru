@@ -1,14 +1,14 @@
 # Сайт humanizer-ru (GitHub Pages)
 
 SEO/GEO-сайт проекта. Статический HTML, без сборки и без Jekyll.
-Адрес: https://ilyautov.github.io/humanizer-ru/
+Адрес: https://humanizer-ru.aifrontier.tech/
 
 ## Как включить GitHub Pages
 
 1. Открой репозиторий на GitHub → **Settings** → **Pages**.
 2. В разделе **Build and deployment** → **Source** выбери **Deploy from a branch**.
 3. Branch: `main`, папка: `/docs`. Сохрани.
-4. Через минуту сайт будет на https://ilyautov.github.io/humanizer-ru/
+4. Через минуту сайт будет на https://humanizer-ru.aifrontier.tech/
 
 ## Структура
 

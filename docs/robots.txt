@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://ilyautov.github.io/humanizer-ru/sitemap.xml
+Sitemap: https://humanizer-ru.aifrontier.tech/sitemap.xml
