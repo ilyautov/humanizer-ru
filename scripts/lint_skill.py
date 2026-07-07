@@ -2,7 +2,7 @@
 """Self-test скилла: тестирует SKILL.md против собственных правил.
 
 Ловит ровно те классы регрессий, которые иначе ловятся только глазами:
-  1. Пропавший/задвоенный паттерн (нумерация 1..52 без дыр).
+  1. Пропавший/задвоенный паттерн (нумерация 1..53 без дыр).
   2. Число HARD BANS и категорий сканера разошлось с markers.py.
   3. Длинное тире «—» в СОБСТВЕННЫХ одобренных примерах скилла (После:/Стало:/
      блок «## Примеры»). Скилл велит ноль тире — он не имеет права показывать
@@ -30,9 +30,9 @@ from humanizer_metrics.markers import HARD_BANS, SCANNER, scan_hard_bans
 CANON = ROOT / "skills" / "humanizer-ru" / "SKILL.md"
 MIRROR = ROOT / "SKILL.md"
 
-EXPECTED_PATTERNS = 52
+EXPECTED_PATTERNS = 53
 EXPECTED_HARD_BANS = 20
-EXPECTED_SCANNER_CATS = 20
+EXPECTED_SCANNER_CATS = 21
 
 errors: list[str] = []
 notes: list[str] = []
