@@ -15,11 +15,11 @@ Claude Code / Cowork plugin. Kills AI smell in Russian text. The English [humani
   </a>
 </p>
 
-📖 **Docs & write-ups (RU):** [humanizer-ru.aifrontier.tech](https://humanizer-ru.aifrontier.tech/): do AI detectors work on Russian, the 53 markers, plagiarism vs AI detection.
+📖 **Docs & write-ups (RU):** [humanizer-ru.aifrontier.tech](https://humanizer-ru.aifrontier.tech/): do AI detectors work on Russian, the 54 markers, plagiarism vs AI detection.
 
 ## What you get
 
-53 patterns across 12 categories: канцелярит, English calques, emotional sterility, persuasion tricks, information rhythm, hedging specifics, plus the 2025-2026 stylistic fingerprints (jagged-meditation single-word sentences, pseudo-Socratic Q-A chains, decorative emoji per list item, pseudo-therapeutic register). 20 hard-banned constructions that scream "GPT wrote this", including em-dashes (detectors count their frequency). A research-backed section on how detectors actually work (perplexity, burstiness, morphology) with verified numbers from DivEye, PIFE, AINL-Eval 2025 (every citation checked, see SOURCES.md). Five article formulas. Voice calibration. Quad-pass audit with a "Skeleton" pass that reads only the first lines of list items to catch templated openings.
+54 patterns across 12 categories: канцелярит, English calques, emotional sterility, persuasion tricks, information rhythm, hedging specifics, plus the 2025-2026 stylistic fingerprints (jagged-meditation single-word sentences, pseudo-Socratic Q-A chains, decorative emoji per list item, pseudo-therapeutic register). 20 hard-banned constructions that scream "GPT wrote this", including em-dashes (detectors count their frequency). A research-backed section on how detectors actually work (perplexity, burstiness, morphology) with verified numbers from DivEye, PIFE, AINL-Eval 2025 (every citation checked, see SOURCES.md). Five article formulas. Voice calibration. Quad-pass audit with a "Skeleton" pass that reads only the first lines of list items to catch templated openings.
 
 ## Install
 
@@ -106,7 +106,7 @@ Generic path for native readers: drop the skill folder into the directory the ag
 
 ## Modes
 
-- **Full rewrite** (default): all 53 patterns, voice calibration, quad-pass audit.
+- **Full rewrite** (default): all 54 patterns, voice calibration, quad-pass audit.
 - **Audit**: diagnosis only, returns detected patterns with priority A-D.
 - **Targeted fix**: works on a specific category only.
 
