@@ -38,6 +38,9 @@ jobs:
       - name: Self-test скилла (lint_skill)
         run: python scripts/lint_skill.py
 
+      - name: Согласованность релизных чисел (bump_release --check)
+        run: python scripts/bump_release.py --check
+
       # Цель шага: «сканер запускается и отдаёт валидный JSON», а НЕ «текст чистый».
       # Exit 1 у scan.py означает «нашёл HARD BANS» — для формального человеческого
       # текста (Википедия: «является», тире) это штатно (см. eval/RESULTS.md, FP-аудит).

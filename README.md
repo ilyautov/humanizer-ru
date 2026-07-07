@@ -11,7 +11,7 @@
 
 <p align="center">
   <a href="https://humanizer-ru.aifrontier.tech/">
-    <img src="assets/social-preview.png" alt="humanizer-ru: убирает следы нейросети из русского текста. 52 признака, 20 запретов, сканер в комплекте" width="720">
+    <img src="assets/social-preview.png" alt="humanizer-ru: убирает следы нейросети из русского текста. 54 признака, 20 запретов, сканер в комплекте" width="720">
   </a>
 </p>
 

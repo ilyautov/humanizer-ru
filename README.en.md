@@ -11,7 +11,7 @@ Claude Code / Cowork plugin. Kills AI smell in Russian text. The English [humani
 
 <p align="center">
   <a href="https://humanizer-ru.aifrontier.tech/">
-    <img src="assets/social-preview.png" alt="humanizer-ru: removes AI tells from Russian text. 52 patterns, 20 hard bans, scanner included" width="720">
+    <img src="assets/social-preview.png" alt="humanizer-ru: removes AI tells from Russian text. 54 patterns, 20 hard bans, scanner included" width="720">
   </a>
 </p>
 
