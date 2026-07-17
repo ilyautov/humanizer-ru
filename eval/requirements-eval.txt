@@ -21,5 +21,5 @@ anthropic>=0.112.0
 
 # Локальный офлайн-детектор AI-текста на transformers (eval/detectors/ru_roberta.py).
 # Самые тяжёлые зависимости — ставь только под локальный прогон с GPU/CPU-инференсом.
-transformers>=5.12.1
+transformers>=5.14.1
 torch>=2.12.1
