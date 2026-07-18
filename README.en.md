@@ -55,10 +55,10 @@ Workspace admins can roll the skill out to the whole team via **Admin Console â†
 **skills.sh CLI** (universal across Claude agents):
 
 ```bash
-npx skills add ilyautov/humanizer-ru
+npx skills add https://github.com/ilyautov/humanizer-ru/tree/main/skills/humanizer-ru
 ```
 
-The CLI drops `SKILL.md` into `~/.claude/skills/humanizer-ru/` and registers the skill on [skills.sh](https://skills.sh/ilyautov/humanizer-ru/humanizer-ru).
+The CLI drops `SKILL.md` into `~/.claude/skills/humanizer-ru/` and registers the skill on [skills.sh](https://skills.sh/ilyautov/humanizer-ru/humanizer-ru). Point at the full skill-folder path: the short `ilyautov/humanizer-ru` form matches the root `SKILL.md` and pulls the whole repository into the install.
 
 **API (`/v1/messages` and equivalents):** pass the skill via the `container.skills` parameter. See your client's docs.
 
