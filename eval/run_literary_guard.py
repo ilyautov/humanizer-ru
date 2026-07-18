@@ -39,7 +39,7 @@ from pathlib import Path
 
 EVAL_DIR = Path(__file__).resolve().parent
 ROOT = EVAL_DIR.parent
-SKILL_MD = ROOT / "SKILL.md"
+SKILL_MD = ROOT / "skills" / "humanizer-ru" / "SKILL.md"
 FIXTURE = EVAL_DIR / "corpus" / "literary" / "roshchin_pastiche.txt"
 OUT = EVAL_DIR / "out" / "literary_guard.json"
 

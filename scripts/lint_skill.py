@@ -9,7 +9,6 @@
      тире в «хорошем» выводе.
   4. Каждый одобренный пример скилла («Стало:»/«После:») сам проходит сканер:
      ноль HARD BANS. Скилл, нарушающий свои баны в примерах, не пройдёт CI.
-  5. Корневой SKILL.md идентичен skills/humanizer-ru/SKILL.md.
 
 Запуск:  python scripts/lint_skill.py
 Exit code 1 при любой ошибке — гейт для CI/pre-commit.
@@ -28,7 +27,6 @@ sys.path.insert(0, str(ROOT / "skills" / "humanizer-ru" / "scripts"))
 from humanizer_metrics.markers import HARD_BANS, SCANNER, scan_hard_bans
 
 CANON = ROOT / "skills" / "humanizer-ru" / "SKILL.md"
-MIRROR = ROOT / "SKILL.md"
 
 EXPECTED_PATTERNS = 54
 EXPECTED_HARD_BANS = 20
@@ -196,21 +194,11 @@ def check_scanner_ships_with_skill() -> None:
     notes.append("✓ сканер внутри скилла и подключён в режим «Аудит»")
 
 
-def check_sync() -> None:
-    if not CANON.exists():
-        errors.append(f"нет канонического файла {CANON}")
-        return
-    if not MIRROR.exists():
-        errors.append(f"нет зеркала {MIRROR}")
-        return
-    if CANON.read_text(encoding="utf-8") != MIRROR.read_text(encoding="utf-8"):
-        errors.append("SKILL.md в корне и в skills/humanizer-ru/ разошлись (нужен sync)")
-    else:
-        notes.append("✓ корневой SKILL.md синхронизирован со skills/")
-
-
 def main() -> int:
-    text = CANON.read_text(encoding="utf-8") if CANON.exists() else MIRROR.read_text(encoding="utf-8")
+    if not CANON.exists():
+        print(f"нет канонического файла {CANON}", file=sys.stderr)
+        return 1
+    text = CANON.read_text(encoding="utf-8")
     check_patterns(text)
     check_counts(text)
     check_frontmatter(text)
@@ -218,7 +206,6 @@ def main() -> int:
     check_em_dash_in_examples(text)
     check_em_dash_in_prose()
     check_examples_pass_scanner(text)
-    check_sync()
 
     print("=== lint_skill ===")
     for n in notes:

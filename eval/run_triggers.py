@@ -42,7 +42,7 @@ EVAL_DIR = Path(__file__).resolve().parent
 ROOT = EVAL_DIR.parent
 DEFAULT_CORPUS = EVAL_DIR / "triggers.json"
 DEFAULT_OUT = EVAL_DIR / "out"
-SKILL_MD = ROOT / "SKILL.md"
+SKILL_MD = ROOT / "skills" / "humanizer-ru" / "SKILL.md"
 
 # Scope-фраза описания: эти подстроки задают границу активации. Если из SKILL.md
 # исчезла любая — описание размыло scope, и trigger-eval теряет смысл. Ловим

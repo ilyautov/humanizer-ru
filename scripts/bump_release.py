@@ -34,7 +34,7 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "skills" / "humanizer-ru" / "scripts"))
 from humanizer_metrics.markers import HARD_BANS  # noqa: E402
 
-SKILL = ROOT / "SKILL.md"
+SKILL = ROOT / "skills" / "humanizer-ru" / "SKILL.md"
 
 # Файлы, где живут СЧЁТЧИКИ (SKILL.md намеренно не здесь: он источник истины,
 # его правит человек, а линт проверяет сплошную нумерацию).
