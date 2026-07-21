@@ -27,6 +27,10 @@ sys.path.insert(0, str(ROOT / "skills" / "humanizer-ru" / "scripts"))
 from humanizer_metrics.markers import HARD_BANS, SCANNER, scan_hard_bans
 
 CANON = ROOT / "skills" / "humanizer-ru" / "SKILL.md"
+# Каталог 54 паттернов и списки маркеров вынесены из SKILL.md в отдельный
+# reference-файл (тонкий промпт не тащит весь каталог в контекст). Паттерны,
+# категории сканера и одобренные примеры «до/после» живут теперь здесь.
+CATALOG = ROOT / "skills" / "humanizer-ru" / "references" / "каталог.md"
 
 EXPECTED_PATTERNS = 54
 EXPECTED_HARD_BANS = 20
@@ -100,6 +104,7 @@ def _approved_examples(text: str) -> list[tuple[int, str]]:
 # Файлы, где «—» запрещено и в собственной прозе: скилл сам себе пример.
 EM_DASH_PROSE_FILES = (
     CANON,
+    CATALOG,
     ROOT / "commands" / "humanize.md",
     ROOT / "commands" / "audit.md",
     ROOT / "README.md",
@@ -195,17 +200,22 @@ def check_scanner_ships_with_skill() -> None:
 
 
 def main() -> int:
-    if not CANON.exists():
-        print(f"нет канонического файла {CANON}", file=sys.stderr)
-        return 1
-    text = CANON.read_text(encoding="utf-8")
-    check_patterns(text)
-    check_counts(text)
-    check_frontmatter(text)
+    for f in (CANON, CATALOG):
+        if not f.exists():
+            print(f"нет файла {f}", file=sys.stderr)
+            return 1
+    skill_text = CANON.read_text(encoding="utf-8")
+    catalog_text = CATALOG.read_text(encoding="utf-8")
+    # Паттерны и категории сканера живут в каталоге; frontmatter и провод
+    # сканера — в SKILL.md; одобренные примеры «до/после» есть в обоих файлах.
+    both = skill_text + "\n" + catalog_text
+    check_patterns(catalog_text)
+    check_counts(catalog_text)
+    check_frontmatter(skill_text)
     check_scanner_ships_with_skill()
-    check_em_dash_in_examples(text)
+    check_em_dash_in_examples(both)
     check_em_dash_in_prose()
-    check_examples_pass_scanner(text)
+    check_examples_pass_scanner(both)
 
     print("=== lint_skill ===")
     for n in notes:
