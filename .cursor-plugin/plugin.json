@@ -1,7 +1,7 @@
 {
   "name": "humanizer-ru",
   "displayName": "Humanizer RU",
-  "version": "3.15.0",
+  "version": "3.15.1",
   "description": "Kills AI smell in Russian text. 54 patterns, 20 hard bans, voice calibration, quad-pass audit. Auto-activates on Russian text humanization requests.",
   "author": {
     "name": "Ilya Utov",
