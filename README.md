@@ -5,7 +5,7 @@
 > [English version](README.en.md)
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Версия](https://img.shields.io/badge/версия-3.15.3-blueviolet)](https://github.com/ilyautov/humanizer-ru/blob/main/CHANGELOG.md)
+[![Версия](https://img.shields.io/badge/версия-3.15.4-blueviolet)](https://github.com/ilyautov/humanizer-ru/blob/main/CHANGELOG.md)
 [![Звёзды](https://img.shields.io/github/stars/ilyautov/humanizer-ru?style=social)](https://github.com/ilyautov/humanizer-ru/stargazers)
 [![skills.sh](https://skills.sh/b/ilyautov/humanizer-ru)](https://skills.sh/ilyautov/humanizer-ru/humanizer-ru)
 
@@ -98,7 +98,7 @@
 npx skills add https://github.com/ilyautov/humanizer-ru/tree/main/skills/humanizer-ru
 ```
 
-CLI кладёт `SKILL.md` в `~/.claude/skills/humanizer-ru/` и регистрирует скилл в индексе [skills.sh](https://skills.sh/ilyautov/humanizer-ru/humanizer-ru). Указывайте полный путь к папке скилла: короткая форма `ilyautov/humanizer-ru` цепляет корневой `SKILL.md` и тащит в установку весь репозиторий.
+CLI кладёт `SKILL.md` в `~/.claude/skills/humanizer-ru/` и регистрирует скилл в индексе [skills.sh](https://skills.sh/ilyautov/humanizer-ru/humanizer-ru). Указывайте полный путь к папке скилла: короткая форма `ilyautov/humanizer-ru` смотрит в корень репозитория, где `SKILL.md` нет (убран в v3.14.2), и установка либо падает, либо тащит весь репозиторий.
 
 **Через API (`/v1/messages` и аналоги):** передайте скилл параметром `container.skills`. Детали в документации вашего клиента.
 

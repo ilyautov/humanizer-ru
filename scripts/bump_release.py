@@ -68,6 +68,12 @@ VERSION_TARGETS = [
     (".codex-plugin/plugin.json", r'"version":\s*"([\d.]+)"'),
     ("gemini-extension.json", r'"version":\s*"([\d.]+)"'),
     ("README.md", r"версия-([\d.]+)-blueviolet"),
+    ("README.en.md", r"version-([\d.]+)-blueviolet"),
+    # Заголовок скилла. До v3.15.4 здесь жила отдельная «контент-версия»,
+    # которая двигалась только при правке промпта и потому отставала (v3.13 при
+    # пакете 3.15.3). Версия теперь одна на весь репозиторий: сравнивать две
+    # нумерации всё равно было некому, а расхождение читалось как баг.
+    ("skills/humanizer-ru/SKILL.md", r"# Humanizer-RU v([\d.]+)"),
     ("docs/index.html", r"<li>v([\d.]+)</li>"),
 ]
 

@@ -1,13 +1,13 @@
 {
   "name": "humanizer-ru",
-  "version": "3.15.3",
+  "version": "3.15.4",
   "description": "Kills AI smell in Russian text. 54 patterns across 12 categories, 20 hard bans, 3 modes (rewrite / audit / targeted fix), deterministic scanner included. | Убивает запах нейросети в русском тексте: 54 паттерна, 20 жёстких банов, детерминированный сканер в комплекте.",
   "author": {
     "name": "Ilya Utov",
     "email": "ilyautov@gmail.com",
     "url": "https://github.com/ilyautov"
   },
-  "homepage": "https://ilyautov.github.io/humanizer-ru/",
+  "homepage": "https://humanizer-ru.aifrontier.tech/",
   "repository": "https://github.com/ilyautov/humanizer-ru",
   "license": "MIT",
   "keywords": ["humanizer", "russian", "writing", "ai-detection", "text", "русский", "очеловечивание"],
@@ -19,7 +19,7 @@
     "developerName": "Ilya Utov",
     "category": "Writing",
     "capabilities": ["Read", "Write"],
-    "websiteURL": "https://ilyautov.github.io/humanizer-ru/",
+    "websiteURL": "https://humanizer-ru.aifrontier.tech/",
     "privacyPolicyURL": "https://github.com/ilyautov/humanizer-ru/blob/main/PRIVACY_POLICY.md",
     "defaultPrompt": ["Очеловечь этот текст: ..."],
     "brandColor": "#7AA7FF",

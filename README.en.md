@@ -5,7 +5,7 @@
 Claude Code / Cowork plugin. Kills AI smell in Russian text. The English [humanizer](https://github.com/blader/humanizer) won't help here. Russian AI markers are their own beast: bureaucratic noun-chains (канцелярит), English-syntax calques, missing particles like "же" and "ведь" that make Russian sound alive.
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-3.11.0-blueviolet)](https://github.com/ilyautov/humanizer-ru/blob/main/CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-3.15.4-blueviolet)](https://github.com/ilyautov/humanizer-ru/blob/main/CHANGELOG.md)
 [![Stars](https://img.shields.io/github/stars/ilyautov/humanizer-ru?style=social)](https://github.com/ilyautov/humanizer-ru/stargazers)
 [![skills.sh](https://skills.sh/b/ilyautov/humanizer-ru)](https://skills.sh/ilyautov/humanizer-ru/humanizer-ru)
 
@@ -59,7 +59,7 @@ Workspace admins can roll the skill out to the whole team via **Admin Console �
 npx skills add https://github.com/ilyautov/humanizer-ru/tree/main/skills/humanizer-ru
 ```
 
-The CLI drops `SKILL.md` into `~/.claude/skills/humanizer-ru/` and registers the skill on [skills.sh](https://skills.sh/ilyautov/humanizer-ru/humanizer-ru). Point at the full skill-folder path: the short `ilyautov/humanizer-ru` form matches the root `SKILL.md` and pulls the whole repository into the install.
+The CLI drops `SKILL.md` into `~/.claude/skills/humanizer-ru/` and registers the skill on [skills.sh](https://skills.sh/ilyautov/humanizer-ru/humanizer-ru). Point at the full skill-folder path: the short `ilyautov/humanizer-ru` form resolves to the repo root, which has no `SKILL.md` (removed in v3.14.2), so the install either fails or pulls in the whole repository.
 
 **API (`/v1/messages` and equivalents):** pass the skill via the `container.skills` parameter. See your client's docs.
 
