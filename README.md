@@ -5,7 +5,7 @@
 > [English version](README.en.md)
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Версия](https://img.shields.io/badge/версия-3.15.2-blueviolet)](https://github.com/ilyautov/humanizer-ru/blob/main/CHANGELOG.md)
+[![Версия](https://img.shields.io/badge/версия-3.15.3-blueviolet)](https://github.com/ilyautov/humanizer-ru/blob/main/CHANGELOG.md)
 [![Звёзды](https://img.shields.io/github/stars/ilyautov/humanizer-ru?style=social)](https://github.com/ilyautov/humanizer-ru/stargazers)
 [![skills.sh](https://skills.sh/b/ilyautov/humanizer-ru)](https://skills.sh/ilyautov/humanizer-ru/humanizer-ru)
 
@@ -64,16 +64,17 @@
 
 ### 1. Claude.ai (веб-интерфейс)
 
-1. Скачайте репозиторий ZIP-архивом:
-   `https://github.com/ilyautov/humanizer-ru/archive/refs/heads/main.zip`
+1. Скачайте готовый архив скилла:
+   [humanizer-ru.zip](https://github.com/ilyautov/humanizer-ru/releases/latest/download/humanizer-ru.zip)
 2. Откройте Claude.ai → **Settings** → **Capabilities** → **Skills**.
 3. Нажмите **Upload skill** и выберите скачанный архив.
 
-> Если Claude.ai не принимает архив из-за вложенной папки `humanizer-ru-main`, склонируйте репозиторий и заархивируйте папку вручную:
+> Не берите `archive/refs/heads/main.zip`: загрузчик ищет `SKILL.md` на верхнем уровне архива, а в архиве репозитория он лежит внутри `humanizer-ru-main/skills/humanizer-ru/`. Если нужно собрать архив самому, архивируйте именно папку скилла:
 >
 > ```bash
 > git clone https://github.com/ilyautov/humanizer-ru.git
-> zip -r humanizer-ru.zip humanizer-ru/
+> cd humanizer-ru/skills
+> zip -r ../../humanizer-ru.zip humanizer-ru -x '*/__pycache__/*'
 > ```
 
 ### 2. Организации (Enterprise и Team)

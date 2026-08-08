@@ -40,7 +40,7 @@ from pathlib import Path
 EVAL_DIR = Path(__file__).resolve().parent
 ROOT = EVAL_DIR.parent
 # Паттерн #53 живёт в вынесенном каталоге, а не в тонком SKILL.md.
-SKILL_MD = ROOT / "skills" / "humanizer-ru" / "references" / "каталог.md"
+SKILL_MD = ROOT / "skills" / "humanizer-ru" / "references" / "catalog.md"
 FIXTURE = EVAL_DIR / "corpus" / "literary" / "roshchin_pastiche.txt"
 OUT = EVAL_DIR / "out" / "literary_guard.json"
 
@@ -87,7 +87,7 @@ def main() -> int:
 
     pattern = extract_pattern_53(SKILL_MD.read_text(encoding="utf-8"))
     if not pattern:
-        print("[fail] паттерн #53 не найден в references/каталог.md")
+        print("[fail] паттерн #53 не найден в references/catalog.md")
         return 1
     if not llm_backend.available():
         print("[skip] Ollama недоступна — literary-guard пропущен (см. docstring)")

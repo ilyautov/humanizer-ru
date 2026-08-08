@@ -27,16 +27,17 @@ Three deployment channels: upload to Claude.ai web UI, roll out across an organi
 
 ### 1. Claude.ai (Web UI)
 
-1. Download the repo as a ZIP:
-   `https://github.com/ilyautov/humanizer-ru/archive/refs/heads/main.zip`
+1. Download the packaged skill:
+   [humanizer-ru.zip](https://github.com/ilyautov/humanizer-ru/releases/latest/download/humanizer-ru.zip)
 2. Open Claude.ai → **Settings** → **Capabilities** → **Skills**.
 3. Click **Upload skill** and select the ZIP.
 
-If Claude.ai rejects the archive because of the nested `humanizer-ru-main` folder, clone and re-zip manually:
+Do not use `archive/refs/heads/main.zip`: the uploader expects `SKILL.md` at the top level of the archive, and in the repo archive it sits inside `humanizer-ru-main/skills/humanizer-ru/`. To build the archive yourself, zip the skill folder itself:
 
 ```bash
 git clone https://github.com/ilyautov/humanizer-ru.git
-zip -r humanizer-ru.zip humanizer-ru/
+cd humanizer-ru/skills
+zip -r ../../humanizer-ru.zip humanizer-ru -x '*/__pycache__/*'
 ```
 
 ### 2. Organizations (Enterprise & Team)

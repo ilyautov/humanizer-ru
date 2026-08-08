@@ -30,7 +30,8 @@ CANON = ROOT / "skills" / "humanizer-ru" / "SKILL.md"
 # Каталог 54 паттернов и списки маркеров вынесены из SKILL.md в отдельный
 # reference-файл (тонкий промпт не тащит весь каталог в контекст). Паттерны,
 # категории сканера и одобренные примеры «до/после» живут теперь здесь.
-CATALOG = ROOT / "skills" / "humanizer-ru" / "references" / "каталог.md"
+CATALOG = ROOT / "skills" / "humanizer-ru" / "references" / "catalog.md"
+SKILL_DIR = ROOT / "skills" / "humanizer-ru"
 
 EXPECTED_PATTERNS = 54
 EXPECTED_HARD_BANS = 20
@@ -199,6 +200,25 @@ def check_scanner_ships_with_skill() -> None:
     notes.append("✓ сканер внутри скилла и подключён в режим «Аудит»")
 
 
+def check_ascii_filenames() -> None:
+    """Имена файлов внутри скилла — только ASCII.
+
+    Загрузчик скиллов в Claude.ai отклоняет ZIP с не-ASCII путями внутри
+    («Zip file contains path with invalid characters»), поэтому кириллица в
+    ИМЕНИ файла делает скилл неустанавливаемым через веб. Issue #45.
+    """
+    bad = [
+        str(p.relative_to(ROOT))
+        for p in sorted(SKILL_DIR.rglob("*"))
+        if not p.name.isascii()
+    ]
+    if bad:
+        for loc in bad:
+            errors.append(f"не-ASCII в имени файла (ZIP не установится в Claude.ai): {loc}")
+    else:
+        notes.append("✓ все имена файлов внутри скилла ASCII")
+
+
 def main() -> int:
     for f in (CANON, CATALOG):
         if not f.exists():
@@ -213,6 +233,7 @@ def main() -> int:
     check_counts(catalog_text)
     check_frontmatter(skill_text)
     check_scanner_ships_with_skill()
+    check_ascii_filenames()
     check_em_dash_in_examples(both)
     check_em_dash_in_prose()
     check_examples_pass_scanner(both)

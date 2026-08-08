@@ -18,7 +18,8 @@ eyebrow), version бампается релизом, а тексты рядом 
     python scripts/bump_release.py --apply v3.15.0  # протащить версию+счётчики
     python scripts/bump_release.py --apply          # только счётчики
 
-Что НЕ автоматизируется (печатается напоминанием при --apply): About-поле
+Что НЕ автоматизируется (печатается напоминанием при --apply): ZIP-ассет
+humanizer-ru.zip к GitHub Release (на него ведёт README, issue #45), About-поле
 GitHub (gh repo edit), локальная копия ~/.claude/skills, синк маркетплейса в
 Cowork, счётчик внутри assets/social-preview.png (запечён в растр).
 """
@@ -34,7 +35,7 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "skills" / "humanizer-ru" / "scripts"))
 from humanizer_metrics.markers import HARD_BANS  # noqa: E402
 
-SKILL = ROOT / "skills" / "humanizer-ru" / "references" / "каталог.md"
+SKILL = ROOT / "skills" / "humanizer-ru" / "references" / "catalog.md"
 
 # Файлы, где живут СЧЁТЧИКИ (SKILL.md намеренно не здесь: он источник истины,
 # его правит человек, а линт проверяет сплошную нумерацию).
@@ -181,7 +182,11 @@ def main() -> int:
 
     changed = apply_all(patterns, bans, args.apply or None)
     print(f"[итог] файлов изменено: {changed}")
-    print("[напоминание] руками после релиза: About-поле GitHub (gh repo edit,"
+    print("[напоминание] руками после релиза: приложить humanizer-ru.zip к"
+          " GitHub Release (cd skills && zip -r ../humanizer-ru.zip humanizer-ru"
+          " -x '*/__pycache__/*'; README ведёт на"
+          " releases/latest/download/humanizer-ru.zip — без ассета ссылка"
+          " ломается), About-поле GitHub (gh repo edit,"
           " текст = 1-я строка README), локальная копия"
           " (cp -R skills/humanizer-ru/. ~/.claude/skills/humanizer-ru/),"
           " синк маркетплейса в Cowork, счётчик в assets/social-preview.png.")
