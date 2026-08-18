@@ -1,5 +1,5 @@
 {
   "name": "humanizer-ru",
-  "version": "3.15.4",
-  "description": "Убивает запах нейросети в русском тексте: 54 паттерна, 20 жёстких банов, калибровка голоса, quad-pass аудит. Kills AI smell in Russian text."
+  "version": "3.16.0",
+  "description": "Убивает запах нейросети в русском тексте: 58 паттернов, 20 жёстких банов, калибровка голоса, quad-pass аудит. Kills AI smell in Russian text."
 }

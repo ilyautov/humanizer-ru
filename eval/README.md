@@ -230,9 +230,11 @@ python eval/run_triggers.py --strict   # пропуск триггера тож�
 eval/
 ├── README.md              — этот файл
 ├── RESULTS.md             — публичный отчёт качества (run_eval.py)
+├── AINL-CALIBRATION.md    — калибровка каталога на внешнем размеченном корпусе (правится руками)
 ├── TRIGGERS.md            — публичный отчёт границы активации (run_triggers.py)
 ├── run_eval.py            — оркестратор качества (главный вход)
 ├── run_triggers.py        — trigger-eval: граница активации (детерминированный, без LLM)
+├── ainl_calibration.py    — ложные срабатывания на AINL-Eval 2025 (внешний корпус, вне CI)
 ├── triggers.json          — корпус trigger-кейсов (should-trigger + near-miss)
 ├── llm_backend.py         — клиент локальной Ollama (generate/json/embed/logprobs)
 ├── judge.py               — LLM-судья (Ollama по умолчанию, Anthropic опц.)

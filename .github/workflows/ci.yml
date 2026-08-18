@@ -38,6 +38,20 @@ jobs:
       - name: Self-test скилла (lint_skill)
         run: python scripts/lint_skill.py
 
+      # Гейт честности примеров: в паре «До/После» не может появиться числа,
+      # даты или имени, которых нет в исходнике (Факт-замок). Пример учит
+      # модель сильнее инструкции, поэтому нарушение валит сборку.
+      - name: Факт-замок в собственных примерах (check_examples)
+        run: python scripts/check_examples.py
+
+      # Витрина (README, сайт, SKILL.md, команды) прогоняется через собственные
+      # HARD BANS: скилл не имеет права нарушать то, что требует от других.
+      - name: Self-scan витрины собственными банами (self_scan)
+        run: python scripts/self_scan.py
+
+      - name: Тесты самих гейтов (test_gates)
+        run: python scripts/test_gates.py
+
       - name: Согласованность релизных чисел (bump_release --check)
         run: python scripts/bump_release.py --check
 

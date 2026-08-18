@@ -14,7 +14,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from .burstiness import CV_HUMAN_TARGET
-from .markers import effective_hard_bans
+from .markers import (GENRE_MUTED_BANS, GENRE_MUTED_CATEGORIES,
+                      effective_hard_bans, mute_by_genre)
 from .morphology import NV_TARGET
 from .structure import (
     LISTICLE_MIN_ITEMS,
@@ -60,15 +61,23 @@ def _per100(count: int, words: int) -> float:
     return (count / words * 100) if words else 0.0
 
 
-def cleanliness_score(report) -> ScoreResult:
-    """Считает score 0-100 из готового Report (см. humanizer_metrics.analyze)."""
+def cleanliness_score(report, genre: str | None = None) -> ScoreResult:
+    """Считает score 0-100 из готового Report (см. humanizer_metrics.analyze).
+
+    genre снимает штрафы за маркеры, законные для регистра (научный,
+    юридический, художественный). Без genre режим строгий, как раньше.
+    """
     words = report.rhythm.words or 1
+    markers = mute_by_genre(report.markers, genre, GENRE_MUTED_CATEGORIES)
+    dash_muted = EM_DASH_NAME in GENRE_MUTED_BANS.get(genre or "", set())
     penalties: list[tuple[str, int]] = []
     score = 100.0
 
     # 1. Фразовые хард-баны (кроме тире). Однозначные AI-обороты: дорого.
     #    Частотные баны («Является») штрафуются только выше порога плотности.
-    eff_bans = effective_hard_bans(report.hard_bans, report.rhythm.words)
+    eff_bans = mute_by_genre(
+        effective_hard_bans(report.hard_bans, report.rhythm.words),
+        genre, GENRE_MUTED_BANS)
     hard_phrase = sum(h.count for h in eff_bans if h.marker != EM_DASH_NAME)
     if hard_phrase:
         pen = min(45, 12 * hard_phrase)
@@ -76,14 +85,14 @@ def cleanliness_score(report) -> ScoreResult:
         penalties.append((f"хард-баны (фразы): {hard_phrase}", -pen))
 
     # 2. Артефакты копипасты из чат-бота: текст буквально вставлен из ответа ИИ.
-    copy_paste = sum(h.count for h in report.markers if h.category == COPY_PASTE_CATEGORY)
+    copy_paste = sum(h.count for h in markers if h.category == COPY_PASTE_CATEGORY)
     if copy_paste:
         pen = 60
         score -= pen
         penalties.append((f"артефакты копипасты: {copy_paste}", -pen))
 
     # 3. Мягкие маркеры (кроме копипасты) по плотности на 100 слов.
-    soft = sum(h.count for h in report.markers if h.category != COPY_PASTE_CATEGORY)
+    soft = sum(h.count for h in markers if h.category != COPY_PASTE_CATEGORY)
     if soft:
         pen = min(30, round(2 * _per100(soft, words)))
         if pen:
@@ -92,7 +101,7 @@ def cleanliness_score(report) -> ScoreResult:
 
     # 4. Длинное тире по плотности с допуском ~2 на 100 слов: «—» штатно
     #    используется в русском (Википедия, «это —», диапазоны). Слабый сигнал.
-    dash_density = _per100(report.rhythm.em_dash, words)
+    dash_density = 0.0 if dash_muted else _per100(report.rhythm.em_dash, words)
     if dash_density > 2.0:
         pen = min(8, round(3 * (dash_density - 2.0)))
         if pen:

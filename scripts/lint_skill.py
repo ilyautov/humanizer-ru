@@ -33,9 +33,9 @@ CANON = ROOT / "skills" / "humanizer-ru" / "SKILL.md"
 CATALOG = ROOT / "skills" / "humanizer-ru" / "references" / "catalog.md"
 SKILL_DIR = ROOT / "skills" / "humanizer-ru"
 
-EXPECTED_PATTERNS = 54
+EXPECTED_PATTERNS = 58
 EXPECTED_HARD_BANS = 20
-EXPECTED_SCANNER_CATS = 22
+EXPECTED_SCANNER_CATS = 26
 
 errors: list[str] = []
 notes: list[str] = []
@@ -87,7 +87,10 @@ def _approved_examples(text: str) -> list[tuple[int, str]]:
     label: str | None = None
     for i, line in enumerate(text.splitlines(), 1):
         s = line.strip()
-        m = re.match(r"^(Было|Стало|До|После):\s*(.*)$", s)
+        # «Стало (факты автора):» — метка гейта check_examples.py: пример
+        # намеренно показывает правку с конкретикой от автора. Для проверок
+        # тире и HARD BANS такой пример остаётся обычным одобренным примером.
+        m = re.match(r"^(Было|Стало|До|После)(?:\s*\([^)]*\))?:\s*(.*)$", s)
         if m:
             label = m.group(1)
             if m.group(2) and label in ("Стало", "После"):
@@ -132,7 +135,7 @@ def check_em_dash_in_prose() -> None:
         label: str | None = None
         for i, raw in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
             s = raw.strip()
-            if re.match(r"^(Было|Стало|До|После):", s):
+            if re.match(r"^(Было|Стало|До|После)(?:\s*\([^)]*\))?:", s):
                 label = s.split(":", 1)[0]
             elif s.startswith(">"):
                 if label:

@@ -24,7 +24,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 try:
     from humanizer_metrics import analyze, cleanliness_score
     from humanizer_metrics.burstiness import rhythm_verdict
-    from humanizer_metrics.markers import effective_hard_bans, marker_verdict
+    from humanizer_metrics.markers import (GENRE_MUTED_BANS, GENRE_MUTED_CATEGORIES,
+                                            GENRES, effective_hard_bans, marker_verdict,
+                                            mute_by_genre)
     from humanizer_metrics.morphology import morph_verdict
     from humanizer_metrics.structure import structure_verdict
 except ImportError as exc:
@@ -67,6 +69,10 @@ def main() -> int:
     ap = argparse.ArgumentParser(description="Детерминированный сканер AI-маркеров (humanizer-ru)")
     ap.add_argument("source", help="файл с текстом или '-' для stdin")
     ap.add_argument("--json", action="store_true", help="вывод в JSON")
+    ap.add_argument("--genre", choices=GENRES, default="marketing",
+                    help="жанр текста: снимает маркеры, законные для регистра "
+                         "(academic, legal, fiction). По умолчанию marketing: "
+                         "строгий режим, под него откалиброваны пороги")
     args = ap.parse_args()
 
     text = _read(args.source)
@@ -79,20 +85,40 @@ def main() -> int:
         return 0
 
     rep = analyze(text)
-    sc = cleanliness_score(rep)
+    genre = args.genre
+    sc = cleanliness_score(rep, genre)
     # Частотные баны («Является» до порога 1/500 слов) не валят exit и не
     # показываются как ⛔ — они остаются в мягких маркерах.
     bans = effective_hard_bans(rep.hard_bans, rep.rhythm.words)
+    # Жанровый фильтр: в научном, юридическом и художественном регистре часть
+    # банов законна. Замер на AINL-Eval показал, что без фильтра сканер ловит
+    # людей чаще, чем модели (см. markers.GENRE_MUTED_BANS).
+    bans = mute_by_genre(bans, genre, GENRE_MUTED_BANS)
+    soft = mute_by_genre(rep.markers, genre, GENRE_MUTED_CATEGORIES)
+    muted_bans = len(effective_hard_bans(rep.hard_bans, rep.rhythm.words)) - len(bans)
+    muted_soft = len(rep.markers) - len(soft)
+    EM_DASH_MUTED = "Длинное тире" in GENRE_MUTED_BANS.get(genre, set())
 
     if args.json:
         out = rep.as_dict()
         out["score"] = sc.as_dict()
+        # Ключи те же, что без жанра: меняется только состав после фильтра.
+        out["genre"] = genre
+        out["hard_bans"] = [(h.marker, h.count) for h in bans]
+        out["hard_ban_count"] = sum(h.count for h in bans)
+        out["markers"] = [(h.category, h.marker, h.count) for h in soft]
+        out["marker_count"] = sum(h.count for h in soft)
+        out["muted_by_genre"] = {"hard_bans": muted_bans, "markers": muted_soft}
         if _cyrillic_share(text) < 0.3:
             out["warning"] = "текст не похож на русский, метрики не применимы"
         print(json.dumps(out, ensure_ascii=False, indent=2))
         return 1 if bans else 0
 
-    print(f"=== humanizer-ru scan: {args.source} ===\n")
+    print(f"=== humanizer-ru scan: {args.source} ===")
+    if genre != "marketing":
+        print(f"жанр: {genre} (снято маркеров по жанру: "
+              f"{muted_bans} банов, {muted_soft} мягких)")
+    print()
 
     if _cyrillic_share(text) < 0.3:
         print("⚠ Текст не похож на русский: скилл и метрики рассчитаны на русский "
@@ -116,8 +142,8 @@ def main() -> int:
         print("  ✓ чисто")
     print()
 
-    print(f"Маркеры (быстрый сканер): {marker_verdict(rep.markers)}")
-    top = sorted(rep.markers, key=lambda x: -x.count)
+    print(f"Маркеры (быстрый сканер): {marker_verdict(soft)}")
+    top = sorted(soft, key=lambda x: -x.count)
     for h in top[:12]:
         print(f"  • [{h.category}] «{h.marker}» ×{h.count} ({_line_numbers(text, h.positions)})")
     if len(top) > 12:
@@ -125,7 +151,7 @@ def main() -> int:
     print()
 
     print("Ритм / типографика:")
-    print(f"  {rhythm_verdict(rep.rhythm)}")
+    print(f"  {rhythm_verdict(rep.rhythm, dash_ok=EM_DASH_MUTED)}")
     print(f"  предложений: {rep.rhythm.sentences}, средняя длина: {rep.rhythm.mean_len:.1f} "
           f"(min {rep.rhythm.min_len} / max {rep.rhythm.max_len}), CV: {rep.rhythm.cv_len}")
     print(f"  многоточий: {rep.rhythm.ellipsis}, скобок: {rep.rhythm.parentheses}, "

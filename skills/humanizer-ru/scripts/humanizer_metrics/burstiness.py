@@ -76,8 +76,12 @@ CV_AI_THRESHOLD = 0.35
 CV_HUMAN_TARGET = 0.45
 
 
-def rhythm_verdict(s: RhythmStats) -> str:
-    if s.em_dash > 0:
+def rhythm_verdict(s: RhythmStats, dash_ok: bool = False) -> str:
+    """dash_ok=True для жанров, где длинное тире законно (научный,
+    юридический, художественный): тогда оно показывается фактом, не ⚠."""
+    if s.em_dash > 0 and dash_ok:
+        dash = f"тире: {s.em_dash} (законно для жанра)"
+    elif s.em_dash > 0:
         dash = f"⚠ {s.em_dash} длинных тире (норма 0)"
     else:
         dash = "✓ тире чисто"

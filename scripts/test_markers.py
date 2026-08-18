@@ -220,6 +220,74 @@ from humanizer_metrics.markers import marker_verdict
 check("вставлен из ответа" in marker_verdict(scan_markers("Смотри citeturn0search1.")),
     "один артефакт = однозначный вердикт, минуя шкалу")
 
+# --- паттерны 2026: неодушевлённый субъект и триада-отрицание (#55, #58) ---
+check("Неодушевлённый субъект" in marker_cats("Исследование подчёркивает важность тестов."),
+    "«исследование подчёркивает» ловится (#55)")
+check("Неодушевлённый субъект" in marker_cats("Платформа обеспечивает удобство пользователям."),
+    "«платформа обеспечивает» ловится (#55)")
+check("Неодушевлённый субъект" not in marker_cats("Коллеги подчёркивают: сроки горят."),
+    "живое подлежащее не даёт ложного срабатывания (#55)")
+check("Неодушевлённый субъект" not in marker_cats("Мы отражаем атаки третий день подряд."),
+    "человек как подлежащее не даёт ложного срабатывания (#55)")
+check("Триада-отрицание" in marker_cats("Без пафоса. Без воды. Просто факты."),
+    "триада «Без X. Без Y. Просто Z» ловится (#58)")
+check("Триада-отрицание" in marker_cats("Ни созвонов. Ни отчётов. Только работа."),
+    "триада «Ни X. Ни Y. Только Z» ловится (#58)")
+check("Триада-отрицание" not in marker_cats("Он ушёл без шапки. Без денег тоже плохо."),
+    "два «без» подряд без вывода не считаются триадой (#58)")
+
+# --- паттерны 2026: Title Case и обрыв на полуслове (#56, #57) ------------
+from humanizer_metrics.structure import count_title_case_headings, is_truncated
+
+check(count_title_case_headings("## Ранняя Жизнь и Образование\n\nтекст.\n") == 1,
+    "Title Case в заголовке ловится (#56)")
+check(count_title_case_headings("## Ранняя жизнь и образование\n\nтекст.\n") == 0,
+    "нормальный русский заголовок не ловится (#56)")
+check(count_title_case_headings("## Москва и Санкт-Петербург в цифрах\n\nтекст.\n") == 0,
+    "заголовок из имён собственных не ловится (#56)")
+check(is_truncated("Мы начали проверять всё это ещё в прошлом сезоне и"),
+    "обрыв на полуслове ловится (#57)")
+check(not is_truncated("Мы всё проверили в прошлом сезоне."),
+    "законченный текст не считается обрывом (#57)")
+check(not is_truncated("## Заголовок в конце файла"),
+    "заголовок в конце не считается обрывом (#57)")
+
+# --- артефакты копипасты 2026 ---------------------------------------------
+check("Артефакты копипасты" in marker_cats(':::writing{variant="document" id=41827}'),
+    "обёртка :::writing ловится")
+check("Артефакты копипасты" in marker_cats("Как показано выше [cite: 3], метод работает."),
+    "метка [cite: N] ловится")
+check("Артефакты копипасты" in marker_cats("Фрагмент [span_1](start_span) остался."),
+    "обёртка span_N ловится")
+
+# --- жанровый фильтр (замер на AINL-Eval, см. eval/ainl_calibration.py) ----
+from humanizer_metrics.markers import (GENRE_MUTED_BANS, GENRE_MUTED_CATEGORIES,
+                                       mute_by_genre)
+from humanizer_metrics.score import cleanliness_score
+
+ACAD = ("Данное исследование является актуальным. В условиях цифровизации "
+        "подход подчёркивает важность анализа — результаты представлены ниже. "
+        "Таким образом, реализация внедрения осуществляется в рамках проекта.")
+acad_rep = analyze(ACAD)
+strict = effective_hard_bans(acad_rep.hard_bans, acad_rep.rhythm.words)
+muted = mute_by_genre(strict, "academic", GENRE_MUTED_BANS)
+check(len(strict) > len(muted), "жанр academic снимает часть банов")
+check(not muted, f"в академическом регистре банов не остаётся: {[h.marker for h in muted]}")
+check(mute_by_genre(strict, None, GENRE_MUTED_BANS) == strict,
+    "без жанра фильтр не срабатывает (умолчание строгое)")
+check(mute_by_genre(strict, "marketing", GENRE_MUTED_BANS) == strict,
+    "жанр marketing ничего не снимает")
+
+soft_strict = acad_rep.markers
+soft_acad = mute_by_genre(soft_strict, "academic", GENRE_MUTED_CATEGORIES)
+check(len(soft_acad) < len(soft_strict), "жанр academic снимает канцелярит и кальки")
+check(any(h.category == "Неодушевлённый субъект" for h in soft_acad),
+    "разделяющий маркер #55 в академическом жанре остаётся (AI/чел 4.4x на AINL-Eval)")
+check(cleanliness_score(acad_rep, "academic").score > cleanliness_score(acad_rep).score,
+    "score в академическом жанре выше строгого")
+check("Длинное тире" in GENRE_MUTED_BANS["fiction"],
+    "в художественном жанре длинное тире не бан")
+
 # --- разделение AI vs человек по метрикам --------------------------------
 ai = analyze("В современном мире технология является инструментом. "
              "Стоит отметить, что данный подход открывает новые горизонты.")
