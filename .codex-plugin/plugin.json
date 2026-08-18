@@ -1,6 +1,6 @@
 {
   "name": "humanizer-ru",
-  "version": "3.16.0",
+  "version": "3.16.1",
   "description": "Kills AI smell in Russian text. 58 patterns across 12 categories, 20 hard bans, 3 modes (rewrite / audit / targeted fix), deterministic scanner included. | Убивает запах нейросети в русском тексте: 58 паттернов, 20 жёстких банов, детерминированный сканер в комплекте.",
   "author": {
     "name": "Ilya Utov",
