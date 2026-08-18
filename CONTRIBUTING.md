@@ -20,15 +20,16 @@ python3 -m venv .venv
 .venv/bin/python scripts/check_examples.py   # Факт-замок в примерах «До/После»
 .venv/bin/python scripts/self_scan.py        # витрина против собственных HARD BANS
 .venv/bin/python scripts/test_gates.py       # тесты самих гейтов
+.venv/bin/python scripts/make_social_preview.py --check  # счётчик в растре превью
 ```
 
 CI гоняет то же самое на каждый PR.
 
 ## Правила проекта
 
-- **Источник правды — `skills/humanizer-ru/SKILL.md`.** Корневой `SKILL.md` —
-  его байт-в-байт зеркало: после правки выполните
-  `cp skills/humanizer-ru/SKILL.md SKILL.md`. Линт проверяет синхронизацию.
+- **Источник правды — `skills/humanizer-ru/SKILL.md`.** Корневого `SKILL.md`
+  больше нет (убран в v3.14.2), зеркалить ничего не нужно. Счётчики паттернов и
+  версию по остальным файлам протаскивает `scripts/bump_release.py --apply`.
 - **Маркер живёт в двух местах.** Новый бан или маркер сканера добавляется
   парой: текст в `SKILL.md` + запись в
   `skills/humanizer-ru/scripts/humanizer_metrics/markers.py` + регресс-тест в

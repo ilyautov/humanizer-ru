@@ -21,7 +21,8 @@ eyebrow), version бампается релизом, а тексты рядом 
 Что НЕ автоматизируется (печатается напоминанием при --apply): ZIP-ассет
 humanizer-ru.zip к GitHub Release (на него ведёт README, issue #45), About-поле
 GitHub (gh repo edit), локальная копия ~/.claude/skills, синк маркетплейса в
-Cowork, счётчик внутри assets/social-preview.png (запечён в растр).
+Cowork, счётчик внутри assets/social-preview.png собирается
+скриптом scripts/make_social_preview.py (гейт --check в CI).
 """
 
 from __future__ import annotations
@@ -195,7 +196,7 @@ def main() -> int:
           " ломается), About-поле GitHub (gh repo edit,"
           " текст = 1-я строка README), локальная копия"
           " (cp -R skills/humanizer-ru/. ~/.claude/skills/humanizer-ru/),"
-          " синк маркетплейса в Cowork, счётчик в assets/social-preview.png.")
+          " синк маркетплейса в Cowork.")
     return 0
 
 
