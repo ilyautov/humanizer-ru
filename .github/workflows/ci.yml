@@ -52,6 +52,12 @@ jobs:
       - name: Тесты самих гейтов (test_gates)
         run: python scripts/test_gates.py
 
+      # Шахта паттернов гоняется по внешнему корпусу и в CI не запускается, но
+      # её логика проверяется на синтетическом корпусе: подсаженная фраза должна
+      # находиться, а общая для классов тема не должна выдаваться за стиль.
+      - name: Шахта паттернов на синтетическом корпусе (test_mining)
+        run: python scripts/test_mining.py
+
       - name: Согласованность релизных чисел (bump_release --check)
         run: python scripts/bump_release.py --check
 
