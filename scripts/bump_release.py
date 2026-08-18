@@ -11,6 +11,7 @@ eyebrow), version бампается релизом, а тексты рядом 
 Источники истины (никогда не редактируются этим скриптом):
   - число паттернов  = максимум сплошной нумерации каталога SKILL.md;
   - число hard bans  = len(HARD_BANS) из движка markers.py;
+  - число категорий  = сплошные буквы заголовков «### X.» того же каталога;
   - версия           = аргумент --apply vX.Y.Z (или согласованность в --check).
 
 Режимы:
@@ -51,7 +52,7 @@ COUNT_FILES = [
 ]
 
 # Число + существительное, означающее «паттерны каталога». Лукахед не даёт
-# задеть чужие числа («20 запретов», «12 категорий», «52K текстов», даты).
+# задеть чужие числа («20 запретов», «52K текстов», даты).
 PATTERN_NOUNS = r"(?:паттерн\w*|признак\w*|пункт\w*|маркер\w*|pattern\w*|marker\w*)"
 RE_PATTERN_COUNT = re.compile(rf"\b(\d+)(?=\s+{PATTERN_NOUNS})")
 # Отдельный случай: таблица README «| Паттернов | 54 | 32 |» (число ПОСЛЕ
@@ -60,6 +61,13 @@ RE_TABLE = re.compile(r"(\|\s*Паттернов\s*\|\s*)(\d+)")
 
 BAN_NOUNS = r"(?:жёстких|запрет\w*|hard[- ]ban\w*|hard-banned)"
 RE_BAN_COUNT = re.compile(rf"\b(\d+)(?=\s+{BAN_NOUNS})")
+
+# Категории каталога (A-M). Раньше это число скрипт намеренно не трогал, и оно
+# протухло: категория M появилась в v3.16.0, а карточки всех манифестов
+# продолжали обещать «12 категорий» при тринадцати. Тот же класс бага, что
+# «52 паттерна» на свежем коммите, только заметить его труднее.
+CATEGORY_NOUNS = r"(?:категор\w*|categor\w+)"
+RE_CATEGORY_COUNT = re.compile(rf"\b(\d+)(?=\s+{CATEGORY_NOUNS})")
 
 VERSION_TARGETS = [
     # (файл, regex с одной группой-версией)
@@ -92,7 +100,16 @@ def derive_pattern_count() -> int:
     return seq[-1]
 
 
-def scan_counts(patterns: int, bans: int) -> list[str]:
+def derive_category_count() -> int:
+    """Категории каталога: заголовки вида «### M. Формулы и артефакты 2026»."""
+    letters = re.findall(r"^###\s+([A-Z])\.", SKILL.read_text(encoding="utf-8"), re.MULTILINE)
+    assert letters, "в каталоге не найдено ни одной категории"
+    expected = [chr(ord("A") + i) for i in range(len(letters))]
+    assert letters == expected, f"буквы категорий не сплошные: {letters}"
+    return len(letters)
+
+
+def scan_counts(patterns: int, bans: int, categories: int) -> list[str]:
     """Возвращает список расхождений счётчиков по всем файлам."""
     drift = []
     for rel in COUNT_FILES:
@@ -108,6 +125,10 @@ def scan_counts(patterns: int, bans: int) -> list[str]:
             if int(m.group(1)) != bans:
                 ctx = s[m.start():m.start() + 40].replace("\n", " ")
                 drift.append(f"{rel}: «{ctx}...» ожидалось {bans} банов")
+        for m in RE_CATEGORY_COUNT.finditer(s):
+            if int(m.group(1)) != categories:
+                ctx = s[m.start():m.start() + 40].replace("\n", " ")
+                drift.append(f"{rel}: «{ctx}...» ожидалось {categories} категорий")
     return drift
 
 
@@ -135,7 +156,7 @@ def scan_versions() -> tuple[list[str], list[str]]:
     return drift, details
 
 
-def apply_all(patterns: int, bans: int, version: str | None) -> int:
+def apply_all(patterns: int, bans: int, categories: int, version: str | None) -> int:
     changed = 0
     for rel in COUNT_FILES:
         p = ROOT / rel
@@ -143,10 +164,11 @@ def apply_all(patterns: int, bans: int, version: str | None) -> int:
         s = RE_PATTERN_COUNT.sub(str(patterns), s)
         s = RE_TABLE.sub(rf"\g<1>{patterns}", s)
         s = RE_BAN_COUNT.sub(str(bans), s)
+        s = RE_CATEGORY_COUNT.sub(str(categories), s)
         if s != orig:
             p.write_text(s, encoding="utf-8")
             changed += 1
-            print(f"[apply] {rel}: счётчики -> {patterns}/{bans}")
+            print(f"[apply] {rel}: счётчики -> {patterns}/{bans}/{categories}")
     if version:
         full = version.lstrip("v")
         short = "v" + ".".join(full.split(".")[:2])
@@ -172,10 +194,11 @@ def main() -> int:
 
     patterns = derive_pattern_count()
     bans = len(HARD_BANS)
+    categories = derive_category_count()
     print(f"[истина] паттернов: {patterns} (из SKILL.md), hard bans: {bans} (из markers.py)")
 
     if args.check:
-        drift = scan_counts(patterns, bans)
+        drift = scan_counts(patterns, bans, categories)
         vdrift, details = scan_versions()
         for d in details:
             print(f"[версии] {d}")
@@ -187,7 +210,7 @@ def main() -> int:
         print("[гейт] ✓ счётчики и версия согласованы во всех местах")
         return 0
 
-    changed = apply_all(patterns, bans, args.apply or None)
+    changed = apply_all(patterns, bans, categories, args.apply or None)
     print(f"[итог] файлов изменено: {changed}")
     print("[напоминание] руками после релиза: приложить humanizer-ru.zip к"
           " GitHub Release (cd skills && zip -r ../humanizer-ru.zip humanizer-ru"

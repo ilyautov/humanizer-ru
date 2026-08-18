@@ -10,7 +10,7 @@
       "name": "humanizer-ru",
       "displayName": "Humanizer RU",
       "source": "./",
-      "description": "Kills AI smell in Russian text. 58 patterns across 12 categories, 20 hard bans, 3 modes (rewrite / audit / targeted fix), voice calibration, quad-pass audit, 2025-2026 stylistic fingerprints. | Убивает запах нейросети в русском тексте. 58 паттернов в 12 категориях, 20 жёстких банов, 3 режима, калибровка голоса, quad-pass аудит, стилистические фингерпринты 2025-2026.",
+      "description": "Kills AI smell in Russian text. 58 patterns across 13 categories, 20 hard bans, 3 modes (rewrite / audit / targeted fix), voice calibration, quad-pass audit, 2025-2026 stylistic fingerprints. | Убивает запах нейросети в русском тексте. 58 паттернов в 13 категориях, 20 жёстких банов, 3 режима, калибровка голоса, quad-pass аудит, стилистические фингерпринты 2025-2026.",
       "version": "3.16.1",
       "author": {
         "name": "Ilya Utov",
