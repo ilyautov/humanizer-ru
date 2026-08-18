@@ -14,14 +14,15 @@
 
 Данные НЕ коммитятся. Корпус лежит в открытом репозитории организаторов, но
 файла лицензии там нет, поэтому скрипт скачивает его во временную папку.
-Машинные агрегаты пишутся в `eval/out/ainl.json` (папка в .gitignore), а в
+Машинные агрегаты пишутся в `eval/out/ainl-<split>.json` (папка в .gitignore), а в
 репозиторий едет только человекочитаемый отчёт `eval/AINL-CALIBRATION.md`,
 который обновляется руками по итогам прогона.
 
 Запуск:
-    python eval/ainl_calibration.py                 # скачает во временную папку
-    python eval/ainl_calibration.py --csv путь.csv  # взять готовый файл
-    python eval/ainl_calibration.py --limit 4000    # быстрый прогон на выборке
+    python eval/ainl_calibration.py                  # train, скачает во временную папку
+    python eval/ainl_calibration.py --split dev      # плюс класс `unknown`
+    python eval/ainl_calibration.py --csv путь.csv   # взять готовый файл
+    python eval/ainl_calibration.py --limit 4000     # быстрый прогон на выборке
 
 Требуется сеть при первом запуске. В CI НЕ гоняется: внешний источник,
 несколько минут работы и 48 МБ трафика.
@@ -51,18 +52,22 @@ from humanizer_metrics.markers import (  # noqa: E402
     scan_markers,
 )
 
-URL = ("https://raw.githubusercontent.com/iis-research-team/"
-       "AINL-Eval-2025/main/data/train.csv")
-CLASSES = ["human", "gpt-4-turbo", "gemma-2-27b", "llama-3.3-70b"]
-OUT = ROOT / "eval" / "out" / "ainl.json"
+BASE = "https://raw.githubusercontent.com/iis-research-team/AINL-Eval-2025/main/data/"
+# train: четыре класса, все модели известны. dev: те же плюс `unknown` — тексты
+# модели, которой в train нет. Это проверка на генератор, которого мы не видели.
+SPLITS = {"train": "train.csv", "dev": "dev_full.csv"}
+# В dev-выгрузке человеческий класс называется `abstract`.
+LABEL_ALIASES = {"abstract": "human"}
+OUT_TEMPLATE = "ainl-{split}.json"
 
 
-def load(csv_path: Path | None, limit: int | None) -> list[dict]:
+def load(csv_path: Path | None, limit: int | None, split: str) -> list[dict]:
     if csv_path is None:
-        cache = Path(tempfile.gettempdir()) / "ainl_train.csv"
+        cache = Path(tempfile.gettempdir()) / f"ainl_{split}.csv"
         if not cache.exists():
-            print(f"[скачиваю] {URL} -> {cache}", file=sys.stderr)
-            urllib.request.urlretrieve(URL, cache)  # noqa: S310 (фиксированный https-адрес)
+            url = BASE + SPLITS[split]
+            print(f"[скачиваю] {url} -> {cache}", file=sys.stderr)
+            urllib.request.urlretrieve(url, cache)  # noqa: S310 (фиксированный https-адрес)
         csv_path = cache
     csv.field_size_limit(10 ** 7)
     with csv_path.open(encoding="utf-8") as fh:
@@ -75,9 +80,13 @@ def main() -> int:
     ap.add_argument("--csv", type=Path, help="локальный train.csv вместо скачивания")
     ap.add_argument("--limit", type=int, help="взять только первые N строк")
     ap.add_argument("--genre", default="academic", help="жанровый профиль для сводки")
+    ap.add_argument("--split", choices=sorted(SPLITS), default="train",
+                    help="train (четыре класса) или dev (плюс невиданная модель `unknown`)")
     args = ap.parse_args()
 
-    rows = load(args.csv, args.limit)
+    rows = load(args.csv, args.limit, args.split)
+    labels = {LABEL_ALIASES.get(r["label"], r["label"]) for r in rows}
+    classes = ["human"] + sorted(labels - {"human"})
     totals: dict[str, int] = defaultdict(int)
     doc_hits: dict[str, dict[str, int]] = defaultdict(lambda: defaultdict(int))
     strict_any: dict[str, int] = defaultdict(int)
@@ -85,8 +94,9 @@ def main() -> int:
     soft_per_doc: dict[str, list[int]] = defaultdict(list)
 
     for i, row in enumerate(rows):
-        text, label = row["text"], row["label"]
-        if label not in CLASSES:
+        text = row["text"]
+        label = LABEL_ALIASES.get(row["label"], row["label"])
+        if label not in classes:
             continue
         totals[label] += 1
         words = len(text.split())
@@ -114,30 +124,32 @@ def main() -> int:
     table = []
     for marker in doc_hits:
         human = rate(marker, "human")
-        ai = statistics.mean(rate(marker, c) for c in CLASSES[1:])
+        ai = statistics.mean(rate(marker, c) for c in classes[1:])
         table.append({
             "marker": marker,
             "human": round(human, 1),
-            **{c: round(rate(marker, c), 1) for c in CLASSES[1:]},
+            **{c: round(rate(marker, c), 1) for c in classes[1:]},
             "lift": round(ai / human, 1) if human else None,
         })
     table.sort(key=lambda r: -r["human"])
 
     # На --limit в выборку может не попасть какой-то класс: делим только там,
     # где документы есть.
-    present = [c for c in CLASSES if totals[c]]
+    present = [c for c in classes if totals[c]]
     if not present:
         print("[ошибка] в выборке нет ни одного размеченного класса", file=sys.stderr)
         return 2
     summary = {
+        "split": args.split,
         "documents": {c: totals[c] for c in present},
         "strict_any_ban_pct": {c: round(100.0 * strict_any[c] / totals[c], 1) for c in present},
         f"{args.genre}_any_ban_pct": {c: round(100.0 * genre_any[c] / totals[c], 1) for c in present},
         "soft_markers_per_doc": {c: round(statistics.mean(soft_per_doc[c]), 2) for c in present},
     }
 
-    OUT.parent.mkdir(parents=True, exist_ok=True)
-    OUT.write_text(json.dumps({"summary": summary, "markers": table},
+    out = ROOT / "eval" / "out" / OUT_TEMPLATE.format(split=args.split)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(json.dumps({"summary": summary, "markers": table},
                               ensure_ascii=False, indent=2), encoding="utf-8")
 
     print("\nдокументов: " + ", ".join(f"{c}={totals[c]}" for c in present))
@@ -150,7 +162,7 @@ def main() -> int:
     for r in table[:15]:
         lift = "∞" if r["lift"] is None else r["lift"]
         print(f"{r['marker']:<44}{r['human']:>8}{str(lift):>8}")
-    print(f"\n[ok] агрегаты -> {OUT.relative_to(ROOT)}")
+    print(f"\n[ok] агрегаты -> {out.relative_to(ROOT)}")
     return 0
 
 
