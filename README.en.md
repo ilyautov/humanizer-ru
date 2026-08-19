@@ -32,7 +32,7 @@ Three deployment channels: upload to Claude.ai web UI, roll out across an organi
 2. Open Claude.ai → **Settings** → **Capabilities** → **Skills**.
 3. Click **Upload skill** and select the ZIP.
 
-Do not use `archive/refs/heads/main.zip`: the uploader expects `SKILL.md` at the top level of the archive, and in the repo archive it sits inside `humanizer-ru-main/skills/humanizer-ru/`. To build the archive yourself, zip the skill folder itself:
+Do not use `archive/refs/heads/main.zip`: the uploader expects the skill folder at the top level of the archive, and in the repo archive it sits inside `humanizer-ru-main/skills/humanizer-ru/`. To build the archive yourself, zip the skill folder itself:
 
 ```bash
 git clone https://github.com/ilyautov/humanizer-ru.git

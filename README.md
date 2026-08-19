@@ -70,7 +70,7 @@
 2. Откройте Claude.ai → **Settings** → **Capabilities** → **Skills**.
 3. Нажмите **Upload skill** и выберите скачанный архив.
 
-> Не берите `archive/refs/heads/main.zip`: загрузчик ищет `SKILL.md` на верхнем уровне архива, а в архиве репозитория он лежит внутри `humanizer-ru-main/skills/humanizer-ru/`. Если нужно собрать архив самому, архивируйте именно папку скилла:
+> Не берите `archive/refs/heads/main.zip`: загрузчик ожидает папку скилла в корне архива, а в архиве репозитория она лежит внутри `humanizer-ru-main/skills/humanizer-ru/`. Если нужно собрать архив самому, архивируйте именно папку скилла:
 >
 > ```bash
 > git clone https://github.com/ilyautov/humanizer-ru.git
