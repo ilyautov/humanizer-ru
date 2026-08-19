@@ -17,6 +17,8 @@ import tempfile
 import zipfile
 from pathlib import Path
 
+from build_release_zip import build_release_zip
+
 
 SKILL_REL = Path("skills") / "humanizer-ru"
 REQUIRED_FILES = (
@@ -99,17 +101,6 @@ def validate_installed_scanner(installed_skill: Path) -> list[str]:
     return errors
 
 
-def build_release_zip(skill_source: Path, output: Path) -> None:
-    with zipfile.ZipFile(output, "w", compression=zipfile.ZIP_DEFLATED) as archive:
-        for path in sorted(skill_source.rglob("*")):
-            if path.is_dir():
-                continue
-            rel = path.relative_to(skill_source.parent)
-            if "__pycache__" in rel.parts or path.name == ".DS_Store" or path.suffix == ".pyc":
-                continue
-            archive.write(path, rel.as_posix())
-
-
 def validate_zip(zip_path: Path) -> list[str]:
     errors: list[str] = []
     with zipfile.ZipFile(zip_path) as archive:
@@ -129,7 +120,7 @@ def validate_zip(zip_path: Path) -> list[str]:
     return errors
 
 
-def install_smoke(repo_root: Path, keep_tmp: bool = False) -> int:
+def install_smoke(repo_root: Path, keep_tmp: bool = False, zip_path: Path | None = None) -> int:
     skill_source = repo_root / SKILL_REL
     if not skill_source.is_dir():
         print(f"ERROR: missing skill source: {skill_source}")
@@ -144,8 +135,13 @@ def install_smoke(repo_root: Path, keep_tmp: bool = False) -> int:
         install_root.mkdir(parents=True)
         copytree_clean(skill_source, installed_skill)
 
-        zip_path = tmp_path / "humanizer-ru.zip"
-        build_release_zip(skill_source, zip_path)
+        if zip_path is None:
+            zip_path = tmp_path / "humanizer-ru.zip"
+            build_release_zip(repo_root, zip_path)
+        elif not zip_path.is_file():
+            print(f"ERROR: release ZIP is not a file: {zip_path}")
+            print("RESULT: FAIL install-smoke")
+            return 2
 
         errors = []
         errors.extend(validate_skill_surface(installed_skill))
@@ -173,6 +169,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Run install-smoke for humanizer-ru.")
     parser.add_argument("repo_root", nargs="?", default=".", help="Repository root to smoke-test.")
     parser.add_argument("--keep-tmp", action="store_true", help="Keep the temporary install directory.")
+    parser.add_argument("--zip", help="Validate an existing release ZIP instead of building a temporary one.")
     args = parser.parse_args()
 
     repo_root = Path(args.repo_root).expanduser().resolve()
@@ -180,7 +177,8 @@ def main() -> int:
         print(f"ERROR: repository root is not a directory: {repo_root}")
         print("RESULT: FAIL install-smoke")
         return 2
-    return install_smoke(repo_root, keep_tmp=args.keep_tmp)
+    zip_path = Path(args.zip).expanduser().resolve() if args.zip else None
+    return install_smoke(repo_root, keep_tmp=args.keep_tmp, zip_path=zip_path)
 
 
 if __name__ == "__main__":

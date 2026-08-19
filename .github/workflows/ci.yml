@@ -35,7 +35,13 @@ jobs:
       - name: Смоук-тесты CLI-сканера (test_scan)
         run: python scripts/test_scan.py
 
-      - name: Install-smoke skill package
+      - name: Build release ZIP
+        run: python scripts/build_release_zip.py --output dist/humanizer-ru.zip .
+
+      - name: Install-smoke release ZIP
+        run: python scripts/install_smoke.py . --zip dist/humanizer-ru.zip
+
+      - name: Install-smoke skill source
         run: python scripts/install_smoke.py .
 
       - name: Self-test скилла (lint_skill)

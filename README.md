@@ -139,15 +139,21 @@ git clone https://github.com/ilyautov/humanizer-ru.git ~/.claude/skills/humanize
 
 ### Проверка установочного пакета
 
-Перед релизом прогоните install-smoke. Он копирует `skills/humanizer-ru` в чистую временную папку скиллов, запускает сканер из установленной копии, собирает ZIP релизного вида и проверяет, что в пакете нет `.DS_Store`, `__pycache__` и `*.pyc`:
+Перед релизом соберите ZIP тем же скриптом, который использует CI, затем
+прогоните install-smoke по готовому архиву. Проверка копирует
+`skills/humanizer-ru` в чистую временную папку скиллов, запускает сканер из
+установленной копии и проверяет, что в ZIP нет `.DS_Store`, `__pycache__` и
+`*.pyc`:
 
 ```bash
-python3 scripts/install_smoke.py .
+python3 scripts/build_release_zip.py --output dist/humanizer-ru.zip .
+python3 scripts/install_smoke.py . --zip dist/humanizer-ru.zip
 ```
 
 Ожидаемый результат:
 
 ```text
+RESULT: PASS build-release-zip
 RESULT: PASS install-smoke
 ```
 

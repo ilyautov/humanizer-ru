@@ -9,7 +9,10 @@
 - Добавлен install-smoke для установочной поверхности: чистая копия
   `skills/humanizer-ru`, запуск `scripts/scan.py` из установленной копии,
   проверка ZIP релизного вида и запрет generated-мусора в пакете.
-- Install-smoke подключён в CI.
+- Добавлен `scripts/build_release_zip.py`; install-smoke умеет проверять
+  готовый ZIP через `--zip`, чтобы CI тестировал тот же артефакт, который
+  уходит в GitHub Release.
+- Install-smoke и сборка релизного ZIP подключены в CI.
 - OpenAI manifest теперь покрывается гейтом `bump_release.py --check`, чтобы
   счётчик паттернов не отставал от каталога.
 

@@ -78,18 +78,21 @@ audit without them).
 
 ### Package install smoke
 
-Before a release, run the install smoke. It copies `skills/humanizer-ru` into a
-clean temporary skills directory, runs the scanner from the installed copy,
-builds the release-shaped ZIP, and checks that the package has no `.DS_Store`,
-`__pycache__`, or `*.pyc` files:
+Before a release, build the ZIP with the same script used by CI, then run the
+install smoke against that archive. The smoke check copies `skills/humanizer-ru`
+into a clean temporary skills directory, runs the scanner from the installed
+copy, and checks that the ZIP has no `.DS_Store`, `__pycache__`, or `*.pyc`
+files:
 
 ```bash
-python3 scripts/install_smoke.py .
+python3 scripts/build_release_zip.py --output dist/humanizer-ru.zip .
+python3 scripts/install_smoke.py . --zip dist/humanizer-ru.zip
 ```
 
 Expected result:
 
 ```text
+RESULT: PASS build-release-zip
 RESULT: PASS install-smoke
 ```
 
