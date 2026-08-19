@@ -35,6 +35,9 @@ jobs:
       - name: Смоук-тесты CLI-сканера (test_scan)
         run: python scripts/test_scan.py
 
+      - name: Install-smoke skill package
+        run: python scripts/install_smoke.py .
+
       - name: Self-test скилла (lint_skill)
         run: python scripts/lint_skill.py
 

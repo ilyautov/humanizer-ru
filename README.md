@@ -137,6 +137,20 @@ cp -r humanizer-ru/skills/humanizer-ru ~/.codex/skills/
 git clone https://github.com/ilyautov/humanizer-ru.git ~/.claude/skills/humanizer-ru
 ```
 
+### Проверка установочного пакета
+
+Перед релизом прогоните install-smoke. Он копирует `skills/humanizer-ru` в чистую временную папку скиллов, запускает сканер из установленной копии, собирает ZIP релизного вида и проверяет, что в пакете нет `.DS_Store`, `__pycache__` и `*.pyc`:
+
+```bash
+python3 scripts/install_smoke.py .
+```
+
+Ожидаемый результат:
+
+```text
+RESULT: PASS install-smoke
+```
+
 ### 5. Другие агенты (общий стандарт SKILL.md)
 
 Формат Agent Skills стал кросс-платформенным, поэтому humanizer-ru работает и за пределами четырёх упакованных стеков выше. Официально упакованы и проверены: Claude Code, Codex CLI, Cursor, Gemini CLI. Остальные агенты читают тот же `SKILL.md`, отдельная версия не нужна.

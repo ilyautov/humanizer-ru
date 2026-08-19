@@ -76,6 +76,23 @@ scanner, `scripts/scan.py` (the machine half of Audit mode; needs
 `pip install razdel pymorphy3`, and the skill gracefully falls back to a manual
 audit without them).
 
+### Package install smoke
+
+Before a release, run the install smoke. It copies `skills/humanizer-ru` into a
+clean temporary skills directory, runs the scanner from the installed copy,
+builds the release-shaped ZIP, and checks that the package has no `.DS_Store`,
+`__pycache__`, or `*.pyc` files:
+
+```bash
+python3 scripts/install_smoke.py .
+```
+
+Expected result:
+
+```text
+RESULT: PASS install-smoke
+```
+
 ### 4. Codex CLI (OpenAI)
 
 Codex uses the same Agent Skills format, so no separate build is needed:

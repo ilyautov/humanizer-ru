@@ -38,6 +38,10 @@ sys.path.insert(0, str(ROOT / "skills" / "humanizer-ru" / "scripts"))
 from humanizer_metrics.markers import HARD_BANS  # noqa: E402
 
 SKILL = ROOT / "skills" / "humanizer-ru" / "references" / "catalog.md"
+AGENT_MANIFESTS = sorted(
+    str(p.relative_to(ROOT))
+    for p in (ROOT / "skills" / "humanizer-ru" / "agents").glob("*.yaml")
+)
 
 # Файлы, где живут СЧЁТЧИКИ (SKILL.md намеренно не здесь: он источник истины,
 # его правит человек, а линт проверяет сплошную нумерацию).
@@ -48,6 +52,7 @@ COUNT_FILES = [
     "docs/kak-ubrat-sledy-neyroseti.html",
     ".claude-plugin/plugin.json", ".claude-plugin/marketplace.json",
     ".cursor-plugin/plugin.json", ".codex-plugin/plugin.json",
+    *AGENT_MANIFESTS,
     "gemini-extension.json",
 ]
 
