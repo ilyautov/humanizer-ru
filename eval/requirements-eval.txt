@@ -17,7 +17,7 @@ requests>=2.34.2
 
 # LLM-судья опционально может ходить в Anthropic API (ANTHROPIC_API_KEY).
 # НЕ обязателен: по умолчанию судья работает на локальной Ollama.
-anthropic>=0.117.0
+anthropic>=0.122.0
 
 # Локальный офлайн-детектор AI-текста на transformers (eval/detectors/ru_roberta.py).
 # Самые тяжёлые зависимости — ставь только под локальный прогон с GPU/CPU-инференсом.
