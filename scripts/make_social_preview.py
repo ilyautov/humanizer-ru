@@ -24,7 +24,9 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 sys.path.insert(0, str(ROOT / "skills" / "humanizer-ru" / "scripts"))
+from ru_plural import plural  # noqa: E402
 
 OUT = ROOT / "assets" / "social-preview.png"
 # Сайт отдаёт свою копию по og:image, она обязана совпадать.
@@ -63,17 +65,6 @@ def counters() -> tuple[int, int]:
         found.update(range(start, int(m.group(2) or start) + 1))
     patterns = max(n for n in range(1, 100) if all(k in found for k in range(1, n + 1)))
     return patterns, len(HARD_BANS)
-
-
-def _plural(n: int, one: str, few: str, many: str) -> str:
-    """Русское согласование числительного: 51 признак, 64 признака, 58 признаков."""
-    if n % 100 in range(11, 15):
-        return many
-    if n % 10 == 1:
-        return one
-    if n % 10 in (2, 3, 4):
-        return few
-    return many
 
 
 def _font(path: str, size: int, bold: bool = False):
@@ -117,8 +108,8 @@ def draw(patterns: int, bans: int) -> None:
     d.text((80, 272), "Убирает следы нейросети из русского текста", font=sub, fill=TEXT_DIM)
 
     chips = [
-        (f"{patterns} {_plural(patterns, 'признак', 'признака', 'признаков')}", ACCENT),
-        (f"{bans} {_plural(bans, 'запрет', 'запрета', 'запретов')}", TEXT_DIM),
+        (f"{patterns} {plural(patterns, 'признак', 'признака', 'признаков')}", ACCENT),
+        (f"{bans} {plural(bans, 'запрет', 'запрета', 'запретов')}", TEXT_DIM),
         ("сканер в комплекте", TEXT_DIM),
         ("MIT", TEXT_DIM),
     ]
@@ -139,8 +130,8 @@ def draw(patterns: int, bans: int) -> None:
     im.save(OUT_SITE)
     STAMP.write_text(f"{patterns}/{bans}\n", encoding="utf-8")
     print(f"[ok] {OUT.relative_to(ROOT)} и {OUT_SITE.relative_to(ROOT)}: "
-          f"{patterns} {_plural(patterns, 'признак', 'признака', 'признаков')}, "
-          f"{bans} {_plural(bans, 'запрет', 'запрета', 'запретов')}")
+          f"{patterns} {plural(patterns, 'признак', 'признака', 'признаков')}, "
+          f"{bans} {plural(bans, 'запрет', 'запрета', 'запретов')}")
 
 
 def main() -> int:
