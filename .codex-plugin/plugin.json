@@ -1,7 +1,7 @@
 {
   "name": "humanizer-ru",
   "version": "3.16.1",
-  "description": "Kills AI smell in Russian text. 58 patterns across 13 categories, 20 hard bans, 3 modes (rewrite / audit / targeted fix), deterministic scanner included. | Убивает запах нейросети в русском тексте: 58 паттернов, 20 жёстких банов, детерминированный сканер в комплекте.",
+  "description": "Kills AI smell in Russian text. 64 patterns across 14 categories, 20 hard bans, 3 modes (rewrite / audit / targeted fix), deterministic scanner included. | Убивает запах нейросети в русском тексте: 64 паттернов, 20 жёстких банов, детерминированный сканер в комплекте.",
   "author": {
     "name": "Ilya Utov",
     "email": "ilyautov@gmail.com",
@@ -15,7 +15,7 @@
   "interface": {
     "displayName": "Humanizer RU",
     "shortDescription": "Очеловечивает русский AI-текст",
-    "longDescription": "Берёт стерильный текст нейросети и возвращает в него живую русскую речь: убирает канцелярит, кальки и длинные тире, выравнивает ритм, калибрует голос автора. 58 признаков AI-текста в 13 категориях, 20 жёстких запретов, режим аудита с детерминированным офлайн-сканером.",
+    "longDescription": "Берёт стерильный текст нейросети и возвращает в него живую русскую речь: убирает канцелярит, кальки и длинные тире, выравнивает ритм, калибрует голос автора. 64 признаков AI-текста в 14 категориях, 20 жёстких запретов, режим аудита с детерминированным офлайн-сканером.",
     "developerName": "Ilya Utov",
     "category": "Writing",
     "capabilities": ["Read", "Write"],
