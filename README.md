@@ -304,11 +304,16 @@ Changelog: [CHANGELOG.md](CHANGELOG.md). Метрики и eval-харнес: к
 
 Илья Утов. Пишу про AI и работу с текстом в Telegram: [Under the Hood](https://t.me/gorilla_under_hood).
 
+## Контрибьюторы
+
+- **Филипп Зарубин** ([@zarubinphil](https://github.com/zarubinphil)): категория N «Дискурсный слой», паттерны 59-64 по StoryScope (COLM 2026). Признаки, которые переживают стилевую правку. Плюс согласование падежа при счётчике в релизном гейте.
+- **iKonushok** ([@ikonushok](https://github.com/ikonushok)): install-smoke установочной поверхности и сборка релизного ZIP. Проверяется не папка в репозитории, а то, что реально доезжает до пользователя.
+
+Полный список, включая баг-репорты, которые изменили код: [CONTRIBUTORS.md](CONTRIBUTORS.md). Как попасть в него: [CONTRIBUTING.md](CONTRIBUTING.md).
+
 ## Лицензия
 
 MIT: используйте свободно, форкайте, дорабатывайте. Pull request с новыми паттернами приветствуются.
-
-Кто уже дорабатывал: [CONTRIBUTORS.md](CONTRIBUTORS.md). Правила и локальные гейты: [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ---
 

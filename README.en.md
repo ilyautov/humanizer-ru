@@ -177,7 +177,10 @@ Ilya Utov. I write about AI and working with text on Telegram: [Under the Hood](
 
 ## Contributors
 
-See [CONTRIBUTORS.md](CONTRIBUTORS.md). Contribution rules and local gates: [CONTRIBUTING.md](CONTRIBUTING.md).
+- **Filipp Zarubin** ([@zarubinphil](https://github.com/zarubinphil)): category N "Discourse layer", patterns 59-64 from StoryScope (COLM 2026). Signals that survive a style rewrite. Plus Russian numeral agreement in the release gate.
+- **iKonushok** ([@ikonushok](https://github.com/ikonushok)): install smoke for the installed surface and release ZIP packaging. It checks what actually reaches the user, not the folder in the repo.
+
+Full list, including bug reports that changed the code: [CONTRIBUTORS.md](CONTRIBUTORS.md). How to get on it: [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## License
 
