@@ -32,7 +32,7 @@ Three deployment channels: upload to Claude.ai web UI, roll out across an organi
 2. Open Claude.ai → **Settings** → **Capabilities** → **Skills**.
 3. Click **Upload skill** and select the ZIP.
 
-Do not use `archive/refs/heads/main.zip`: the uploader expects `SKILL.md` at the top level of the archive, and in the repo archive it sits inside `humanizer-ru-main/skills/humanizer-ru/`. To build the archive yourself, zip the skill folder itself:
+Do not use `archive/refs/heads/main.zip`: the uploader expects the skill folder at the top level of the archive, and in the repo archive it sits inside `humanizer-ru-main/skills/humanizer-ru/`. To build the archive yourself, zip the skill folder itself:
 
 ```bash
 git clone https://github.com/ilyautov/humanizer-ru.git
@@ -75,6 +75,26 @@ Copy the whole folder, not just SKILL.md: the skill ships with a deterministic
 scanner, `scripts/scan.py` (the machine half of Audit mode; needs
 `pip install razdel pymorphy3`, and the skill gracefully falls back to a manual
 audit without them).
+
+### Package install smoke
+
+Before a release, build the ZIP with the same script used by CI, then run the
+install smoke against that archive. The smoke check copies `skills/humanizer-ru`
+into a clean temporary skills directory, runs the scanner from the installed
+copy, and checks that the ZIP has no `.DS_Store`, `__pycache__`, or `*.pyc`
+files:
+
+```bash
+python3 scripts/build_release_zip.py --output dist/humanizer-ru.zip .
+python3 scripts/install_smoke.py . --zip dist/humanizer-ru.zip
+```
+
+Expected result:
+
+```text
+RESULT: PASS build-release-zip
+RESULT: PASS install-smoke
+```
 
 ### 4. Codex CLI (OpenAI)
 

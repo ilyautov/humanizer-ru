@@ -16,6 +16,9 @@ python3 -m venv .venv
 
 ```bash
 .venv/bin/python scripts/test_markers.py     # регресс-тесты метрик
+.venv/bin/python scripts/build_release_zip.py --output dist/humanizer-ru.zip .
+.venv/bin/python scripts/install_smoke.py . --zip dist/humanizer-ru.zip
+.venv/bin/python scripts/install_smoke.py .  # проверка установочной поверхности
 .venv/bin/python scripts/lint_skill.py       # self-test SKILL.md против собственных правил
 .venv/bin/python scripts/check_examples.py   # Факт-замок в примерах «До/После»
 .venv/bin/python scripts/self_scan.py        # витрина против собственных HARD BANS
@@ -25,6 +28,19 @@ python3 -m venv .venv
 ```
 
 CI гоняет то же самое на каждый PR.
+
+## Чеклист релиза
+
+```bash
+.venv/bin/python scripts/bump_release.py --apply vX.Y.Z
+.venv/bin/python scripts/build_release_zip.py --output dist/humanizer-ru.zip .
+.venv/bin/python scripts/install_smoke.py . --zip dist/humanizer-ru.zip
+.venv/bin/python scripts/bump_release.py --check
+```
+
+Перед публикацией тега проверьте, что `dist/humanizer-ru.zip` приложен к
+GitHub Release. После публикации ссылка
+`releases/latest/download/humanizer-ru.zip` должна отдавать тот же архив.
 
 ## Правила проекта
 

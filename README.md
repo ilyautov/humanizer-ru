@@ -70,7 +70,7 @@
 2. Откройте Claude.ai → **Settings** → **Capabilities** → **Skills**.
 3. Нажмите **Upload skill** и выберите скачанный архив.
 
-> Не берите `archive/refs/heads/main.zip`: загрузчик ищет `SKILL.md` на верхнем уровне архива, а в архиве репозитория он лежит внутри `humanizer-ru-main/skills/humanizer-ru/`. Если нужно собрать архив самому, архивируйте именно папку скилла:
+> Не берите `archive/refs/heads/main.zip`: загрузчик ожидает папку скилла в корне архива, а в архиве репозитория она лежит внутри `humanizer-ru-main/skills/humanizer-ru/`. Если нужно собрать архив самому, архивируйте именно папку скилла:
 >
 > ```bash
 > git clone https://github.com/ilyautov/humanizer-ru.git
@@ -135,6 +135,26 @@ cp -r humanizer-ru/skills/humanizer-ru ~/.codex/skills/
 
 ```bash
 git clone https://github.com/ilyautov/humanizer-ru.git ~/.claude/skills/humanizer-ru
+```
+
+### Проверка установочного пакета
+
+Перед релизом соберите ZIP тем же скриптом, который использует CI, затем
+прогоните install-smoke по готовому архиву. Проверка копирует
+`skills/humanizer-ru` в чистую временную папку скиллов, запускает сканер из
+установленной копии и проверяет, что в ZIP нет `.DS_Store`, `__pycache__` и
+`*.pyc`:
+
+```bash
+python3 scripts/build_release_zip.py --output dist/humanizer-ru.zip .
+python3 scripts/install_smoke.py . --zip dist/humanizer-ru.zip
+```
+
+Ожидаемый результат:
+
+```text
+RESULT: PASS build-release-zip
+RESULT: PASS install-smoke
 ```
 
 ### 5. Другие агенты (общий стандарт SKILL.md)
