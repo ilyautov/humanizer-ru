@@ -175,6 +175,10 @@ Changelog: [CHANGELOG.md](CHANGELOG.md). Metrics and eval harness: [`scripts/`](
 
 Ilya Utov. I write about AI and working with text on Telegram: [Under the Hood](https://t.me/gorilla_under_hood).
 
+## Contributors
+
+See [CONTRIBUTORS.md](CONTRIBUTORS.md). Contribution rules and local gates: [CONTRIBUTING.md](CONTRIBUTING.md).
+
 ## License
 
 MIT
