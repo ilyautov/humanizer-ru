@@ -14,6 +14,11 @@ eyebrow), version бампается релизом, а тексты рядом 
   - число категорий  = сплошные буквы заголовков «### X.» того же каталога;
   - версия           = аргумент --apply vX.Y.Z (или согласованность в --check).
 
+Падеж существительного рядом со счётчиком скрипт теперь ведёт сам
+(scripts/ru_plural.py): «58 паттернов» -> «64 паттерна». Только счётная
+позиция; после предлога («каталог из 64 признаков», «по всем 64 пунктам»)
+падеж задаёт предлог, и слово не трогается.
+
 Режимы:
     python scripts/bump_release.py --check          # CI-гейт: дрейф = exit 1
     python scripts/bump_release.py --apply v3.15.0  # протащить версию+счётчики
@@ -34,8 +39,10 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 sys.path.insert(0, str(ROOT / "skills" / "humanizer-ru" / "scripts"))
 from humanizer_metrics.markers import HARD_BANS  # noqa: E402
+from ru_plural import agreement_drift, fix_agreement  # noqa: E402
 
 SKILL = ROOT / "skills" / "humanizer-ru" / "references" / "catalog.md"
 AGENT_MANIFESTS = sorted(
@@ -57,7 +64,11 @@ COUNT_FILES = [
 ]
 
 # Число + существительное, означающее «паттерны каталога». Лукахед не даёт
-# задеть чужие числа («20 запретов», «52K текстов», даты).
+# задеть чужие числа («20 запретов», «52K текстов», даты). Сама подстановка
+# меняет только цифру, поэтому дальше по тексту идёт второй проход,
+# ru_plural.fix_agreement: при 58 существительное стоит в форме «паттернов»,
+# при 64 нужна «паттерна», и раньше это чинилось руками (а по манифестам не
+# чинилось вовсе).
 PATTERN_NOUNS = r"(?:паттерн\w*|признак\w*|пункт\w*|маркер\w*|pattern\w*|marker\w*)"
 RE_PATTERN_COUNT = re.compile(rf"\b(\d+)(?=\s+{PATTERN_NOUNS})")
 # Отдельный случай: таблица README «| Паттернов | 54 | 32 |» (число ПОСЛЕ
@@ -134,6 +145,8 @@ def scan_counts(patterns: int, bans: int, categories: int) -> list[str]:
             if int(m.group(1)) != categories:
                 ctx = s[m.start():m.start() + 40].replace("\n", " ")
                 drift.append(f"{rel}: «{ctx}...» ожидалось {categories} категорий")
+        for _, found, want in agreement_drift(s):
+            drift.append(f"{rel}: «{found}» ожидалось «{want}» (падеж при числе)")
     return drift
 
 
@@ -170,6 +183,7 @@ def apply_all(patterns: int, bans: int, categories: int, version: str | None) ->
         s = RE_TABLE.sub(rf"\g<1>{patterns}", s)
         s = RE_BAN_COUNT.sub(str(bans), s)
         s = RE_CATEGORY_COUNT.sub(str(categories), s)
+        s = fix_agreement(s)
         if s != orig:
             p.write_text(s, encoding="utf-8")
             changed += 1

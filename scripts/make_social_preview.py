@@ -24,7 +24,9 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 sys.path.insert(0, str(ROOT / "skills" / "humanizer-ru" / "scripts"))
+from ru_plural import plural  # noqa: E402
 
 OUT = ROOT / "assets" / "social-preview.png"
 # Сайт отдаёт свою копию по og:image, она обязана совпадать.
@@ -106,8 +108,8 @@ def draw(patterns: int, bans: int) -> None:
     d.text((80, 272), "Убирает следы нейросети из русского текста", font=sub, fill=TEXT_DIM)
 
     chips = [
-        (f"{patterns} признаков", ACCENT),
-        (f"{bans} запретов", TEXT_DIM),
+        (f"{patterns} {plural(patterns, 'признак', 'признака', 'признаков')}", ACCENT),
+        (f"{bans} {plural(bans, 'запрет', 'запрета', 'запретов')}", TEXT_DIM),
         ("сканер в комплекте", TEXT_DIM),
         ("MIT", TEXT_DIM),
     ]
@@ -128,7 +130,8 @@ def draw(patterns: int, bans: int) -> None:
     im.save(OUT_SITE)
     STAMP.write_text(f"{patterns}/{bans}\n", encoding="utf-8")
     print(f"[ok] {OUT.relative_to(ROOT)} и {OUT_SITE.relative_to(ROOT)}: "
-          f"{patterns} признаков, {bans} запретов")
+          f"{patterns} {plural(patterns, 'признак', 'признака', 'признаков')}, "
+          f"{bans} {plural(bans, 'запрет', 'запрета', 'запретов')}")
 
 
 def main() -> int:

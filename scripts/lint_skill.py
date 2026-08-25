@@ -33,9 +33,9 @@ CANON = ROOT / "skills" / "humanizer-ru" / "SKILL.md"
 CATALOG = ROOT / "skills" / "humanizer-ru" / "references" / "catalog.md"
 SKILL_DIR = ROOT / "skills" / "humanizer-ru"
 
-EXPECTED_PATTERNS = 58
+EXPECTED_PATTERNS = 64
 EXPECTED_HARD_BANS = 20
-EXPECTED_SCANNER_CATS = 26
+EXPECTED_SCANNER_CATS = 27
 
 errors: list[str] = []
 notes: list[str] = []
