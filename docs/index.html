@@ -101,12 +101,30 @@
 <div class="wrap hero">
 
   <h1>Очеловечить русский AI-текст: убрать следы нейросети</h1>
-  <p class="lede">humanizer-ru это бесплатный open-source скилл для Claude, Cursor, Codex и других агентов. Берёт стерильный текст нейросети и возвращает в него живую русскую речь: с голосом, ритмом и характером. Не косметика по списку слов, а полноценный рерайт. Под капотом 64 признака AI-текста в 14 категориях и 21 жёстких запретов, сканер в комплекте.</p>
+  <p class="lede">Бесплатный open-source скилл для Claude, Cursor, Codex и других агентов: снимает с русского текста следы нейросети и возвращает голос автора. 64 признака, 21 жёстких запретов, сканер <a href="#audit">работает прямо на этой странице</a>.</p>
+
+  <section class="install" id="install" aria-labelledby="install-title">
+    <div class="install-head">
+      <h2 id="install-title" class="plain">Поставить за минуту</h2>
+      <p>Выберите среду и скопируйте команду. Проверить текст можно и без установки, в демо ниже.</p>
+    </div>
+    <div class="env-tabs" role="tablist" aria-label="Среда установки"></div>
+    <div class="env-panel" role="tabpanel">
+      <div class="env-cmd-wrap">
+        <pre class="env-cmd"><code id="env-cmd"></code></pre>
+        <button type="button" class="env-copy" id="env-copy" aria-label="Скопировать команду">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          <span>Скопировать</span>
+        </button>
+      </div>
+      <p class="env-note" id="env-note"></p>
+    </div>
+  </section>
 
   <section class="audit" id="audit" aria-labelledby="audit-title">
     <div class="audit-head">
-      <h2 id="audit-title" class="plain">Проверьте текст прямо здесь</h2>
-      <p>Тот же сканер, что едет со скиллом, только на JavaScript. Считается в браузере, текст никуда не отправляется.</p>
+      <h2 id="audit-title" class="plain">Живое демо: проверьте свой текст</h2>
+      <p>Тот же сканер, что едет со скиллом, только на JavaScript. Считается в браузере, текст никуда не отправляется. Вставьте абзац или возьмите готовый пример.</p>
     </div>
 
     <div class="audit-grid">
@@ -152,17 +170,7 @@
     </div>
 
     <div class="audit-next" id="audit-next" hidden>
-      <h3 class="plain">Исправить в вашей среде</h3>
-      <p>Сканер только показывает, что выдаёт текст. Переписывает скилл, установленный в агент. Выберите свой:</p>
-      <div class="env-tabs" role="tablist" aria-label="Среда установки"></div>
-      <div class="env-panel" role="tabpanel">
-        <pre class="env-cmd"><code id="env-cmd"></code></pre>
-        <button type="button" class="env-copy" id="env-copy" aria-label="Скопировать команду">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-          <span>Скопировать</span>
-        </button>
-        <p class="env-note" id="env-note"></p>
-      </div>
+      <p>Сканер только показывает, что выдаёт текст. Переписывает скилл, установленный в агент: <a href="#install">команды установки выше</a>.</p>
       <p class="audit-note">В браузере считаются запреты, маркеры, ритм и структура. Номинальность (сущ./глаг.) добавляет только scan.py в комплекте скилла, поэтому его оценка бывает ниже на несколько баллов. Числа сканера это основания для правки, а не вердикт об авторстве.</p>
     </div>
   </section>

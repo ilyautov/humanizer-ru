@@ -16,6 +16,17 @@ Claude Code / Cowork plugin. Kills AI smell in Russian text. The English [humani
   </a>
 </p>
 
+🧪 **Live demo:** [humanizer-ru.aifrontier.tech](https://humanizer-ru.aifrontier.tech/#audit). Paste a Russian text, get a 0-100 cleanliness score and highlighted markers. Same scanner as in the skill, runs in the browser.
+
+**Quick start** in Claude Code, two commands:
+
+```
+/plugin marketplace add ilyautov/humanizer-ru
+/plugin install humanizer-ru@ilyautov-plugins
+```
+
+Cursor, Copilot, Cline and other agents: `npx skills add https://github.com/ilyautov/humanizer-ru/tree/main/skills/humanizer-ru`. Claude.ai, Codex, DeepSeek Harness and team rollout are covered in [Install](#install).
+
 📖 **Docs & write-ups (RU):** [humanizer-ru.aifrontier.tech](https://humanizer-ru.aifrontier.tech/): do AI detectors work on Russian, the 64 markers, plagiarism vs AI detection.
 
 ## What you get

@@ -1,6 +1,6 @@
 # humanizer-ru: очеловечить русский AI-текст для Claude Code, Cursor, Codex и других AI-агентов
 
-> Скилл для Claude. Убирает 64 признака нейросети в русском тексте: канцелярит, кальки, фингерпринты ChatGPT и Claude. Метит в то, что измеряют GPTZero, DivEye, RuBERT: поднимает perplexity и burstiness. 21 жёстких банов, quad-pass аудит, калибровка под голос автора, eval-харнес с метриками до/после.
+> Скилл для Claude. Убирает 64 признака нейросети в русском тексте: канцелярит, кальки, фингерпринты ChatGPT и Claude. Метит в то, что измеряют GPTZero, DivEye, RuBERT: поднимает perplexity и burstiness. 21 жёстких банов, quad-pass аудит, калибровка под голос автора, eval-харнес с метриками до/после. Живое демо сканера на сайте.
 
 > [English version](README.en.md)
 
@@ -20,6 +20,17 @@
 > **Стало (факты автора):** «Инструмент экономит команде сорок минут в день. Попробуйте теперь его у людей забрать».
 >
 > Три жёстких бана в одном предложении. [Полный разбор с режимом аудита ниже](#до-и-после).
+
+🧪 **Живое демо:** [humanizer-ru.aifrontier.tech](https://humanizer-ru.aifrontier.tech/#audit). Вставьте свой текст, получите оценку чистоты 0-100 и подсветку найденных оборотов. Тот же сканер, что в скилле, считается в браузере.
+
+**Быстрый старт** в Claude Code, две команды:
+
+```
+/plugin marketplace add ilyautov/humanizer-ru
+/plugin install humanizer-ru@ilyautov-plugins
+```
+
+Cursor, Copilot, Cline и другие агенты: `npx skills add https://github.com/ilyautov/humanizer-ru/tree/main/skills/humanizer-ru`. Claude.ai, Codex, DeepSeek Harness и раскатка на команду в [разделе «Установка»](#установка).
 
 📖 **Документация и разборы:** [humanizer-ru.aifrontier.tech](https://humanizer-ru.aifrontier.tech/): [работают ли AI-детекторы на русском](https://humanizer-ru.aifrontier.tech/ai-detektory-na-russkom.html), [64 признака AI-текста](https://humanizer-ru.aifrontier.tech/52-priznaka-ai-teksta.html), [антиплагиат и нейросеть](https://humanizer-ru.aifrontier.tech/antiplagiat-i-neyroset.html).
 

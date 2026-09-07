@@ -5,7 +5,7 @@
   const $ = (id) => document.getElementById(id);
   const textEl = $("audit-text"), genreEl = $("audit-genre"), runBtn = $("audit-run");
   const countEl = $("audit-count"), resultEl = $("audit-result"), sourceEl = $("audit-source");
-  const markedWrap = $("audit-marked"), markedEl = $("audit-text-marked"), nextEl = $("audit-next");
+  const markedWrap = $("audit-marked"), markedEl = $("audit-text-marked"), nextEl = $("audit-next"), installEl = $("install");
   if (!textEl || typeof globalThis.humanizerScan !== "function") return;
 
   const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -46,7 +46,7 @@
 
   // --- Результат -------------------------------------------------------------
   function animateNumber(el, target) {
-    if (reduceMotion) { el.textContent = target; return; }
+    if (reduceMotion || document.hidden) { el.textContent = target; return; }
     const t0 = performance.now(), dur = 650;
     const step = (now) => {
       const k = Math.min(1, (now - t0) / dur);
@@ -99,14 +99,14 @@
   // --- Среды ------------------------------------------------------------------
   let envKey = ENVS[0].key;
   function renderEnvs() {
-    const tabs = nextEl.querySelector(".env-tabs");
+    const tabs = installEl.querySelector(".env-tabs");
     tabs.innerHTML = ENVS.map((e) =>
       `<button type="button" role="tab" data-env="${e.key}" aria-selected="${e.key === envKey}">${e.label}</button>`).join("");
     const env = ENVS.find((e) => e.key === envKey);
     $("env-cmd").textContent = env.cmd;
     $("env-note").textContent = env.note;
   }
-  nextEl.querySelector(".env-tabs").addEventListener("click", (ev) => {
+  installEl.querySelector(".env-tabs").addEventListener("click", (ev) => {
     const b = ev.target.closest("[data-env]");
     if (!b) return;
     envKey = b.dataset.env;
@@ -135,7 +135,6 @@
     renderResult(r);
     renderMarked(text, r);
     nextEl.hidden = false;
-    renderEnvs();
   }
 
   let timer = null;
@@ -154,4 +153,5 @@
   }));
 
   updateCount();
+  renderEnvs();
 })();
