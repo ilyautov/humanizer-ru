@@ -11,6 +11,7 @@
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 
 from .burstiness import RhythmStats, rhythm, rhythm_verdict
@@ -69,12 +70,58 @@ class Report:
         }
 
 
+# --- Код и цитаты не текст автора ------------------------------------------
+# Сканер считал баны внутри блоков кода и внутри коротких цитат в ёлочках:
+# статья про сам скилл с фразой «в современном мире» в кавычках получала
+# «рерайт», а технический пост с примером кода терял баллы за чужой листинг.
+# Код вырезается целиком (тройные и одиночные обратные кавычки). Цитата
+# вырезается, только если она короткая: так цитируют слово или оборот. Длинная
+# цитата в ёлочках это прямая речь или пересказ, её маркеры на совести автора,
+# и в художественном тексте диалоги остаются под сканером.
+#
+# Замена сохраняет длину и переводы строк, чтобы номера строк в отчёте
+# совпадали с файлом; заглушка не буква, поэтому фразовые регексы через неё
+# не склеиваются («От «В современном мире…» до клише» не станет «От до»).
+GAP = "·"
+QUOTE_MAX_WORDS = 12
+_FENCED = re.compile(r"(?s)```.*?```")
+_INLINE_CODE = re.compile(r"`[^`\n]*`")
+_QUOTE = re.compile(r"«[^«»]*»")
+
+
+def _blank(match: re.Match[str]) -> str:
+    return re.sub(r"[^\n]", GAP, match.group(0))
+
+
+def _blank_short_quote(match: re.Match[str]) -> str:
+    inner = match.group(0)[1:-1]
+    if len(inner.split()) <= QUOTE_MAX_WORDS:
+        return _blank(match)
+    return match.group(0)
+
+
+def mask_code_and_quotes(text: str) -> str:
+    """Текст для лексического сканера: код и короткие цитаты заглушены,
+    смещения и номера строк сохранены."""
+    text = _FENCED.sub(_blank, text)
+    text = _INLINE_CODE.sub(_blank, text)
+    return _QUOTE.sub(_blank_short_quote, text)
+
+
+def strip_code(text: str) -> str:
+    """Текст для ритма и морфологии: код удалён, проза оставлена как есть."""
+    text = _FENCED.sub("", text)
+    return _INLINE_CODE.sub("", text)
+
+
 def analyze(text: str) -> Report:
     """Полный детерминированный прогон текста."""
+    lexical = mask_code_and_quotes(text)
+    prose = strip_code(text)
     return Report(
-        hard_bans=scan_hard_bans(text),
-        markers=scan_markers(text),
-        rhythm=rhythm(text),
-        morph=morph_stats(text),
-        structure=structure_stats(text),
+        hard_bans=scan_hard_bans(lexical),
+        markers=scan_markers(lexical),
+        rhythm=rhythm(prose),
+        morph=morph_stats(prose),
+        structure=structure_stats(prose),
     )

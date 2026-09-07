@@ -116,21 +116,23 @@
   </div>
 
   <div class="stats">
-    <div class="stat"><b>54</b><span>признака AI-текста в каталоге</span></div>
-    <div class="stat"><b>20</b><span>жёстких запретов</span></div>
+    <div class="stat"><b>64</b><span>признака AI-текста в каталоге</span></div>
+    <div class="stat"><b>21</b><span>жёстких запретов</span></div>
     <div class="stat"><b>3</b><span>режима: рерайт, правка, аудит</span></div>
     <div class="stat"><b>0 ₽</b><span>лицензия MIT, без подписок</span></div>
   </div>
 
   <div class="term">
     <div class="term-bar"><span></span><span></span><span></span><em>humanizer-ru · режим «Аудит»</em></div>
-    <pre class="term-body"><code><span class="tn">$</span> <span class="ta">python3 skills/humanizer-ru/scripts/scan.py</span> chernovik.md
-<span class="tb">HARD BAN</span>   «является» ×3 · «данный» ×2 · тире «—» ×7
-<span class="tw">Маркеры</span>    канцелярит ×4 · кальки ×2 · «не просто X, а Y» ×1
-<span class="tw">Ритм</span>       CV 0.21: ровный, как метроном (живой текст ≥0.45)
-<span class="tb">Вердикт</span>    AI-генерация с высокой вероятностью
-<span class="tn">после humanizer-ru:</span>
-<span class="tg">Вердикт</span>    чисто: баны 0, маркеры 1, CV 0.78</code></pre>
+    <pre class="term-body"><code><span class="tn">$</span> <span class="ta">python3 skills/humanizer-ru/scripts/scan.py</span> eval/corpus/raw/docs_gpt_07.txt
+<span class="tb">ЧИСТОТА: 9/100</span>  [рерайт]
+  -45  хард-баны (фразы): 10
+  -27  маркеры: 14 (13.5/100 слов)
+  -16  ровный ритм (CV=0.204, цель ≥0.45)
+<span class="tw">HARD BANS</span>   ⛔ Стоит отметить, что ×1 · ⛔ Данный/Данная/Данное ×2 · ⛔ Подводя итог / Таким образом ×1 · ещё 7
+<span class="tn">$</span> <span class="ta">python3 skills/humanizer-ru/scripts/scan.py</span> eval/corpus/human/wiki_baikal.txt
+<span class="tg">ЧИСТОТА: 82/100</span>  [правка]  ✓ ритм рваный (CV=0.572); ⚠ 2 длинных тире</code></pre>
+    <p class="term-note">Оба файла лежат в репозитории, команды воспроизводимы. Числа сканера это основания для правки, а не вердикт об авторстве.</p>
   </div>
 
   <h2>Что это и зачем</h2>

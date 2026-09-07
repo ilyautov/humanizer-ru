@@ -263,6 +263,14 @@ def check(pair: Pair) -> tuple[list[str], list[str]]:
     before_words = _words(pair.before)
     new_hard = sorted(f for f in a_hard - b_hard if not _alias_covered(f, before_words))
     new_soft = sorted(a_soft - b_soft)
+    # Словесные количества («три», «вдвое») мягкие, когда пересказывают число
+    # из исходника. Если в исходнике количеств нет вовсе, а в правке их два и
+    # больше, это не пересказ, а придуманная конкретика: пример «Пост в блог»
+    # с «три проекта, два ускорились вдвое» проходил гейт именно через эту щель.
+    b_quant = {f for f in b_hard if f.startswith("число")} | b_soft
+    if not b_quant and len(new_soft) >= 2:
+        new_hard = sorted(set(new_hard) | {f"количество:{w}" for w in new_soft})
+        new_soft = []
     return new_hard, new_soft
 
 

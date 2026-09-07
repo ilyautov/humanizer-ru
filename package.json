@@ -1,6 +1,6 @@
 {
   "name": "humanizer-ru",
-  "version": "3.19.0",
+  "version": "3.19.1",
   "description": "Agent skill for DeepSeek Harness: rewrites Russian text to remove 64 markers of AI generation (bureaucratese, calques, ChatGPT fingerprints), with a corpus-calibrated scanner, audit mode and author-voice calibration.",
   "license": "MIT",
   "author": "Ilya Utov",
