@@ -12,7 +12,7 @@
 from __future__ import annotations
 
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
 from .burstiness import RhythmStats, rhythm, rhythm_verdict
 from .markers import (
@@ -84,9 +84,15 @@ class Report:
 # не склеиваются («От «В современном мире…» до клише» не станет «От до»).
 GAP = "·"
 QUOTE_MAX_WORDS = 12
-_FENCED = re.compile(r"(?s)```.*?```")
+# Ограда блока кода стоит только в начале строки (CommonMark): три обратные
+# кавычки внутри строки кода не закрывают блок. Ленивый `(?s)```.*?``` ` на
+# `x = "```"` съезжал по границам и уносил в код следующий абзац прозы.
+_FENCED = re.compile(r"(?ms)^[ \t]{0,3}(`{3,}|~{3,})[^\n]*\n.*?^[ \t]{0,3}\1[ \t]*$")
 _INLINE_CODE = re.compile(r"`[^`\n]*`")
 _QUOTE = re.compile(r"«[^«»]*»")
+# Markdown-цитата через «>» это чужой текст целиком: разбор плохого примера
+# получал «рерайт» за штампы, которые автор как раз критикует.
+_BLOCKQUOTE = re.compile(r"(?m)^[ \t]*>.*$")
 
 
 def _blank(match: re.Match[str]) -> str:
@@ -101,27 +107,34 @@ def _blank_short_quote(match: re.Match[str]) -> str:
 
 
 def mask_code_and_quotes(text: str) -> str:
-    """Текст для лексического сканера: код и короткие цитаты заглушены,
-    смещения и номера строк сохранены."""
+    """Текст для лексического сканера: код, markdown-цитаты и короткие цитаты
+    в ёлочках заглушены, смещения и номера строк сохранены."""
     text = _FENCED.sub(_blank, text)
     text = _INLINE_CODE.sub(_blank, text)
+    text = _BLOCKQUOTE.sub(_blank, text)
     return _QUOTE.sub(_blank_short_quote, text)
 
 
 def strip_code(text: str) -> str:
-    """Текст для ритма и морфологии: код удалён, проза оставлена как есть."""
+    """Текст для ритма и морфологии: код и markdown-цитаты удалены, проза
+    оставлена как есть (ёлочки не трогаем, они внутри предложений автора)."""
     text = _FENCED.sub("", text)
-    return _INLINE_CODE.sub("", text)
+    text = _INLINE_CODE.sub("", text)
+    return _BLOCKQUOTE.sub("", text)
 
 
 def analyze(text: str) -> Report:
     """Полный детерминированный прогон текста."""
     lexical = mask_code_and_quotes(text)
     prose = strip_code(text)
+    stats = rhythm(prose)
+    # Тире внутри короткой цитаты («Война — и мир») не типографика автора:
+    # считаем его по заглушенному тексту, ритм по прозе с цитатами.
+    stats = replace(stats, em_dash=lexical.count("—"))
     return Report(
         hard_bans=scan_hard_bans(lexical),
         markers=scan_markers(lexical),
-        rhythm=rhythm(prose),
+        rhythm=stats,
         morph=morph_stats(prose),
         structure=structure_stats(prose),
     )
