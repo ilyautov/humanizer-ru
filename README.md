@@ -5,7 +5,7 @@
 > [English version](README.en.md)
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Версия](https://img.shields.io/badge/версия-3.19.0-blueviolet)](https://github.com/ilyautov/humanizer-ru/blob/main/CHANGELOG.md)
+[![Версия](https://img.shields.io/badge/версия-3.19.1-blueviolet)](https://github.com/ilyautov/humanizer-ru/blob/main/CHANGELOG.md)
 [![Звёзды](https://img.shields.io/github/stars/ilyautov/humanizer-ru?style=social)](https://github.com/ilyautov/humanizer-ru/stargazers)
 [![skills.sh](https://skills.sh/b/ilyautov/humanizer-ru)](https://skills.sh/ilyautov/humanizer-ru/humanizer-ru)
 [![npm](https://img.shields.io/npm/v/humanizer-ru?label=npm%20%C2%B7%20dsh)](https://www.npmjs.com/package/humanizer-ru)
@@ -101,7 +101,7 @@
 npx skills add https://github.com/ilyautov/humanizer-ru/tree/main/skills/humanizer-ru
 ```
 
-CLI кладёт `SKILL.md` в `~/.claude/skills/humanizer-ru/` и регистрирует скилл в индексе [skills.sh](https://skills.sh/ilyautov/humanizer-ru/humanizer-ru). Указывайте полный путь к папке скилла: короткая форма `ilyautov/humanizer-ru` смотрит в корень репозитория, где `SKILL.md` нет (убран в v3.14.2), и установка либо падает, либо тащит весь репозиторий.
+CLI кладёт `SKILL.md` в `~/.claude/skills/humanizer-ru/` и регистрирует скилл в индексе [skills.sh](https://skills.sh/ilyautov/humanizer-ru/humanizer-ru). Короткая форма тоже работает: `npx skills add ilyautov/humanizer-ru` находит скилл в репозитории и предлагает его к установке, а с флагом `--skill humanizer-ru` ставит без вопросов.
 
 **Через API (`/v1/messages` и аналоги):** передайте скилл параметром `container.skills`. Детали в документации вашего клиента.
 
@@ -245,7 +245,7 @@ python skills/humanizer-ru/scripts/scan.py статья.txt --genre academic  # 
 До:
 > В современном мире искусственный интеллект играет всё более важную роль в различных сферах деятельности. Стоит отметить, что данная технология является мощным инструментом для оптимизации рабочих процессов.
 
-После:
+После (факты автора):
 > За последний год я внедрил AI-инструменты в три проекта. Два ускорились вдвое. Третий развалился, потому что команда перестала проверять то, что выдаёт модель. AI работает, когда понимаешь его ограничения.
 
 Пять жёстких банов сработали в двух предложениях. Типичная картина.

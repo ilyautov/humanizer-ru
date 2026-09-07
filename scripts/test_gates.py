@@ -19,6 +19,7 @@ sys.path.insert(0, str(ROOT))
 
 import check_examples as ce  # noqa: E402
 import self_scan as ss  # noqa: E402
+import bump_release as br  # noqa: E402
 from humanizer_metrics.markers import scan_hard_bans  # noqa: E402
 
 failures: list[str] = []
@@ -103,6 +104,28 @@ with tempfile.TemporaryDirectory() as tmp:
 # --- self_scan: сам бан ловится -------------------------------------------
 check("бан в прозе ловится", bool(scan_hard_bans("Данный подход является ключевым.")))
 check("чистая проза не ловится", not scan_hard_bans("Навели порядок в процессах, стало быстрее."))
+
+# --- check_examples: количества без источника -----------------------------
+_pair = lambda b, a: ce.Pair(path=Path("x"), line=1, before=b, after=a)  # noqa: E731
+_h, _s = ce.check(_pair("В современном мире AI меняет бизнес.",
+                        "Я внедрил AI в три проекта. Два ускорились вдвое."))
+check("два и больше количеств без числа в исходнике: ошибка", bool(_h), str((_h, _s)))
+_h, _s = ce.check(_pair("Скорость выросла на 50%.", "Скорость выросла вдвое."))
+check("пересказ числа из исходника остаётся заметкой", not _h and _s, str((_h, _s)))
+_h, _s = ce.check(_pair("Команда росла.", "Команда выросла вдвое."))
+check("одно количество без источника остаётся заметкой", not _h and _s, str((_h, _s)))
+
+# --- bump_release: счётчики видят числа сквозь HTML-теги -------------------
+check("счётчик паттернов сквозь <b></b><span>",
+      br.RE_PATTERN_COUNT.findall('<b>54</b><span>признака AI-текста</span>') == ["54"])
+check("счётчик банов сквозь теги",
+      br.RE_BAN_COUNT.findall('<b>20</b><span>жёстких запретов</span>') == ["20"])
+check("обычный текст считается как прежде",
+      br.RE_PATTERN_COUNT.findall("каталог из 64 признаков") == ["64"])
+check("штраф сканера «-27  маркеры: 14» не принимается за размер каталога",
+      br.RE_PATTERN_COUNT.findall("  -27  маркеры: 14 (13.5/100 слов)") == [])
+check("год перед тегом без существительного не ловится",
+      br.RE_PATTERN_COUNT.findall("<b>2026</b><span>год</span>") == [])
 
 print("=== test_gates ===")
 if failures:
