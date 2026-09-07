@@ -22,7 +22,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 try:
-    from humanizer_metrics import analyze, cleanliness_score
+    from humanizer_metrics import analyze, cleanliness_score, diff_facts, facts_verdict
     from humanizer_metrics.burstiness import rhythm_verdict
     from humanizer_metrics.markers import (GENRE_MUTED_BANS, GENRE_MUTED_CATEGORIES,
                                             GENRES, effective_hard_bans, marker_verdict,
@@ -69,6 +69,10 @@ def main() -> int:
     ap = argparse.ArgumentParser(description="Детерминированный сканер AI-маркеров (humanizer-ru)")
     ap.add_argument("source", help="файл с текстом или '-' для stdin")
     ap.add_argument("--json", action="store_true", help="вывод в JSON")
+    ap.add_argument("--before", metavar="ФАЙЛ",
+                    help="исходник до правки: сканер добавит «было/стало» по чистоте и "
+                         "проверит факт-замок (числа, даты, имена, ссылки, код). "
+                         "Новый факт, которого не было в исходнике, даёт exit 2")
     ap.add_argument("--genre", choices=GENRES, default="marketing",
                     help="жанр текста: снимает маркеры, законные для регистра "
                          "(academic, legal, fiction). По умолчанию marketing: "
@@ -87,6 +91,9 @@ def main() -> int:
     rep = analyze(text)
     genre = args.genre
     sc = cleanliness_score(rep, genre)
+    before_text = _read(args.before) if args.before else None
+    before_sc = cleanliness_score(analyze(before_text), genre) if before_text else None
+    fdiff = diff_facts(before_text, text) if before_text is not None else None
     # Частотные баны («Является» до порога 1/500 слов) не валят exit и не
     # показываются как ⛔ — они остаются в мягких маркерах.
     bans = effective_hard_bans(rep.hard_bans, rep.rhythm.words)
@@ -111,7 +118,12 @@ def main() -> int:
         out["muted_by_genre"] = {"hard_bans": muted_bans, "markers": muted_soft}
         if _cyrillic_share(text) < 0.3:
             out["warning"] = "текст не похож на русский, метрики не применимы"
+        if fdiff is not None:
+            out["before"] = {"source": args.before, "score": before_sc.as_dict()}
+            out["facts"] = fdiff.as_dict()
         print(json.dumps(out, ensure_ascii=False, indent=2))
+        if fdiff is not None and not fdiff.ok:
+            return 2
         return 1 if bans else 0
 
     print(f"=== humanizer-ru scan: {args.source} ===")
@@ -124,7 +136,10 @@ def main() -> int:
         print("⚠ Текст не похож на русский: скилл и метрики рассчитаны на русский "
               "язык, отчёт ниже не показателен.\n")
 
-    print(f"ЧИСТОТА: {sc.score}/100  [{sc.band}]")
+    if before_sc is not None:
+        print(f"ЧИСТОТА: было {before_sc.score}, стало {sc.score}/100  [{sc.band}]")
+    else:
+        print(f"ЧИСТОТА: {sc.score}/100  [{sc.band}]")
     print("  (≥85 чисто · 60-84 точечная правка · <60 рерайт)")
     if sc.penalties:
         for reason, pts in sc.penalties:
@@ -168,6 +183,20 @@ def main() -> int:
 
     print("Структура (уровень документа):")
     print(f"  {structure_verdict(rep.structure)}")
+
+    if fdiff is not None:
+        print()
+        print(f"Факт-замок (против {args.before}):")
+        print(f"  {facts_verdict(fdiff)}")
+        for x in fdiff.added:
+            print(f"  ✗ новое: {x}")
+        for x in fdiff.lost:
+            print(f"  ⚠ потеряно: {x}")
+        if fdiff.soft_added:
+            print(f"  ℹ мелкие количества появились: {', '.join(fdiff.soft_added)} "
+                  "(идиомы и пересказ чисел не считаются, проверьте глазами)")
+        if not fdiff.ok:
+            return 2
 
     # Exit code: ненулевой, если есть HARD BANS — удобно для CI/pre-commit.
     return 1 if bans else 0

@@ -239,6 +239,7 @@ dsh сканирует `~/.agents/skills` и `~/.dsh/skills` сам, перез�
 
 ```bash
 python skills/humanizer-ru/scripts/scan.py статья.txt --genre academic  # ещё legal, fiction
+python skills/humanizer-ru/scripts/scan.py стало.txt --before было.txt  # чистота до/после + факт-замок
 ```
 
 Зачем это нужно, показал прогон по внешнему размеченному корпусу AINL-Eval 2025
@@ -246,6 +247,11 @@ python skills/humanizer-ru/scripts/scan.py статья.txt --genre academic  # 
 человеческих текстов против 26,1-35,8% машинных, то есть на научном тексте
 каталог не различал автора вовсе. С жанровой поправкой ложные срабатывания на
 людях падают до 4,2%. Цифры и метод: [eval/AINL-CALIBRATION.md](eval/AINL-CALIBRATION.md).
+Третий корпус, [LLMTrace](https://huggingface.co/datasets/iitolstykh/LLMTrace_classification)
+(14 763 русских текста, 30 генераторов, впервые GigaChat и YandexGPT), подтвердил
+границы: на отзывах и историях длинное тире ставят 2-8% людей против 28-33%
+машин, а в энциклопедических статьях наоборот. Разбор:
+[eval/LLMTRACE-CALIBRATION.md](eval/LLMTRACE-CALIBRATION.md).
 
 ## До и после
 

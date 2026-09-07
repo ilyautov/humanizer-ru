@@ -77,6 +77,7 @@ class Report:
 # Разбор границ Markdown живёт в markdown.py (один построчный проход по
 # CommonMark и таблица тестов), здесь только две проекции текста.
 from .markdown import GAP, QUOTE_MAX_WORDS, mask_foreign, strip_foreign  # noqa: E402
+from .facts import Facts, FactsDiff, diff_facts, extract_facts, facts_verdict  # noqa: E402
 
 mask_code_and_quotes = mask_foreign
 strip_code = strip_foreign

@@ -64,3 +64,23 @@ check("ЧИСТОТА" in r.stdout, "обычный отчёт печатает�
 
 if __name__ == "__main__":
     print(f"OK — {passed} проверок прошли.")
+# --- факт-замок: --before ---------------------------------------------------
+import tempfile as _tmp  # noqa: E402
+_d = Path(_tmp.mkdtemp())
+(_d / "before.txt").write_text("Мы внедрили удалёнку в 2023 году, документация на https://example.com/docs.\n",
+                               encoding="utf-8")
+(_d / "invented.txt").write_text("Стэнфорд мерил два года: на 13% продуктивнее. В 2023-м внедрили, "
+                                 "документация на example.com/docs.\n", encoding="utf-8")
+(_d / "kept.txt").write_text("Удалёнка у нас с 2023 года, документация лежит на example.com/docs.\n",
+                             encoding="utf-8")
+r = run([str(_d / "invented.txt"), "--before", str(_d / "before.txt")])
+check(r.returncode == 2, f"выдуманный факт даёт exit 2, получено {r.returncode}")
+check("число:13" in r.stdout and "имя:стэнфорд" in r.stdout, "выдуманные число и имя названы")
+check("было 100" in r.stdout or "было " in r.stdout, "печатается «было N, стало M»")
+r = run([str(_d / "kept.txt"), "--before", str(_d / "before.txt")])
+check(r.returncode == 0, f"факты сохранены: exit 0, получено {r.returncode}")
+check("факт-замок цел" in r.stdout, "сохранённые факты: вердикт «цел»")
+check("ссылка" not in r.stdout.split("Факт-замок")[-1], "https:// и www. не делают ссылку новым фактом")
+r = run([str(_d / "kept.txt"), "--before", str(_d / "before.txt"), "--json"])
+check('"facts"' in r.stdout and '"before"' in r.stdout, "--json несёт facts и before")
+
