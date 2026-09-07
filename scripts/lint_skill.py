@@ -34,7 +34,7 @@ CATALOG = ROOT / "skills" / "humanizer-ru" / "references" / "catalog.md"
 SKILL_DIR = ROOT / "skills" / "humanizer-ru"
 
 EXPECTED_PATTERNS = 64
-EXPECTED_HARD_BANS = 20
+EXPECTED_HARD_BANS = 21
 EXPECTED_SCANNER_CATS = 27
 
 errors: list[str] = []

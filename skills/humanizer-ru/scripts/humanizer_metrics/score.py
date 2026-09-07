@@ -11,7 +11,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from .burstiness import CV_HUMAN_TARGET
 from .markers import (GENRE_MUTED_BANS, GENRE_MUTED_CATEGORIES,
@@ -34,18 +34,36 @@ COPY_PASTE_CATEGORY = "Артефакты копипасты"
 BAND_CLEAN = 85   # ≥ — следы ИИ не мешают, не править
 BAND_EDIT = 60    # ≥ — точечная правка; < — полный рерайт
 
+# Доля ЛЮДЕЙ, у которых текст такой длины совсем без банов и без маркеров.
+# Измерено на 14 973 человеческих текстах (Пикабу, M4, AINL), см. eval/.
+#
+# Зачем это здесь. Score мерит расстояние до нуля, а не до человека, и молча
+# внушает, что цель это сто из ста. Человек нулём почти не бывает: на тексте в
+# три сотни слов идеально чистых людей 15%, а не 100%. То есть высшая оценка
+# означает попадание в редкий хвост распределения. Один такой текст неотличим;
+# корпус из тысячи таких текстов отличим тривиально, потому что у людей хвост
+# есть, а у вычищенного корпуса его нет.
+#
+# Штрафовать за чистоту мы не будем: это сломало бы сравнение «было и стало».
+# Вместо этого при нулевом счёте отдаём заметку, чтобы цель читалась как
+# «попади в типичную частоту», а не как «вычисти всё».
+HUMAN_ZERO_SHARE: tuple[tuple[int, float], ...] = ((100, 42.2), (200, 21.0), (400, 15.1))
+STERILE_MIN_WORDS = 100
+
 
 @dataclass
 class ScoreResult:
     score: int                       # 0-100, выше = чище
     band: str                        # "чисто" | "правка" | "рерайт"
     penalties: list[tuple[str, int]]  # (причина, -очки) — это и есть verbose-отчёт
+    notes: list[str] = field(default_factory=list)  # замечания без штрафа
 
     def as_dict(self) -> dict:
         return {
             "score": self.score,
             "band": self.band,
             "penalties": [{"reason": r, "points": p} for r, p in self.penalties],
+            "notes": list(self.notes),
         }
 
 
@@ -71,6 +89,7 @@ def cleanliness_score(report, genre: str | None = None) -> ScoreResult:
     markers = mute_by_genre(report.markers, genre, GENRE_MUTED_CATEGORIES)
     dash_muted = EM_DASH_NAME in GENRE_MUTED_BANS.get(genre or "", set())
     penalties: list[tuple[str, int]] = []
+    notes: list[str] = []
     score = 100.0
 
     # 1. Фразовые хард-баны (кроме тире). Однозначные AI-обороты: дорого.
@@ -100,7 +119,9 @@ def cleanliness_score(report, genre: str | None = None) -> ScoreResult:
             penalties.append((f"маркеры: {soft} ({_per100(soft, words):.1f}/100 слов)", -pen))
 
     # 4. Длинное тире по плотности с допуском ~2 на 100 слов: «—» штатно
-    #    используется в русском (Википедия, «это —», диапазоны). Слабый сигнал.
+    #    используется в русском (Википедия, «это —», диапазоны). Штраф мягкий,
+    #    потому что на изданной прозе оно частая норма; сам бан держится на
+    #    парном замере (markers.py, комментарий про парный замер).
     dash_density = 0.0 if dash_muted else _per100(report.rhythm.em_dash, words)
     if dash_density > 2.0:
         pen = min(8, round(3 * (dash_density - 2.0)))
@@ -143,5 +164,19 @@ def cleanliness_score(report, genre: str | None = None) -> ScoreResult:
             score -= pen
             penalties.append((f"листикл ({st.list_items} пунктов, {int(st.listicle_share*100)}% строк)", -pen))
 
+    # Заметка о стерильности. Не штраф: цель показать, что ноль это не середина
+    # человеческого распределения, а его редкий край.
+    #
+    # Условие ровно то, что измерялось: ноль банов и ноль маркеров. Ритм,
+    # номинальность и структура сюда не входят, иначе текст с минусом за ровный
+    # ритм терял бы заметку, хотя по лексике он как раз стерилен.
+    if not (hard_phrase or copy_paste or soft) and words >= STERILE_MIN_WORDS:
+        share = next((s for limit, s in HUMAN_ZERO_SHARE if words < limit),
+                     HUMAN_ZERO_SHARE[-1][1])
+        notes.append(
+            f"стерильно: ни одного маркера. Так пишет {share:.0f}% людей на тексте "
+            f"в {words} слов, остальные {100 - share:.0f}% что-нибудь да используют. "
+            "Цель не ноль, а типичная для жанра частота: вычищать дальше незачем")
+
     final = max(0, min(100, round(score)))
-    return ScoreResult(score=final, band=_band(final), penalties=penalties)
+    return ScoreResult(score=final, band=_band(final), penalties=penalties, notes=notes)

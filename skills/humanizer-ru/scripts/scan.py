@@ -131,6 +131,8 @@ def main() -> int:
             print(f"  {pts:+d}  {reason}")
     else:
         print("  без штрафов")
+    for note in sc.notes:
+        print(f"  ℹ  {note}")
     print()
 
     print("HARD BANS:")

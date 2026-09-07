@@ -44,8 +44,8 @@
   "docs_gpt_07": {
     "is_human": false,
     "stage": "raw",
-    "hard_ban_count": 11,
-    "marker_count": 13,
+    "hard_ban_count": 12,
+    "marker_count": 14,
     "cv_len": 0.204
   },
   "wiki_baikal": {
