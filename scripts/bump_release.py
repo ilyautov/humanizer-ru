@@ -234,9 +234,11 @@ def main() -> int:
 
     changed = apply_all(patterns, bans, categories, args.apply or None)
     print(f"[итог] файлов изменено: {changed}")
-    print("[напоминание] руками после релиза: приложить humanizer-ru.zip к"
-          " GitHub Release (cd skills && zip -r ../humanizer-ru.zip humanizer-ru"
-          " -x '*/__pycache__/*'; README ведёт на"
+    print("[напоминание] руками после релиза: npm publish --access public из обычного"
+          " терминала (2FA через браузер, из неинтерактивной сессии падает EOTP);"
+          " приложить humanizer-ru.zip к"
+          " GitHub Release (python scripts/build_release_zip.py --output"
+          " dist/humanizer-ru.zip .; README ведёт на"
           " releases/latest/download/humanizer-ru.zip — без ассета ссылка"
           " ломается), About-поле GitHub (gh repo edit,"
           " текст = 1-я строка README), локальная копия"
