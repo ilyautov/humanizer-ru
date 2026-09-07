@@ -11,7 +11,6 @@
 
 from __future__ import annotations
 
-import re
 from dataclasses import dataclass, replace
 
 from .burstiness import RhythmStats, rhythm, rhythm_verdict
@@ -39,6 +38,10 @@ __all__ = [
     "structure_stats",
     "scan_hard_bans",
     "scan_markers",
+    "mask_foreign",
+    "strip_foreign",
+    "GAP",
+    "QUOTE_MAX_WORDS",
 ]
 
 
@@ -71,56 +74,12 @@ class Report:
 
 
 # --- Код и цитаты не текст автора ------------------------------------------
-# Сканер считал баны внутри блоков кода и внутри коротких цитат в ёлочках:
-# статья про сам скилл с фразой «в современном мире» в кавычках получала
-# «рерайт», а технический пост с примером кода терял баллы за чужой листинг.
-# Код вырезается целиком (тройные и одиночные обратные кавычки). Цитата
-# вырезается, только если она короткая: так цитируют слово или оборот. Длинная
-# цитата в ёлочках это прямая речь или пересказ, её маркеры на совести автора,
-# и в художественном тексте диалоги остаются под сканером.
-#
-# Замена сохраняет длину и переводы строк, чтобы номера строк в отчёте
-# совпадали с файлом; заглушка не буква, поэтому фразовые регексы через неё
-# не склеиваются («От «В современном мире…» до клише» не станет «От до»).
-GAP = "·"
-QUOTE_MAX_WORDS = 12
-# Ограда блока кода стоит только в начале строки (CommonMark): три обратные
-# кавычки внутри строки кода не закрывают блок. Ленивый `(?s)```.*?``` ` на
-# `x = "```"` съезжал по границам и уносил в код следующий абзац прозы.
-_FENCED = re.compile(r"(?ms)^[ \t]{0,3}(`{3,}|~{3,})[^\n]*\n.*?^[ \t]{0,3}\1[ \t]*$")
-_INLINE_CODE = re.compile(r"`[^`\n]*`")
-_QUOTE = re.compile(r"«[^«»]*»")
-# Markdown-цитата через «>» это чужой текст целиком: разбор плохого примера
-# получал «рерайт» за штампы, которые автор как раз критикует.
-_BLOCKQUOTE = re.compile(r"(?m)^[ \t]*>.*$")
+# Разбор границ Markdown живёт в markdown.py (один построчный проход по
+# CommonMark и таблица тестов), здесь только две проекции текста.
+from .markdown import GAP, QUOTE_MAX_WORDS, mask_foreign, strip_foreign  # noqa: E402
 
-
-def _blank(match: re.Match[str]) -> str:
-    return re.sub(r"[^\n]", GAP, match.group(0))
-
-
-def _blank_short_quote(match: re.Match[str]) -> str:
-    inner = match.group(0)[1:-1]
-    if len(inner.split()) <= QUOTE_MAX_WORDS:
-        return _blank(match)
-    return match.group(0)
-
-
-def mask_code_and_quotes(text: str) -> str:
-    """Текст для лексического сканера: код, markdown-цитаты и короткие цитаты
-    в ёлочках заглушены, смещения и номера строк сохранены."""
-    text = _FENCED.sub(_blank, text)
-    text = _INLINE_CODE.sub(_blank, text)
-    text = _BLOCKQUOTE.sub(_blank, text)
-    return _QUOTE.sub(_blank_short_quote, text)
-
-
-def strip_code(text: str) -> str:
-    """Текст для ритма и морфологии: код и markdown-цитаты удалены, проза
-    оставлена как есть (ёлочки не трогаем, они внутри предложений автора)."""
-    text = _FENCED.sub("", text)
-    text = _INLINE_CODE.sub("", text)
-    return _BLOCKQUOTE.sub("", text)
+mask_code_and_quotes = mask_foreign
+strip_code = strip_foreign
 
 
 def analyze(text: str) -> Report:
