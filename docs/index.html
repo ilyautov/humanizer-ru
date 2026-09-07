@@ -100,40 +100,72 @@
 <main>
 <div class="wrap hero">
 
-  <ul class="eyebrow">
-    <li class="hot">open source · MIT</li>
-    <li>скилл для Claude</li>
-    <li>v3.19</li>
-    <li>сканер в комплекте</li>
-  </ul>
-
   <h1>Очеловечить русский AI-текст: убрать следы нейросети</h1>
-  <p class="lede">humanizer-ru это бесплатный open-source скилл для Claude. Берёт стерильный текст нейросети и возвращает в него живую русскую речь: с голосом, ритмом и характером. Не косметика по списку слов, а полноценный рерайт.</p>
+  <p class="lede">humanizer-ru это бесплатный open-source скилл для Claude, Cursor, Codex и других агентов. Берёт стерильный текст нейросети и возвращает в него живую русскую речь: с голосом, ритмом и характером. Не косметика по списку слов, а полноценный рерайт. Под капотом 64 признака AI-текста в 14 категориях и 21 жёстких запретов, сканер в комплекте.</p>
 
-  <div class="cta-row">
-    <a class="cta" href="https://github.com/ilyautov/humanizer-ru">Установить скилл на GitHub</a>
-    <a class="cta-secondary" href="#kak-rabotaet">Как это работает →</a>
-  </div>
+  <section class="audit" id="audit" aria-labelledby="audit-title">
+    <div class="audit-head">
+      <h2 id="audit-title" class="plain">Проверьте текст прямо здесь</h2>
+      <p>Тот же сканер, что едет со скиллом, только на JavaScript. Считается в браузере, текст никуда не отправляется.</p>
+    </div>
 
-  <div class="stats">
-    <div class="stat"><b>64</b><span>признака AI-текста в каталоге</span></div>
-    <div class="stat"><b>21</b><span>жёстких запретов</span></div>
-    <div class="stat"><b>3</b><span>режима: рерайт, правка, аудит</span></div>
-    <div class="stat"><b>0 ₽</b><span>лицензия MIT, без подписок</span></div>
-  </div>
+    <div class="audit-grid">
+      <div class="audit-input">
+        <div class="audit-examples" role="group" aria-label="Готовые примеры">
+          <span>Примеры</span>
+          <button type="button" data-example="ai">Нейрочерновик</button>
+          <button type="button" data-example="human">Человеческий текст</button>
+          <button type="button" data-example="tech">Пост с кодом и цитатой</button>
+        </div>
+        <label class="sr-only" for="audit-text">Текст для проверки</label>
+        <textarea id="audit-text" rows="11" spellcheck="false" placeholder="Вставьте русский текст: от абзаца до статьи"></textarea>
+        <div class="audit-controls">
+          <label class="audit-genre">Жанр
+            <select id="audit-genre">
+              <option value="">строгий (маркетинг, блоги)</option>
+              <option value="academic">научный</option>
+              <option value="legal">юридический</option>
+              <option value="fiction">художественный</option>
+            </select>
+          </label>
+          <output class="audit-count" id="audit-count" for="audit-text">0 слов</output>
+          <button type="button" class="cta audit-run" id="audit-run">Проверить</button>
+        </div>
+        <p class="audit-source" id="audit-source" hidden></p>
+      </div>
 
-  <div class="term">
-    <div class="term-bar"><span></span><span></span><span></span><em>humanizer-ru · режим «Аудит»</em></div>
-    <pre class="term-body"><code><span class="tn">$</span> <span class="ta">python3 skills/humanizer-ru/scripts/scan.py</span> eval/corpus/raw/docs_gpt_07.txt
-<span class="tb">ЧИСТОТА: 9/100</span>  [рерайт]
-  -45  хард-баны (фразы): 10
-  -27  маркеры: 14 (13.5/100 слов)
-  -16  ровный ритм (CV=0.204, цель ≥0.45)
-<span class="tw">HARD BANS</span>   ⛔ Стоит отметить, что ×1 · ⛔ Данный/Данная/Данное ×2 · ⛔ Подводя итог / Таким образом ×1 · ещё 7
-<span class="tn">$</span> <span class="ta">python3 skills/humanizer-ru/scripts/scan.py</span> eval/corpus/human/wiki_baikal.txt
-<span class="tg">ЧИСТОТА: 82/100</span>  [правка]  ✓ ритм рваный (CV=0.572); ⚠ 2 длинных тире</code></pre>
-    <p class="term-note">Оба файла лежат в репозитории, команды воспроизводимы. Числа сканера это основания для правки, а не вердикт об авторстве.</p>
-  </div>
+      <div class="audit-result" id="audit-result" aria-live="polite">
+        <div class="audit-empty">
+          <p>Здесь появится оценка чистоты от 0 до 100, список найденных оборотов и штрафы за ритм и структуру.</p>
+          <p class="audit-scale"><span class="z-bad">0</span> рерайт <span class="z-warn">60</span> точечная правка <span class="z-good">85</span> чисто <span>100</span></p>
+        </div>
+      </div>
+    </div>
+
+    <div class="audit-marked" id="audit-marked" hidden>
+      <div class="audit-legend">
+        <span><mark class="ban">жёсткий запрет</mark></span>
+        <span><mark class="mk">мягкий маркер</mark></span>
+        <span class="legend-note">код и цитаты не считаются</span>
+      </div>
+      <div class="audit-text-marked" id="audit-text-marked"></div>
+    </div>
+
+    <div class="audit-next" id="audit-next" hidden>
+      <h3 class="plain">Исправить в вашей среде</h3>
+      <p>Сканер только показывает, что выдаёт текст. Переписывает скилл, установленный в агент. Выберите свой:</p>
+      <div class="env-tabs" role="tablist" aria-label="Среда установки"></div>
+      <div class="env-panel" role="tabpanel">
+        <pre class="env-cmd"><code id="env-cmd"></code></pre>
+        <button type="button" class="env-copy" id="env-copy" aria-label="Скопировать команду">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          <span>Скопировать</span>
+        </button>
+        <p class="env-note" id="env-note"></p>
+      </div>
+      <p class="audit-note">В браузере считаются запреты, маркеры, ритм и структура. Номинальность (сущ./глаг.) добавляет только scan.py в комплекте скилла, поэтому его оценка бывает ниже на несколько баллов. Числа сканера это основания для правки, а не вердикт об авторстве.</p>
+    </div>
+  </section>
 
   <h2>Что это и зачем</h2>
   <p>Текст из ChatGPT, Claude или другой нейросети читается одинаково: гладко и никак, будто музак в лифте. Канцелярит, кальки с английского, длинные тире, ровный ритм без сбоев. Человек так не пишет. Живой русский текст неровный: он спотыкается, перебивает сам себя, то ускоряется, то замедляется.</p>
@@ -266,11 +298,32 @@
       </div>
     </div>
     <div class="foot-bottom">
-      <span>humanizer-ru · MIT</span>
+      <ul class="foot-meta"><li>humanizer-ru</li><li>v3.20</li><li>MIT</li></ul>
       <a class="foot-cta" href="https://github.com/ilyautov/humanizer-ru">Поставить звезду на GitHub →</a>
     </div>
   </div>
 </footer>
 
+
+<script type="text/plain" id="ex-ai">В современном мире успешный бизнес — это не просто продукт, а целая экосистема ценностей. Наша компания является надёжным партнёром, который играет ключевую роль в развитии вашего дела. Мы предлагаем комплексный подход, способный вывести ваш бренд на новый уровень и раскрыть его потенциал по-настоящему. Стоит отметить, что в условиях растущей конкуренции важно понимать: связь с аудиторией и доверительные отношения становятся главным активом. Именно поэтому мы выстраиваем индивидуальный подход к каждому клиенту. Наше инновационное решение открывает новые горизонты для роста — от привлечения первых пользователей до масштабирования на международные рынки. Таким образом, выбирая нас, вы выбираете не только сервис, но и команду, которая разделяет ваши амбиции. Можно с уверенностью сказать: вместе мы расширим границы возможного и достигнем результата, который превзойдёт ожидания.</script>
+<script type="text/plain" id="ex-human">Байкал (бур. Байгал далай) — озеро тектонического происхождения в южной части Восточной Сибири площадью 31 722 км². Самое глубокое озеро на планете, крупнейший природный резервуар пресной воды и самое большое по площади пресноводное озеро Евразии.
+
+Озеро и прибрежные территории являются уникальным биогеоценозом, бо́льшая часть видов животных которых эндемична. Озеро имеет сток — реку Ангара.</script>
+<script type="text/plain" id="ex-tech">Переписал вчера парсер логов: старый падал на строках с пустым полем длительности. Причина оказалась в одной строке.
+
+```python
+def parse(line):
+    # В современном мире данный код является примером
+    return line.split("|")[3] or None
+```
+
+Коллега в ревью написал:
+
+> Стоит отметить, что данный подход открывает новые горизонты и играет ключевую роль в оптимизации.
+
+Я не понял ни слова, но тест зелёный. Оставил как есть, только переименовал функцию и добавил кейс на пустую строку. Три минуты работы, неделя тишины в алертах.</script>
+<script src="scan-rules.js" defer></script>
+<script src="scan.js" defer></script>
+<script src="audit.js" defer></script>
 </body>
 </html>

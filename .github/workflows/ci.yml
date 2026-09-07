@@ -100,3 +100,15 @@ jobs:
       # принят за триггер или из описания пропала scope-граница.
       - name: Trigger-eval (граница активации, детерминированный слой)
         run: python eval/run_triggers.py
+
+      # Онлайн-аудит на сайте: правила экспортируются из markers.py/score.py в
+      # docs/scan-rules.js, исполнение (docs/scan.js) сверяется с Python на
+      # eval/corpus поштучно по банам и маркерам. Веб не должен стать вторым,
+      # расходящимся сканером.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Свежесть правил браузерного сканера (scan-rules.js)
+        run: python scripts/export_web_rules.py --check
+      - name: Паритет браузерного сканера с Python (test_web_parity)
+        run: python scripts/test_web_parity.py
