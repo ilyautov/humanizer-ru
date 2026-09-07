@@ -5,7 +5,7 @@
 Claude Code / Cowork plugin. Kills AI smell in Russian text. The English [humanizer](https://github.com/blader/humanizer) won't help here. Russian AI markers are their own beast: bureaucratic noun-chains (канцелярит), English-syntax calques, missing particles like "же" and "ведь" that make Russian sound alive.
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-3.19.3-blueviolet)](https://github.com/ilyautov/humanizer-ru/blob/main/CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-3.20.0-blueviolet)](https://github.com/ilyautov/humanizer-ru/blob/main/CHANGELOG.md)
 [![Stars](https://img.shields.io/github/stars/ilyautov/humanizer-ru?style=social)](https://github.com/ilyautov/humanizer-ru/stargazers)
 [![skills.sh](https://skills.sh/b/ilyautov/humanizer-ru)](https://skills.sh/ilyautov/humanizer-ru/humanizer-ru)
 [![npm](https://img.shields.io/npm/v/humanizer-ru?label=npm%20%C2%B7%20dsh)](https://www.npmjs.com/package/humanizer-ru)
@@ -21,6 +21,10 @@ Claude Code / Cowork plugin. Kills AI smell in Russian text. The English [humani
 ## What you get
 
 64 patterns across 14 categories: канцелярит, English calques, emotional sterility, persuasion tricks, information rhythm, hedging specifics, plus the 2025-2026 stylistic fingerprints (jagged-meditation single-word sentences, pseudo-Socratic Q-A chains, decorative emoji per list item, pseudo-therapeutic register) and the 2026 formulas (inanimate subject, Title Case headings, mid-sentence truncation, negation triad), plus a discourse layer (explicit final moral, portrait-style character introduction, emotion conveyed only through the body, seamless causal chains, strictly linear chronology, no direct reader address: narrative signals that survive stylistic rewriting, per StoryScope / COLM 2026). 21 hard-banned constructions that scream "GPT wrote this", including em-dashes (detectors count their frequency). A research-backed section on how detectors actually work (perplexity, burstiness, morphology) with verified numbers from DivEye, PIFE, AINL-Eval 2025 (every citation checked, see SOURCES.md). Five article formulas. Voice calibration. Quad-pass audit with a "Skeleton" pass that reads only the first lines of list items to catch templated openings.
+
+## Try it without installing
+
+The [site's front page](https://humanizer-ru.aifrontier.tech/#audit) runs the same scanner in JavaScript: paste a text, get a 0-100 cleanliness score, highlighted markers and the install command for your agent. Everything runs in the browser, nothing is uploaded. Rules are exported from `markers.py` by `scripts/export_web_rules.py`; `scripts/test_web_parity.py` keeps the web and Python engines in step in CI.
 
 ## Install
 
