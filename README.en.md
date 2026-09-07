@@ -5,7 +5,7 @@
 Claude Code / Cowork plugin. Kills AI smell in Russian text. The English [humanizer](https://github.com/blader/humanizer) won't help here. Russian AI markers are their own beast: bureaucratic noun-chains (канцелярит), English-syntax calques, missing particles like "же" and "ведь" that make Russian sound alive.
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-3.18.0-blueviolet)](https://github.com/ilyautov/humanizer-ru/blob/main/CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-3.19.0-blueviolet)](https://github.com/ilyautov/humanizer-ru/blob/main/CHANGELOG.md)
 [![Stars](https://img.shields.io/github/stars/ilyautov/humanizer-ru?style=social)](https://github.com/ilyautov/humanizer-ru/stargazers)
 [![skills.sh](https://skills.sh/b/ilyautov/humanizer-ru)](https://skills.sh/ilyautov/humanizer-ru/humanizer-ru)
 
@@ -113,7 +113,7 @@ put the same folder under `.codex/skills/` in your repository.
 
 ### 5. Other agents (shared SKILL.md standard)
 
-The Agent Skills format is now cross-platform, so humanizer-ru runs beyond the four packaged stacks above. Officially packaged and verified: Claude Code, Codex CLI, Cursor, Gemini CLI. Other agents read the same `SKILL.md`, no separate build needed.
+The Agent Skills format is now cross-platform, so humanizer-ru runs beyond the packaged stacks. Officially packaged and verified: Claude Code, Codex CLI, Cursor, Gemini CLI, DeepSeek Harness. Other agents read the same `SKILL.md`, no separate build needed.
 
 | How it connects | Agents | What to do |
 |---|---|---|
@@ -124,6 +124,26 @@ The Agent Skills format is now cross-platform, so humanizer-ru runs beyond the f
 Generic path for native readers: drop the skill folder into the directory the agent scans (usually `<project root>/.agents/skills/` or `~/.config/agents/skills/`) and restart it. Same activation triggers.
 
 > Several of these agents (OpenClaw, Kimi, Hermes) have public skill registries (ClawHub and similar). Listing there adds reach with no extra code: the format is shared.
+
+### 6. DeepSeek Harness (dsh)
+
+DeepSeek Harness reads the same Agent Skills format. Two ways to install.
+
+As a bundle, one command into the profile you use (`web`, `tui` or `headless`):
+
+```bash
+dsh plugin --profile web add github:ilyautov/humanizer-ru
+```
+
+The bundle is text only: `package.json` with a `dsh.bundle` field and `cordis.patch.yml`, which mounts the stock `dsh-skill-filesystem` provider on the package's `skills/` folder. No executable code, no build step. Verify without running a model: `dsh --profile web --dump-config` shows a `# == humanizer-ru` layer. Remove with `dsh plugin --profile web remove humanizer-ru`.
+
+As a copy into the user skill root:
+
+```bash
+cp -r humanizer-ru/skills/humanizer-ru ~/.agents/skills/
+```
+
+dsh scans `~/.agents/skills` and `~/.dsh/skills` on its own, no restart needed. It ignores the `allowed-tools` frontmatter key and resolves `references/` relative to the skill folder, so the catalog and the edit log open the same way as in Claude Code.
 
 ## Modes
 

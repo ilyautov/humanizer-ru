@@ -10,6 +10,11 @@ eval/out/
 
 # релизный ассет: собирается перед публикацией релиза, в репозитории не живёт
 humanizer-ru.zip
+dist/
+
+# бандл DeepSeek Harness: package.json в корне, но зависимостей у него нет
+node_modules/
+*.tgz
 
 # секреты детекторов / API
 .env

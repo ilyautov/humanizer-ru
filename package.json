@@ -1,0 +1,16 @@
+{
+  "name": "humanizer-ru",
+  "version": "3.19.0",
+  "description": "Agent skill for DeepSeek Harness: rewrites Russian text to remove 64 markers of AI generation (bureaucratese, calques, ChatGPT fingerprints), with a corpus-calibrated scanner, audit mode and author-voice calibration.",
+  "license": "MIT",
+  "author": "Ilya Utov",
+  "homepage": "https://humanizer-ru.aifrontier.tech/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ilyautov/humanizer-ru.git"
+  },
+  "keywords": ["dsh-bundle", "dsh-plugin", "agent-skill", "russian", "humanizer", "ai-text"],
+  "type": "module",
+  "files": ["cordis.patch.yml", "skills", "!skills/**/__pycache__"],
+  "dsh": { "bundle": { "patch": "./cordis.patch.yml" } }
+}
