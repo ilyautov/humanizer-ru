@@ -20,6 +20,7 @@ sys.path.insert(0, str(ROOT))
 import check_examples as ce  # noqa: E402
 import self_scan as ss  # noqa: E402
 import bump_release as br  # noqa: E402
+import check_live_distribution as cld  # noqa: E402
 from humanizer_metrics.markers import scan_hard_bans  # noqa: E402
 
 failures: list[str] = []
@@ -133,6 +134,17 @@ check("штраф сканера «-27  маркеры: 14» не принима
       br.RE_PATTERN_COUNT.findall("  -27  маркеры: 14 (13.5/100 слов)") == [])
 check("год перед тегом без существительного не ловится",
       br.RE_PATTERN_COUNT.findall("<b>2026</b><span>год</span>") == [])
+
+# --- check_live_distribution: разбор живых страниц без сети ---------------
+check("версия сайта берётся из подвала",
+      cld.parse_site_version('<ul class="foot-meta"><li>humanizer-ru</li><li>v3.20</li><li>MIT</li></ul>') == "3.20")
+check("подвал без версии даёт пустую строку", cld.parse_site_version("<li>MIT</li>") == "")
+check("версия карточки skills.sh из экранированного заголовка SKILL.md",
+      cld.parse_skills_sh_version(r'Tb05,\u003ch1\u003eHumanizer-RU v3.17.0\u003c/h1\u003e') == "3.17.0")
+check("чужая версия Next.js на карточке не принимается за нашу",
+      cld.parse_skills_sh_version('"next":"3.97.75"') == "")
+check("совпадение даёт OK", cld.compare("x", "3.20.0", "3.20.0", True).status == "OK")
+check("расхождение даёт DRIFT", cld.compare("x", "3.20.0", "3.19.2", True).status == "DRIFT")
 
 print("=== test_gates ===")
 if failures:
