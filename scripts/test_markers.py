@@ -16,8 +16,10 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "skills" / "humanizer-ru" / "scripts"))
 
-from humanizer_metrics import analyze
-from humanizer_metrics.markers import scan_hard_bans, scan_markers
+from humanizer_metrics import analyze, cleanliness_score
+from humanizer_metrics.markers import GENRE_MUTED_BANS, mute_by_genre
+from humanizer_metrics.markers import (effective_hard_bans, scan_hard_bans,
+                                       scan_markers)
 
 passed = 0
 
@@ -313,6 +315,41 @@ ai = analyze("В современном мире технология являе
 human = analyze("Я попробовал три раза. Не вышло. Потом понял, в чём дело: забыл про кэш.")
 check(ai.hard_ban_count > human.hard_ban_count, "у AI больше HARD BANS, чем у человека")
 check(human.rhythm.cv_len > ai.rhythm.cv_len, "у человека ритм рванее (CV выше)")
+
+# --- тире: оба знака остаются банами ---------------------------------------
+# Класс ошибки: доля документов в НЕсопряжённых корпусах говорит, что тире это
+# признак человека (M4: 42.3% против 3.3%), и по ней бан однажды сняли. Парный
+# замер на одних и тех же постах говорит обратное: Qwen3-4B добавил длинное тире
+# в 45 текстов из 45, где его не было, qwen2.5 в 19 из 31, Opus 5 в 4 из 15.
+# Семейство gemma подменяет длинное коротким: человек 6% против 80%.
+DASH_TEXT = "Я попробовал три раза — не вышло. Потом понял, в чём дело: забыл про кэш."
+dash = analyze(DASH_TEXT)
+check("Длинное тире" in {h.marker for h in
+                         effective_hard_bans(dash.hard_bans, dash.rhythm.words)},
+      "длинное тире остаётся штрафуемым баном")
+check("Короткое тире" in {h.marker for h in scan_hard_bans("Он сказал – и ушёл.")},
+      "короткое тире ловится отдельным баном")
+check("Короткое тире" not in {h.marker for h in scan_hard_bans("Диапазон 10–15 штук.")},
+      "числовой диапазон 10–15 короткое тире не считает")
+check("Длинное тире" not in {h.marker for h in
+                             mute_by_genre(scan_hard_bans(DASH_TEXT), "academic",
+                                           GENRE_MUTED_BANS)},
+      "в академическом жанре тире по-прежнему снимается")
+
+# --- цель метрики: ноль это не середина человеческого распределения --------
+long_clean = analyze(" ".join(
+    ["Вчера пошёл в гараж, а там мышь.", "Сидит, смотрит.", "Я ей: ты чего тут забыла.",
+     "Молчит, конечно.", "Насыпал хлеба, ушёл.", "Утром хлеба нет, зато лежит гайка.",
+     "Не моя гайка.", "У меня таких вообще нет.", "Жена говорит, что я выдумал.",
+     "Но гайка лежит до сих пор.", "Показывал соседу, он сказал, что это к деньгам.",
+     "Денег пока не было.", "Гайка есть.", "Теперь каждое утро проверяю верстак.",
+     "Мало ли.", "Вдруг принесёт что поинтереснее."] * 4))
+sc = cleanliness_score(long_clean)
+check(sc.score >= 85, "чистый длинный текст остаётся в полосе «чисто»")
+check(any("стерильно" in n for n in sc.notes),
+      "при нуле банов и маркеров отдаётся заметка о стерильности")
+check(not any("стерильно" in n for n in cleanliness_score(ai).notes),
+      "текст с маркерами заметку о стерильности не получает")
 
 
 if __name__ == "__main__":
