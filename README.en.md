@@ -8,6 +8,7 @@ Claude Code / Cowork plugin. Kills AI smell in Russian text. The English [humani
 [![Version](https://img.shields.io/badge/version-3.19.0-blueviolet)](https://github.com/ilyautov/humanizer-ru/blob/main/CHANGELOG.md)
 [![Stars](https://img.shields.io/github/stars/ilyautov/humanizer-ru?style=social)](https://github.com/ilyautov/humanizer-ru/stargazers)
 [![skills.sh](https://skills.sh/b/ilyautov/humanizer-ru)](https://skills.sh/ilyautov/humanizer-ru/humanizer-ru)
+[![npm](https://img.shields.io/npm/v/humanizer-ru?label=npm%20%C2%B7%20dsh)](https://www.npmjs.com/package/humanizer-ru)
 
 <p align="center">
   <a href="https://humanizer-ru.aifrontier.tech/">
@@ -129,11 +130,13 @@ Generic path for native readers: drop the skill folder into the directory the ag
 
 DeepSeek Harness reads the same Agent Skills format. Two ways to install.
 
-As a bundle, one command into the profile you use (`web`, `tui` or `headless`):
+As an npm bundle, one command into the profile you use (`web`, `tui` or `headless`):
 
 ```bash
-dsh plugin --profile web add github:ilyautov/humanizer-ru
+dsh plugin --profile web add humanizer-ru
 ```
+
+The same bundle straight from GitHub, for a specific branch or the freshest main: `dsh plugin --profile web add github:ilyautov/humanizer-ru`.
 
 The bundle is text only: `package.json` with a `dsh.bundle` field and `cordis.patch.yml`, which mounts the stock `dsh-skill-filesystem` provider on the package's `skills/` folder. No executable code, no build step. Verify without running a model: `dsh --profile web --dump-config` shows a `# == humanizer-ru` layer. Remove with `dsh plugin --profile web remove humanizer-ru`.
 

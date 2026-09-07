@@ -8,6 +8,7 @@
 [![Версия](https://img.shields.io/badge/версия-3.19.0-blueviolet)](https://github.com/ilyautov/humanizer-ru/blob/main/CHANGELOG.md)
 [![Звёзды](https://img.shields.io/github/stars/ilyautov/humanizer-ru?style=social)](https://github.com/ilyautov/humanizer-ru/stargazers)
 [![skills.sh](https://skills.sh/b/ilyautov/humanizer-ru)](https://skills.sh/ilyautov/humanizer-ru/humanizer-ru)
+[![npm](https://img.shields.io/npm/v/humanizer-ru?label=npm%20%C2%B7%20dsh)](https://www.npmjs.com/package/humanizer-ru)
 
 <p align="center">
   <a href="https://humanizer-ru.aifrontier.tech/">
@@ -176,11 +177,13 @@ RESULT: PASS install-smoke
 
 DeepSeek Harness читает тот же формат Agent Skills, и скилл ставится двумя способами.
 
-Бандлом, одной командой в нужный профиль (`web`, `tui` или `headless`):
+Бандлом из npm, одной командой в нужный профиль (`web`, `tui` или `headless`):
 
 ```bash
-dsh plugin --profile web add github:ilyautov/humanizer-ru
+dsh plugin --profile web add humanizer-ru
 ```
+
+Тот же бандл прямо из GitHub, если нужна конкретная ветка или свежий main: `dsh plugin --profile web add github:ilyautov/humanizer-ru`.
 
 Бандл текстовый: `package.json` с полем `dsh.bundle` и `cordis.patch.yml`, который монтирует штатный провайдер `dsh-skill-filesystem` на папку `skills/` пакета. Исполняемого кода в бандле нет, сборка при установке не нужна. Проверить без запуска модели: `dsh --profile web --dump-config` покажет слой `# == humanizer-ru`. Удаление: `dsh plugin --profile web remove humanizer-ru`.
 
