@@ -61,6 +61,8 @@ COUNT_FILES = [
     ".cursor-plugin/plugin.json", ".codex-plugin/plugin.json",
     *AGENT_MANIFESTS,
     "gemini-extension.json",
+    # Бандл DeepSeek Harness: description пакета несёт счётчик паттернов.
+    "package.json",
 ]
 
 # Число + существительное, означающее «паттерны каталога». Лукахед не даёт
@@ -92,6 +94,7 @@ VERSION_TARGETS = [
     (".cursor-plugin/plugin.json", r'"version":\s*"([\d.]+)"'),
     (".codex-plugin/plugin.json", r'"version":\s*"([\d.]+)"'),
     ("gemini-extension.json", r'"version":\s*"([\d.]+)"'),
+    ("package.json", r'"version":\s*"([\d.]+)"'),
     ("README.md", r"версия-([\d.]+)-blueviolet"),
     ("README.en.md", r"version-([\d.]+)-blueviolet"),
     # Заголовок скилла. До v3.15.4 здесь жила отдельная «контент-версия»,

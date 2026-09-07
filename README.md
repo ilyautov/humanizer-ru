@@ -5,7 +5,7 @@
 > [English version](README.en.md)
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Версия](https://img.shields.io/badge/версия-3.18.0-blueviolet)](https://github.com/ilyautov/humanizer-ru/blob/main/CHANGELOG.md)
+[![Версия](https://img.shields.io/badge/версия-3.19.0-blueviolet)](https://github.com/ilyautov/humanizer-ru/blob/main/CHANGELOG.md)
 [![Звёзды](https://img.shields.io/github/stars/ilyautov/humanizer-ru?style=social)](https://github.com/ilyautov/humanizer-ru/stargazers)
 [![skills.sh](https://skills.sh/b/ilyautov/humanizer-ru)](https://skills.sh/ilyautov/humanizer-ru/humanizer-ru)
 
@@ -160,7 +160,7 @@ RESULT: PASS install-smoke
 
 ### 5. Другие агенты (общий стандарт SKILL.md)
 
-Формат Agent Skills стал кросс-платформенным, поэтому humanizer-ru работает и за пределами четырёх упакованных стеков выше. Официально упакованы и проверены: Claude Code, Codex CLI, Cursor, Gemini CLI. Остальные агенты читают тот же `SKILL.md`, отдельная версия не нужна.
+Формат Agent Skills стал кросс-платформенным, поэтому humanizer-ru работает и за пределами упакованных стеков. Официально упакованы и проверены: Claude Code, Codex CLI, Cursor, Gemini CLI, DeepSeek Harness. Остальные агенты читают тот же `SKILL.md`, отдельная версия не нужна.
 
 | Как подключается | Агенты | Что делать |
 |---|---|---|
@@ -171,6 +171,26 @@ RESULT: PASS install-smoke
 Универсальный путь для нативных: положите папку скилла в каталог, который агент сканирует (обычно `<корень проекта>/.agents/skills/` или `~/.config/agents/skills/`), и перезапустите агент. Триггеры активации те же, что в Claude.
 
 > У части этих агентов (OpenClaw, Kimi, Hermes) есть публичные каналы дистрибуции скиллов (реестр ClawHub, tap-репозитории). Листинг там даёт охват без отдельного кода: формат общий.
+
+### 6. DeepSeek Harness (dsh)
+
+DeepSeek Harness читает тот же формат Agent Skills, и скилл ставится двумя способами.
+
+Бандлом, одной командой в нужный профиль (`web`, `tui` или `headless`):
+
+```bash
+dsh plugin --profile web add github:ilyautov/humanizer-ru
+```
+
+Бандл текстовый: `package.json` с полем `dsh.bundle` и `cordis.patch.yml`, который монтирует штатный провайдер `dsh-skill-filesystem` на папку `skills/` пакета. Исполняемого кода в бандле нет, сборка при установке не нужна. Проверить без запуска модели: `dsh --profile web --dump-config` покажет слой `# == humanizer-ru`. Удаление: `dsh plugin --profile web remove humanizer-ru`.
+
+Копией в пользовательский корень скиллов:
+
+```bash
+cp -r humanizer-ru/skills/humanizer-ru ~/.agents/skills/
+```
+
+dsh сканирует `~/.agents/skills` и `~/.dsh/skills` сам, перезапуск не нужен. Ключ `allowed-tools` из фронтматтера dsh не читает, а `references/` разрешает относительно папки скилла, так что каталог и журнал правок открываются как в Claude Code.
 
 ## Использование
 

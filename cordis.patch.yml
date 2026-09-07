@@ -1,0 +1,14 @@
+# Бандл для DeepSeek Harness. Ни строчки исполняемого кода: штатный провайдер
+# dsh-skill-filesystem монтируется отдельным экземпляром на папку skills/ этого
+# пакета, и скилл появляется в каталоге сессии. Путь вычисляется от места
+# установки пакета (pnpm положит его в профиль), поэтому бандл одинаково
+# работает из npm, из GitHub и из локального checkout.
+- insert:
+    - id: humanizer-ru-skills
+      name: '@deepseek-ai/dsh-skill-filesystem'
+      config:
+        providerName: humanizer-ru
+        includeDefaultRoots: false
+        watch: false
+        customSkillDirs:
+          - !!js "process.getBuiltinModule('node:path').join(process.getBuiltinModule('node:module').createRequire(baseUrl).resolve('humanizer-ru/package.json'), '..', 'skills')"
