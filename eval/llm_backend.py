@@ -93,25 +93,32 @@ def generate(
     num_predict: int = 512,
     temperature: float = 0.0,
     model: str | None = None,
+    timeout: int = _GEN_TIMEOUT_S,
+    num_ctx: int | None = None,
 ) -> str | None:
     """Сгенерировать текст. None при недоступной Ollama или ошибке.
 
     temperature=0 по умолчанию — нам нужна детерминированная оценка, а не
     творчество. Reasoning-теги вырезаются из ответа.
+
+    timeout поднимают вызывающие, которые шлют запросы пачками: Ollama держит
+    очередь, и при четырёх параллельных к 27B каждый ответ ждёт своей очереди
+    дольше базовых 180с (build_blog_pairs так терял 3 пары из 4).
     """
     if requests is None:
         return None
     model = model or default_model()
+    # num_ctx выставляют явно там, где промпт длинный: по умолчанию Ollama
+    # обрезает окно до 4096 токенов МОЛЧА, и длинная инструкция (SKILL.md это
+    # около 25 тысяч токенов) доедет до модели покалеченной, без единой ошибки.
+    options = {"num_predict": num_predict, "temperature": temperature}
+    if num_ctx:
+        options["num_ctx"] = num_ctx
     try:
         resp = requests.post(
             f"{host()}/api/generate",
-            json={
-                "model": model,
-                "prompt": prompt,
-                "stream": False,
-                "options": {"num_predict": num_predict, "temperature": temperature},
-            },
-            timeout=_GEN_TIMEOUT_S,
+            json={"model": model, "prompt": prompt, "stream": False, "options": options},
+            timeout=timeout,
         )
         resp.raise_for_status()
         data = resp.json()
