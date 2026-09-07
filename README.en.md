@@ -5,13 +5,13 @@
 Claude Code / Cowork plugin. Kills AI smell in Russian text. The English [humanizer](https://github.com/blader/humanizer) won't help here. Russian AI markers are their own beast: bureaucratic noun-chains (канцелярит), English-syntax calques, missing particles like "же" and "ведь" that make Russian sound alive.
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-3.17.0-blueviolet)](https://github.com/ilyautov/humanizer-ru/blob/main/CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-3.18.0-blueviolet)](https://github.com/ilyautov/humanizer-ru/blob/main/CHANGELOG.md)
 [![Stars](https://img.shields.io/github/stars/ilyautov/humanizer-ru?style=social)](https://github.com/ilyautov/humanizer-ru/stargazers)
 [![skills.sh](https://skills.sh/b/ilyautov/humanizer-ru)](https://skills.sh/ilyautov/humanizer-ru/humanizer-ru)
 
 <p align="center">
   <a href="https://humanizer-ru.aifrontier.tech/">
-    <img src="assets/social-preview.png" alt="humanizer-ru: removes AI tells from Russian text. 64 patterns, 20 hard bans, scanner included" width="720">
+    <img src="assets/social-preview.png" alt="humanizer-ru: removes AI tells from Russian text. 64 patterns, 21 hard bans, scanner included" width="720">
   </a>
 </p>
 
@@ -19,7 +19,7 @@ Claude Code / Cowork plugin. Kills AI smell in Russian text. The English [humani
 
 ## What you get
 
-64 patterns across 14 categories: канцелярит, English calques, emotional sterility, persuasion tricks, information rhythm, hedging specifics, plus the 2025-2026 stylistic fingerprints (jagged-meditation single-word sentences, pseudo-Socratic Q-A chains, decorative emoji per list item, pseudo-therapeutic register) and the 2026 formulas (inanimate subject, Title Case headings, mid-sentence truncation, negation triad), plus a discourse layer (explicit final moral, portrait-style character introduction, emotion conveyed only through the body, seamless causal chains, strictly linear chronology, no direct reader address: narrative signals that survive stylistic rewriting, per StoryScope / COLM 2026). 20 hard-banned constructions that scream "GPT wrote this", including em-dashes (detectors count their frequency). A research-backed section on how detectors actually work (perplexity, burstiness, morphology) with verified numbers from DivEye, PIFE, AINL-Eval 2025 (every citation checked, see SOURCES.md). Five article formulas. Voice calibration. Quad-pass audit with a "Skeleton" pass that reads only the first lines of list items to catch templated openings.
+64 patterns across 14 categories: канцелярит, English calques, emotional sterility, persuasion tricks, information rhythm, hedging specifics, plus the 2025-2026 stylistic fingerprints (jagged-meditation single-word sentences, pseudo-Socratic Q-A chains, decorative emoji per list item, pseudo-therapeutic register) and the 2026 formulas (inanimate subject, Title Case headings, mid-sentence truncation, negation triad), plus a discourse layer (explicit final moral, portrait-style character introduction, emotion conveyed only through the body, seamless causal chains, strictly linear chronology, no direct reader address: narrative signals that survive stylistic rewriting, per StoryScope / COLM 2026). 21 hard-banned constructions that scream "GPT wrote this", including em-dashes (detectors count their frequency). A research-backed section on how detectors actually work (perplexity, burstiness, morphology) with verified numbers from DivEye, PIFE, AINL-Eval 2025 (every citation checked, see SOURCES.md). Five article formulas. Voice calibration. Quad-pass audit with a "Skeleton" pass that reads only the first lines of list items to catch templated openings.
 
 ## Install
 
