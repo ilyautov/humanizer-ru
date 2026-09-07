@@ -1,0 +1,26 @@
+# Сверка живых каталогов с репо: npm, GitHub Release, ZIP, сайт, skills.sh.
+# Ловит забытый npm publish, отставший деплой Pages и пропавший ассет.
+# Не в основном CI: зависит от внешних сервисов, PR за них не отвечает.
+# Локально: python scripts/check_live_distribution.py
+name: live-distribution
+
+on:
+  schedule:
+    - cron: "17 6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.11"
+      - name: Живые поверхности отдают текущую версию
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python scripts/check_live_distribution.py
