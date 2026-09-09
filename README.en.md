@@ -1,6 +1,6 @@
 # humanizer-ru
 
-> [Русская версия: основная](README.md)
+> [Русская версия: основная](README.md) · [中文](README.zh.md)
 
 Claude Code / Cowork plugin. Kills AI smell in Russian text. The English [humanizer](https://github.com/blader/humanizer) won't help here. Russian AI markers are their own beast: bureaucratic noun-chains (канцелярит), English-syntax calques, missing particles like "же" and "ведь" that make Russian sound alive.
 
