@@ -8,11 +8,11 @@
 <body>
   <header class="top">
     <div class="brand">humanizer<span>-ru</span></div>
-    <label class="genre">
-      <span class="visually-hidden">Жанр</span>
-      <select id="genre" aria-label="Жанр текста">
-        <option value="">маркетинг, блог (строгий)</option>
-        <option value="news">новости, энциклопедия</option>
+    <label class="genre" for="genre">
+      <span>жанр</span>
+      <select id="genre">
+        <option value="">маркетинг, блог</option>
+        <option value="news">новости</option>
         <option value="academic">научный</option>
         <option value="legal">юридический</option>
         <option value="fiction">художественный</option>
@@ -20,17 +20,51 @@
     </label>
   </header>
 
-  <textarea id="text" spellcheck="false" placeholder="Вставьте русский текст. Или выделите его на странице и выберите в контекстном меню «Проверить на следы нейросети»."></textarea>
-  <div class="meta"><span id="count">0 слов</span><span id="privacy">Считается здесь, ничего не отправляется</span></div>
+  <label class="visually-hidden" for="text">Текст для проверки</label>
+  <textarea id="text" spellcheck="false" placeholder="Вставьте русский текст"></textarea>
+  <div class="meta">
+    <span class="meta-left">
+      <span id="count">0 слов</span>
+      <span id="stale" hidden>прошлая проверка</span>
+      <button type="button" id="clear" class="linkish" hidden>очистить</button>
+    </span>
+    <span id="privacy">считается здесь, ничего не отправляется</span>
+  </div>
 
-  <section id="result" aria-live="polite"></section>
+  <p id="status" class="visually-hidden" aria-live="polite"></p>
+
+  <section id="empty">
+    <p>Вставьте текст сюда или выделите его на любой странице и выберите в контекстном меню «Проверить на следы нейросети».</p>
+    <p class="scale" aria-label="Шкала балла"><span class="z-bad">0</span> рерайт <span class="z-warn">60</span> точечная правка <span class="z-good">85</span> чисто <span>100</span></p>
+    <button type="button" id="example" class="chip">Показать на примере</button>
+  </section>
+
+  <section id="result" hidden>
+    <div class="score-row">
+      <div class="score-num"><span id="score">0</span><small>/100</small></div>
+      <div class="score-meta">
+        <div class="score-band" id="band"></div>
+        <div class="score-facts" id="facts"></div>
+      </div>
+    </div>
+    <div class="score-bar" id="bar" role="img" aria-label=""><span class="score-fill" id="fill"></span><i class="tick t60"></i><i class="tick t85"></i></div>
+    <div class="score-labels" aria-hidden="true"><span class="l60">60</span><span class="l85">85</span></div>
+    <p class="next" id="next"></p>
+    <p class="genre-note" id="genre-note" hidden></p>
+    <ul class="penalties" id="penalties"></ul>
+    <p class="sterile" id="notes" hidden></p>
+    <div class="actions"><button type="button" id="copy" class="chip">Скопировать отчёт</button></div>
+  </section>
+
   <section id="marked-wrap" hidden>
-    <h2>Что сработало</h2>
+    <h2>Найдено в тексте</h2>
+    <div class="legend"><mark class="ban">жёсткий запрет</mark><mark class="mk">маркер</mark><span>нажмите на оборот, чтобы увидеть правило</span></div>
     <div id="marked"></div>
+    <p id="hint" hidden></p>
   </section>
 
   <footer>
-    <a href="https://humanizer-ru.aifrontier.tech/" target="_blank" rel="noopener">Сайт и скилл для агентов</a>
+    <a id="site-link" href="https://humanizer-ru.aifrontier.tech/" target="_blank" rel="noopener">Сайт и скилл для агентов</a>
     <a href="https://github.com/ilyautov/humanizer-ru" target="_blank" rel="noopener">GitHub</a>
     <span id="version"></span>
   </footer>
