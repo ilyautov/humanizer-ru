@@ -6,14 +6,18 @@
   const textEl = $("audit-text"), genreEl = $("audit-genre"), runBtn = $("audit-run");
   const countEl = $("audit-count"), resultEl = $("audit-result"), sourceEl = $("audit-source");
   const markedWrap = $("audit-marked"), markedEl = $("audit-text-marked"), nextEl = $("audit-next"), installEl = $("install");
+  const artEl = $("hero-art");
   if (!textEl || typeof globalThis.humanizerScan !== "function") return;
+  const RULES = globalThis.HUMANIZER_RULES || {};
 
   const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+  // У каждого примера свой жанр: справочный текст проверяется как новости,
+  // иначе энциклопедия получает штраф за тире, которое у людей норма.
   const EXAMPLES = {
-    ai: { id: "ex-ai", source: "Пример: маркетинговый текст, сгенерированный GPT для eval-корпуса репозитория." },
-    human: { id: "ex-human", source: "Пример: вводная часть статьи «Байкал» русской Википедии, CC BY-SA 4.0." },
-    tech: { id: "ex-tech", source: "Пример: авторский пост с листингом и цитатой из ревью. Код и цитата в счёт не идут." },
+    ai: { id: "ex-ai", genre: "", source: "Пример: маркетинговый текст, сгенерированный GPT для eval-корпуса репозитория." },
+    human: { id: "ex-human", genre: "news", source: "Пример: вводная часть статьи «Байкал» русской Википедии, CC BY-SA 4.0. Жанр «новости, энциклопедия»: тире и «является» в справочном тексте не считаются." },
+    tech: { id: "ex-tech", genre: "", source: "Пример: авторский пост с листингом и цитатой из ревью. Код и цитата в счёт не идут." },
   };
 
   const ENVS = [
@@ -39,9 +43,37 @@
   };
   const wordsOf = (t) => t.split(/\s+/).filter((w) => /[\p{L}\p{N}]/u.test(w)).length;
 
+  const num = (n, one, few, many) => `${n} ${plural(n, one, few, many)}`;
   function updateCount() {
-    const n = wordsOf(textEl.value);
-    countEl.textContent = `${n} ${plural(n, "слово", "слова", "слов")}`;
+    countEl.textContent = num(wordsOf(textEl.value), "слово", "слова", "слов");
+  }
+
+  // Строки сканера в слова читателя; сырая строка остаётся в title.
+  const HUMAN_REASONS = [
+    [/^хард-баны \(фразы\): (\d+)/, (m) => num(+m[1], "запрещённый оборот", "запрещённых оборота", "запрещённых оборотов")],
+    [/^артефакты копипасты: (\d+)/, (m) => `${num(+m[1], "след", "следа", "следов")} копирования из чата`],
+    [/^маркеры: (\d+) \(([\d.]+)\/100 слов\)/, (m) => `${num(+m[1], "маркер", "маркера", "маркеров")}, ${m[2].replace(".", ",")} на 100 слов`],
+    [/^тире: (\d+) \(([\d.]+)\/100 слов\)/, (m) => `длинное тире ${num(+m[1], "раз", "раза", "раз")}, ${m[2].replace(".", ",")} на 100 слов`],
+    [/^ровный ритм/, () => "предложения одной длины"],
+    [/^ровные абзацы/, () => "абзацы одной длины"],
+    [/^листикл \((\d+) пунктов, (\d+)% строк\)/, (m) => `список вместо текста: ${num(+m[1], "пункт", "пункта", "пунктов")}, ${m[2]}% строк`],
+  ];
+  const humanReason = (reason) => {
+    for (const [re, fn] of HUMAN_REASONS) { const m = reason.match(re); if (m) return fn(m); }
+    return reason;
+  };
+  function nextLine(band, hasSpans, r) {
+    if (!hasSpans) {
+      if (!r.penalties.length) return r.words < 100 ? `Чисто. На ${num(r.words, "слове", "словах", "словах")} это ещё мало что значит: проверьте текст целиком.` : "Чисто: следы ИИ не мешают.";
+      const reasons = r.penalties.map((p) => p.reason).join(" ");
+      if (/ровный ритм/.test(reasons)) return "Обороты не найдены. Предложения почти одной длины: разбейте длинное или склейте два коротких.";
+      if (/ровные абзацы/.test(reasons)) return "Обороты не найдены. Абзацы одной длины: пусть один будет вдвое короче соседнего.";
+      if (/листикл/.test(reasons)) return "Обороты не найдены. Слишком много списка: часть пунктов перескажите абзацем.";
+      return "Обороты не найдены, штраф только за структуру.";
+    }
+    if (band === "bad") return "Начните с красного: уберите оборот или скажите то же конкретно. Потом жёлтое.";
+    if (band === "warn") return "Точечная правка: пройдитесь по подчёркнутому, структуру не трогайте.";
+    return "Следы ИИ не мешают. Подчёркнутое можно поправить, но это уже вкус.";
   }
 
   // --- Результат -------------------------------------------------------------
@@ -57,52 +89,93 @@
     requestAnimationFrame(step);
   }
 
-  function renderResult(r) {
+  let lastReport = "";
+  function renderResult(r, spans) {
     const band = r.band === "чисто" ? "good" : r.band === "правка" ? "warn" : "bad";
     const bandText = { good: "чисто: следы ИИ не мешают", warn: "точечная правка", bad: "нужен рерайт" }[band];
-    const rows = r.penalties.map((p) => `<li><b>${p.points}</b><span>${esc(p.reason)}</span></li>`).join("");
+    const rows = r.penalties.map((p) => `<li title="${esc(p.reason)}"><b>${p.points}</b><span>${esc(humanReason(p.reason))}</span></li>`).join("");
     const notes = r.notes.map((n) => `<p class="audit-sterile">${esc(n)}</p>`).join("");
-    const bans = r.effective_bans.reduce((n, h) => n + h.count, 0);
+    // Тире сканер штрафует отдельно от фраз, поэтому и считаем отдельно.
+    const dashName = (RULES.score && RULES.score.em_dash_name) || "Длинное тире";
+    const bans = r.effective_bans.filter((h) => h.name !== dashName).reduce((n, h) => n + h.count, 0);
+    const dashes = r.effective_bans.filter((h) => h.name === dashName).reduce((n, h) => n + h.count, 0);
     const marks = r.muted_markers.reduce((n, h) => n + h.count, 0);
+    const factParts = [];
+    if (bans) factParts.push(num(bans, "запрещённый оборот", "запрещённых оборота", "запрещённых оборотов"));
+    if (dashes) factParts.push(`длинное тире ${dashes > 1 ? `×${dashes}` : ""}`.trim());
+    if (marks) factParts.push(num(marks, "маркер", "маркера", "маркеров"));
+    const facts = factParts.length ? factParts.join(", ") : "оборотов не найдено";
+    resultEl.hidden = false;
+    if (artEl) artEl.hidden = true;
     resultEl.innerHTML = `
       <div class="score-row ${band}">
         <div class="score-num"><span id="score-value">0</span><small>/100</small></div>
         <div class="score-meta">
           <div class="score-band">${bandText}</div>
-          <div class="score-facts">${bans} ${plural(bans, "жёсткий запрет", "жёстких запрета", "жёстких запретов")}, ${marks} ${plural(marks, "маркер", "маркера", "маркеров")}, ${r.words} ${plural(r.words, "слово", "слова", "слов")}</div>
+          <div class="score-facts">${esc(facts)}</div>
         </div>
       </div>
       <div class="score-bar" role="img" aria-label="Чистота ${r.score} из 100"><span class="score-fill"></span><i class="tick t60"></i><i class="tick t85"></i></div>
+      <div class="score-labels" aria-hidden="true"><span class="l60">60</span><span class="l85">85</span></div>
+      <p class="score-next">${esc(nextLine(band, spans.length > 0, r))}</p>
       ${rows ? `<ul class="penalties">${rows}</ul>` : `<p class="audit-none">Штрафов нет.</p>`}
-      ${notes}`;
+      ${notes}
+      <div class="audit-actions"><button type="button" id="audit-copy">Скопировать отчёт</button></div>`;
     animateNumber($("score-value"), r.score);
     requestAnimationFrame(() => { const f = resultEl.querySelector(".score-fill"); if (f) f.style.transform = `scaleX(${r.score / 100})`; });
+
+    const found = new Map();
+    for (const s of spans) { const k = `${s.cls === "ban" ? "жёсткий запрет" : "маркер"} · ${s.name}`; found.set(k, (found.get(k) || 0) + 1); }
+    const genreLabel = genreEl.options[genreEl.selectedIndex].textContent;
+    lastReport = [
+      `humanizer-ru: ${r.score}/100, ${bandText}`,
+      `жанр: ${genreLabel} · ${num(r.words, "слово", "слова", "слов")} · ${facts}`,
+      r.penalties.length ? "штрафы:\n" + r.penalties.map((p) => `  ${String(p.points).padStart(4)}  ${humanReason(p.reason)}`).join("\n") : "штрафов нет",
+      found.size ? "найдено:\n" + [...found].map(([k, n]) => `  ${k}${n > 1 ? ` ×${n}` : ""}`).join("\n") : "",
+      "https://humanizer-ru.aifrontier.tech/",
+    ].filter(Boolean).join("\n");
+    $("audit-copy").addEventListener("click", async () => {
+      const btn = $("audit-copy");
+      try { await navigator.clipboard.writeText(lastReport); btn.textContent = "Скопировано"; }
+      catch (e) { btn.textContent = "Выделите и скопируйте"; }
+      setTimeout(() => { btn.textContent = "Скопировать отчёт"; }, 1800);
+    });
   }
 
-  function renderMarked(text, r) {
+  // Конец подсветки тянем до границы слова только для показа: «ключев|ым»
+  // режет слово и выглядит ошибкой. Счёт при этом не меняется.
+  const wordEnd = (text, b) => { while (b < text.length && /[\p{L}\p{M}]/u.test(text[b])) b++; return b; };
+  function collectSpans(text, r) {
     const spans = [];
-    for (const h of r.effective_bans) for (const [a, b] of h.positions) spans.push({ a, b, cls: "ban", name: h.name });
-    for (const h of r.muted_markers) for (const [a, b] of h.positions) spans.push({ a, b, cls: "mk", name: `${h.category}: ${h.name}` });
+    for (const h of r.effective_bans) for (const [a, b] of h.positions) spans.push({ a, b: wordEnd(text, b), cls: "ban", name: h.name });
+    for (const h of r.muted_markers) for (const [a, b] of h.positions) spans.push({ a, b: wordEnd(text, b), cls: "mk", name: `${h.category}: ${h.name}` });
     spans.sort((x, y) => x.a - y.a || (x.cls === "ban" ? -1 : 1));
+    const out = []; let pos = 0;
+    for (const s of spans) { if (s.a < pos) continue; out.push(s); pos = s.b; } // перекрытие: первый победил
+    return out;
+  }
+
+  function renderMarked(text, spans, showText) {
+    if (!showText) { markedWrap.hidden = true; markedEl.innerHTML = ""; return; }
     let out = "", pos = 0;
     for (const s of spans) {
-      if (s.a < pos) continue; // перекрытие: первый победил
       out += esc(text.slice(pos, s.a));
       out += `<mark class="${s.cls}" title="${esc(s.name)}">${esc(text.slice(s.a, s.b))}</mark>`;
       pos = s.b;
     }
     out += esc(text.slice(pos));
     markedEl.innerHTML = out;
-    markedWrap.hidden = spans.length === 0;
+    markedWrap.hidden = false;
   }
 
   // --- Среды ------------------------------------------------------------------
-  let envKey = ENVS[0].key;
+  const TAB_ENVS = ENVS.slice(1); // ENVS[0] набран в разметке как главная команда
+  let envKey = TAB_ENVS[0].key;
   function renderEnvs() {
     const tabs = installEl.querySelector(".env-tabs");
-    tabs.innerHTML = ENVS.map((e) =>
+    tabs.innerHTML = TAB_ENVS.map((e) =>
       `<button type="button" role="tab" data-env="${e.key}" aria-selected="${e.key === envKey}">${e.label}</button>`).join("");
-    const env = ENVS.find((e) => e.key === envKey);
+    const env = TAB_ENVS.find((e) => e.key === envKey);
     $("env-cmd").textContent = env.cmd;
     $("env-note").textContent = env.note;
   }
@@ -112,28 +185,34 @@
     envKey = b.dataset.env;
     renderEnvs();
   });
-  $("env-copy").addEventListener("click", async () => {
-    const btn = $("env-copy"), label = btn.querySelector("span");
+  const bindCopy = (btnId, srcId) => $(btnId).addEventListener("click", async () => {
+    const btn = $(btnId), label = btn.querySelector("span");
     try {
-      await navigator.clipboard.writeText($("env-cmd").textContent);
+      await navigator.clipboard.writeText($(srcId).textContent);
       label.textContent = "Скопировано";
     } catch (e) {
       label.textContent = "Выделите и скопируйте";
     }
     setTimeout(() => { label.textContent = "Скопировать"; }, 1800);
   });
+  bindCopy("env-copy", "env-cmd");
+  bindCopy("env-copy-main", "env-cmd-main");
 
   // --- Запуск -----------------------------------------------------------------
   function run() {
     const text = textEl.value;
     if (!text.trim()) {
-      resultEl.innerHTML = `<div class="audit-empty"><p>Вставьте текст или возьмите пример: без текста проверять нечего.</p></div>`;
+      // Пусто: на месте результата снова лист редактора, а не пустая рамка.
+      resultEl.hidden = true; resultEl.innerHTML = "";
+      if (artEl) artEl.hidden = false;
+      sourceEl.textContent = "Без текста проверять нечего: вставьте абзац или возьмите пример."; sourceEl.hidden = false;
       markedWrap.hidden = true; nextEl.hidden = true;
       return;
     }
     const r = globalThis.humanizerScan(text, genreEl.value || null);
-    renderResult(r);
-    renderMarked(text, r);
+    const spans = collectSpans(text, r);
+    renderResult(r, spans);
+    renderMarked(text, spans, spans.length > 0 || r.penalties.length > 0);
     nextEl.hidden = false;
   }
 
@@ -146,6 +225,7 @@
   document.querySelectorAll("[data-example]").forEach((b) => b.addEventListener("click", () => {
     const ex = EXAMPLES[b.dataset.example];
     textEl.value = document.getElementById(ex.id).textContent.trim();
+    genreEl.value = ex.genre || "";
     sourceEl.textContent = ex.source; sourceEl.hidden = false;
     document.querySelectorAll("[data-example]").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
     updateCount();
