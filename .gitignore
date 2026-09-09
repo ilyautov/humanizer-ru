@@ -22,3 +22,8 @@ node_modules/
 # macOS / локальный тулинг
 .DS_Store
 .claude/
+
+# Impeccable: продуктовый и дизайн-контекст, локально
+PRODUCT.md
+DESIGN.md
+.impeccable/
