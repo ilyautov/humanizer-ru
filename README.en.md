@@ -44,6 +44,8 @@ Claude.ai, DeepSeek Harness and team rollout are covered in [Install](#install).
 
 The [site's front page](https://humanizer-ru.aifrontier.tech/#audit) runs the same scanner in JavaScript: paste a text, get a 0-100 cleanliness score, highlighted markers and the install command for your agent. Everything runs in the browser, nothing is uploaded. Rules are exported from `markers.py` by `scripts/export_web_rules.py`; `scripts/test_web_parity.py` keeps the web and Python engines in step in CI.
 
+The same scanner ships as a Chrome extension: select text on any page, pick "Проверить на следы нейросети" in the context menu, and the popup shows the score and highlights. Two permissions only, context menu and local storage; no host access, no network. Source in `extension/`, built by `scripts/build_extension.py`; until the Web Store listing is live, load it via `chrome://extensions` → Developer mode → Load unpacked.
+
 ## Install
 
 Three deployment channels: upload to Claude.ai web UI, roll out across an organization, or install into local agents (Claude Code, Cowork, API).

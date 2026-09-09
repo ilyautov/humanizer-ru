@@ -102,6 +102,8 @@ VERSION_TARGETS = [
     (".codex-plugin/plugin.json", r'"version":\s*"([\d.]+)"'),
     ("gemini-extension.json", r'"version":\s*"([\d.]+)"'),
     ("package.json", r'"version":\s*"([\d.]+)"'),
+    # Chrome-расширение: версия манифеста = версия репозитория (гейт build_extension.py).
+    ("extension/manifest.json", r'"version":\s*"([\d.]+)"'),
     ("README.md", r"версия-([\d.]+)-blueviolet"),
     ("README.en.md", r"version-([\d.]+)-blueviolet"),
     # Заголовок скилла. До v3.15.4 здесь жила отдельная «контент-версия»,
