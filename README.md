@@ -2,7 +2,7 @@
 
 > Скилл для Claude. Убирает 64 признака нейросети в русском тексте: канцелярит, кальки, фингерпринты ChatGPT и Claude. Метит в то, что измеряют GPTZero, DivEye, RuBERT: поднимает perplexity и burstiness. 21 жёстких банов, quad-pass аудит, калибровка под голос автора, eval-харнес с метриками до/после. Живое демо сканера на сайте.
 
-> [English version](README.en.md)
+> [English version](README.en.md) · [中文](README.zh.md)
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Версия](https://img.shields.io/badge/версия-3.21.0-blueviolet)](https://github.com/ilyautov/humanizer-ru/blob/main/CHANGELOG.md)
