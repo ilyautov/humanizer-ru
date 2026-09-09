@@ -21,6 +21,7 @@
     "capabilities": ["Read", "Write"],
     "websiteURL": "https://humanizer-ru.aifrontier.tech/",
     "privacyPolicyURL": "https://github.com/ilyautov/humanizer-ru/blob/main/PRIVACY_POLICY.md",
+    "termsOfServiceURL": "https://github.com/ilyautov/humanizer-ru/blob/main/TERMS.md",
     "defaultPrompt": ["Очеловечь этот текст: ..."],
     "brandColor": "#7AA7FF",
     "composerIcon": "./assets/icon-512.png",
