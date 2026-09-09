@@ -51,7 +51,7 @@ def main() -> int:
     failures: list[str] = []
     passed = 0
     worst = (0, "")
-    for genre in (None, "academic"):
+    for genre in (None, "academic", "news"):
         cmd = [node, str(ROOT / "scripts" / "web_scan_cli.mjs")]
         if genre:
             cmd += ["--genre", genre]
@@ -84,7 +84,7 @@ def main() -> int:
                     worst = (abs(sc.score - w["score"]), f"{tag}: py {sc.score} vs js {w['score']}")
 
     print("=== test_web_parity ===")
-    print(f"  текстов: {len(files)} × 2 жанра, совпало: {passed}; наибольший разрыв score: {worst[0]} ({worst[1]})")
+    print(f"  текстов: {len(files)} × 3 жанра, совпало: {passed}; наибольший разрыв score: {worst[0]} ({worst[1]})")
     if failures:
         for msg in failures:
             print("  ✗", msg)

@@ -75,7 +75,7 @@ def main() -> int:
                          "Новый факт, которого не было в исходнике, даёт exit 2")
     ap.add_argument("--genre", choices=GENRES, default="marketing",
                     help="жанр текста: снимает маркеры, законные для регистра "
-                         "(academic, legal, fiction). По умолчанию marketing: "
+                         "(academic, legal, fiction, news). По умолчанию marketing: "
                          "строгий режим, под него откалиброваны пороги")
     args = ap.parse_args()
 

@@ -732,6 +732,13 @@ globalThis.HUMANIZER_RULES = {
    "Не просто X, а Y",
    "Не только X, но и Y",
    "от X до Y (ложный диапазон)"
+  ],
+  "news": [
+   "Данный/Данная/Данное",
+   "Длинное тире",
+   "Короткое тире",
+   "Является",
+   "от X до Y (ложный диапазон)"
   ]
  },
  "genre_muted_categories": {
@@ -748,13 +755,19 @@ globalThis.HUMANIZER_RULES = {
   ],
   "fiction": [
    "Параллелизмы"
+  ],
+  "news": [
+   "Кальки",
+   "Канцелярит",
+   "Контекстуализаторы"
   ]
  },
  "genres": [
   "marketing",
   "academic",
   "legal",
-  "fiction"
+  "fiction",
+  "news"
  ],
  "score": {
   "em_dash_name": "Длинное тире",
