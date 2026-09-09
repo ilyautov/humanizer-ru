@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <title>humanizer-ru</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <header class="top">
+    <div class="brand">humanizer<span>-ru</span></div>
+    <label class="genre">
+      <span class="visually-hidden">Жанр</span>
+      <select id="genre" aria-label="Жанр текста">
+        <option value="">маркетинг, блог (строгий)</option>
+        <option value="news">новости, энциклопедия</option>
+        <option value="academic">научный</option>
+        <option value="legal">юридический</option>
+        <option value="fiction">художественный</option>
+      </select>
+    </label>
+  </header>
+
+  <textarea id="text" spellcheck="false" placeholder="Вставьте русский текст. Или выделите его на странице и выберите в контекстном меню «Проверить на следы нейросети»."></textarea>
+  <div class="meta"><span id="count">0 слов</span><span id="privacy">Считается здесь, ничего не отправляется</span></div>
+
+  <section id="result" aria-live="polite"></section>
+  <section id="marked-wrap" hidden>
+    <h2>Что сработало</h2>
+    <div id="marked"></div>
+  </section>
+
+  <footer>
+    <a href="https://humanizer-ru.aifrontier.tech/" target="_blank" rel="noopener">Сайт и скилл для агентов</a>
+    <a href="https://github.com/ilyautov/humanizer-ru" target="_blank" rel="noopener">GitHub</a>
+    <span id="version"></span>
+  </footer>
+
+  <script src="vendor/scan-rules.js"></script>
+  <script src="vendor/scan.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>
