@@ -17,10 +17,10 @@
   };
 
   const ENVS = [
-    { key: "claude-code", label: "Claude Code", cmd: "/plugin marketplace add ilyautov/humanizer-ru\n/plugin install humanizer-ru@ilyautov-plugins",
-      note: "Две команды внутри Claude Code. Дальше скилл включается сам на «очеловечь», «убери канцелярит», «перепиши как человек»." },
-    { key: "skills", label: "Cursor и другие", cmd: "npx skills add https://github.com/ilyautov/humanizer-ru/tree/main/skills/humanizer-ru",
-      note: "Универсальная установка через skills.sh: Cursor, Copilot, Cline, OpenCode, Goose и ещё десятки агентов, читающих SKILL.md." },
+    { key: "skills", label: "Любой агент", cmd: "npx skills add ilyautov/humanizer-ru",
+      note: "Одна команда через skills.sh: Claude Code, Cursor, Codex, Copilot, Cline, OpenCode, Goose и ещё десятки агентов, читающих SKILL.md. CLI найдёт установленных агентов и спросит, куда ставить. Дальше скилл включается сам на «очеловечь», «убери канцелярит», «перепиши как человек»." },
+    { key: "claude-code", label: "Плагин Claude Code", cmd: "/plugin marketplace add ilyautov/humanizer-ru\n/plugin install humanizer-ru@ilyautov-plugins",
+      note: "Две команды внутри Claude Code. Плагин обновляется через /plugin, скилл включается сам по тем же фразам." },
     { key: "claude-ai", label: "Claude.ai", cmd: "https://github.com/ilyautov/humanizer-ru/releases/latest/download/humanizer-ru.zip",
       note: "Скачайте архив, затем Settings → Capabilities → Skills → Upload skill. Без установки чего-либо на компьютер." },
     { key: "codex", label: "Codex CLI", cmd: "git clone --depth 1 https://github.com/ilyautov/humanizer-ru\nmkdir -p ~/.codex/skills\ncp -r humanizer-ru/skills/humanizer-ru ~/.codex/skills/",
