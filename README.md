@@ -24,14 +24,20 @@
 
 🧪 **Живое демо:** [humanizer-ru.aifrontier.tech](https://humanizer-ru.aifrontier.tech/#audit). Вставьте свой текст, получите оценку чистоты 0-100 и подсветку найденных оборотов. Тот же сканер, что в скилле, считается в браузере.
 
-**Быстрый старт** в Claude Code, две команды:
+**Быстрый старт**, одна команда для любого агента (Claude Code, Cursor, Codex, Copilot, Cline и ещё десятки):
+
+```
+npx skills add ilyautov/humanizer-ru
+```
+
+CLI найдёт установленных агентов и спросит, куда ставить. В Claude Code можно и плагином, тогда обновления приходят через `/plugin`:
 
 ```
 /plugin marketplace add ilyautov/humanizer-ru
 /plugin install humanizer-ru@ilyautov-plugins
 ```
 
-Cursor, Copilot, Cline и другие агенты: `npx skills add https://github.com/ilyautov/humanizer-ru/tree/main/skills/humanizer-ru`. Claude.ai, Codex, DeepSeek Harness и раскатка на команду в [разделе «Установка»](#установка).
+Claude.ai, DeepSeek Harness и раскатка на команду в [разделе «Установка»](#установка).
 
 📖 **Документация и разборы:** [humanizer-ru.aifrontier.tech](https://humanizer-ru.aifrontier.tech/): [работают ли AI-детекторы на русском](https://humanizer-ru.aifrontier.tech/ai-detektory-na-russkom.html), [64 признака AI-текста](https://humanizer-ru.aifrontier.tech/52-priznaka-ai-teksta.html), [антиплагиат и нейросеть](https://humanizer-ru.aifrontier.tech/antiplagiat-i-neyroset.html).
 
