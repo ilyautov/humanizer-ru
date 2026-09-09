@@ -9,6 +9,7 @@
 [![Звёзды](https://img.shields.io/github/stars/ilyautov/humanizer-ru?style=social)](https://github.com/ilyautov/humanizer-ru/stargazers)
 [![skills.sh](https://skills.sh/b/ilyautov/humanizer-ru)](https://skills.sh/ilyautov/humanizer-ru/humanizer-ru)
 [![npm](https://img.shields.io/npm/v/humanizer-ru?label=npm%20%C2%B7%20dsh)](https://www.npmjs.com/package/humanizer-ru)
+[![HOL](https://img.shields.io/endpoint?url=https%3A%2F%2Fhol.org%2Fapi%2Fregistry%2Fbadges%2Fplugin%3Fslug%3Dilya-utov%252Fhumanizer-ru%26metric%3Dstatus%26style%3Dflat)](https://hol.org/registry/plugins/ilya-utov%2Fhumanizer-ru)
 
 <p align="center">
   <a href="https://humanizer-ru.aifrontier.tech/">
