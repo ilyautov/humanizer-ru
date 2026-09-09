@@ -333,6 +333,14 @@ check(any(h.category == "Неодушевлённый субъект" for h in s
     "разделяющий маркер #55 в академическом жанре остаётся (AI/чел 4.4x на AINL-Eval)")
 check(cleanliness_score(acad_rep, "academic").score > cleanliness_score(acad_rep).score,
     "score в академическом жанре выше строгого")
+check(GENRE_MUTED_BANS["news"] == {"Является", "Длинное тире", "Короткое тире", "Данный/Данная/Данное",
+                                     "от X до Y (ложный диапазон)"},
+      "жанр news глушит пять банов с лифтом ниже 1.5 на LLMTrace news+factual")
+check("Играет важную/ключевую роль" not in GENRE_MUTED_BANS["news"],
+      "разделяющий бан (лифт 13 на новостях) в жанре news остаётся")
+check({"Канцелярит", "Кальки"} <= GENRE_MUTED_CATEGORIES["news"]
+      and "Формула-выводы" not in GENRE_MUTED_CATEGORIES["news"],
+      "жанр news снимает канцелярит и кальки, формула-выводы (лифт 2.5) остаются")
 check("Длинное тире" in GENRE_MUTED_BANS["fiction"],
     "в художественном жанре длинное тире не бан")
 

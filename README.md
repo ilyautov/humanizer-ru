@@ -245,7 +245,7 @@ dsh сканирует `~/.agents/skills` и `~/.dsh/skills` сам, перез�
 других регистров снимает маркеры, которые там законны:
 
 ```bash
-python skills/humanizer-ru/scripts/scan.py статья.txt --genre academic  # ещё legal, fiction
+python skills/humanizer-ru/scripts/scan.py статья.txt --genre academic  # ещё legal, fiction, news
 python skills/humanizer-ru/scripts/scan.py стало.txt --before было.txt  # чистота до/после + факт-замок
 ```
 
