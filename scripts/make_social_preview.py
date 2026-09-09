@@ -29,8 +29,9 @@ sys.path.insert(0, str(ROOT / "skills" / "humanizer-ru" / "scripts"))
 from ru_plural import plural  # noqa: E402
 
 OUT = ROOT / "assets" / "social-preview.png"
-# Сайт отдаёт свою копию по og:image, она обязана совпадать.
-OUT_SITE = ROOT / "docs" / "social-preview.png"
+# Сайт по og:image отдаёт не эту карточку, а иллюстрацию docs/social-preview.jpg
+# (лист с красной правкой, сентябрь 2026): счётчиков на ней нет, пересборка
+# её не касается. Карточка со счётчиками живёт только в README.
 CATALOG = ROOT / "skills" / "humanizer-ru" / "references" / "catalog.md"
 STAMP = ROOT / "assets" / ".social-preview-counters"
 
@@ -127,9 +128,8 @@ def draw(patterns: int, bans: int) -> None:
     d.text((1200 - int(d.textlength(footer, font=foot)), 578), footer, font=foot, fill=TEXT_DIM)
 
     im.save(OUT)
-    im.save(OUT_SITE)
     STAMP.write_text(f"{patterns}/{bans}\n", encoding="utf-8")
-    print(f"[ok] {OUT.relative_to(ROOT)} и {OUT_SITE.relative_to(ROOT)}: "
+    print(f"[ok] {OUT.relative_to(ROOT)}: "
           f"{patterns} {plural(patterns, 'признак', 'признака', 'признаков')}, "
           f"{bans} {plural(bans, 'запрет', 'запрета', 'запретов')}")
 
