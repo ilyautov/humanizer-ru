@@ -18,6 +18,14 @@
 Мелкие количества («два», «половина», «вдвое») факты мягкие: в русском они
 идиоматичны («с одной стороны») и обычно пересказывают число исходника. Они
 считаются, но не валят проверку.
+
+Утверждения: слова-кванторы, которые звучат как пафос, а несут факт:
+«первый в России», «единственный», «впервые», «рекордный», «до сих пор».
+Срезать «первый в России сервис» до «сервис» значит исказить исходник, а
+не оживить его. Потерянный квантор попадает в список потерь, появившийся
+выносится отдельным предупреждением: кванторы идиоматичны («первый шаг»,
+«самое время»), поэтому валить проверку автоматически нельзя, но глазами
+такое место обязано проверить.
 """
 
 from __future__ import annotations
@@ -45,7 +53,7 @@ TOKEN_RE = re.compile(r"[A-Za-z][A-Za-z\d\-]*|[А-Яа-яЁё][А-Яа-яЁё\-]
 
 SOFT_QUANTITIES = {
     "один", "два", "две", "три", "оба", "обе", "пара",
-    "первый", "второй", "третий",
+    "второй", "третий",
     "вдвое", "втрое", "дважды", "трижды",
     "половина", "треть", "четверть", "полтора",
 }
@@ -56,6 +64,12 @@ HARD_NUMERALS = {
     "девяносто", "сто", "двести", "триста", "тысяча", "миллион", "миллиард",
     "десяток", "сотня", "дюжина",
 }
+# Кванторы-утверждения: громкие слова, за которыми стоит проверяемый факт.
+CLAIM_WORDS = {
+    "первый", "единственный", "впервые", "самый", "рекордный", "крупнейший",
+    "старейший", "никогда", "никто", "навсегда", "беспрецедентный",
+}
+CLAIM_PHRASE_RE = re.compile(r"\bдо сих пор\b|\bв мире\b|\bв россии\b", re.IGNORECASE)
 # Одна сущность под разными именами не считается новым фактом.
 ALIASES = {
     "ai": ("искусственный", "интеллект", "ии", "нейросеть", "модель"),
@@ -69,6 +83,7 @@ class Facts:
     hard: set[str] = field(default_factory=set)   # "число:13", "имя:стэнфорд", "ссылка:…"
     soft: set[str] = field(default_factory=set)   # "два", "половина"
     words: set[str] = field(default_factory=set)  # все слова в нормальной форме, для алиасов
+    claims: set[str] = field(default_factory=set)  # "утверждение:первый", "утверждение:до сих пор"
 
 
 @dataclass
@@ -77,6 +92,7 @@ class FactsDiff:
     added: list[str]     # появились в результате, в исходнике не было
     kept: int            # жёстких фактов исходника дожило
     soft_added: list[str]
+    claims_added: list[str] = field(default_factory=list)  # кванторы, которых в исходнике не было
 
     @property
     def ok(self) -> bool:
@@ -84,7 +100,8 @@ class FactsDiff:
 
     def as_dict(self) -> dict:
         return {"ok": self.ok, "lost": self.lost, "added": self.added,
-                "kept": self.kept, "soft_added": self.soft_added}
+                "kept": self.kept, "soft_added": self.soft_added,
+                "claims_added": self.claims_added}
 
 
 def _norm(word: str) -> str:
@@ -126,6 +143,8 @@ def extract_facts(text: str) -> Facts:
     body = CODE_RE.sub(" ", URL_RE.sub(" ", text))
     for m in MONTH_RE.finditer(body):
         f.hard.add("месяц:" + m.group(1).lower())
+    for m in CLAIM_PHRASE_RE.finditer(body):
+        f.claims.add("утверждение:" + m.group(0).lower().replace("ё", "е"))
     starts = _sentence_starts(body)
     for m in TOKEN_RE.finditer(body):
         tok = m.group(0)
@@ -138,6 +157,8 @@ def extract_facts(text: str) -> Facts:
         f.words.add(norm)
         if norm in SOFT_QUANTITIES:
             f.soft.add(norm)
+        elif norm in CLAIM_WORDS:
+            f.claims.add("утверждение:" + norm)
         elif norm in HARD_NUMERALS:
             f.hard.add("число словами:" + norm)
         elif _is_proper(tok, any(abs(m.start() - s) <= 1 for s in starts)):
@@ -154,10 +175,11 @@ def _alias_covered(fact: str, before_words: set[str]) -> bool:
 
 def diff_facts(before: str, after: str) -> FactsDiff:
     b, a = extract_facts(before), extract_facts(after)
-    lost = sorted(b.hard - a.hard)
+    lost = sorted(b.hard - a.hard) + sorted(b.claims - a.claims)
     added = sorted(x for x in a.hard - b.hard if not _alias_covered(x, b.words))
     return FactsDiff(lost=lost, added=added, kept=len(b.hard & a.hard),
-                     soft_added=sorted(a.soft - b.soft))
+                     soft_added=sorted(a.soft - b.soft),
+                     claims_added=sorted(a.claims - b.claims))
 
 
 def facts_verdict(d: FactsDiff) -> str:
@@ -165,4 +187,7 @@ def facts_verdict(d: FactsDiff) -> str:
         return f"✗ новых фактов без источника: {len(d.added)} (выдумка хуже канцелярита)"
     if d.lost:
         return f"⚠ факты исходника на месте, но {len(d.lost)} потеряно: проверьте, намеренно ли"
+    if d.claims_added:
+        return (f"⚠ факты целы, но появилось утверждений без источника: {len(d.claims_added)} "
+                "(«впервые», «единственный» это факт, а не украшение)")
     return f"✓ факт-замок цел: {d.kept} фактов исходника перенесено, новых нет"

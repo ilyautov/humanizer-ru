@@ -192,6 +192,8 @@ def main() -> int:
             print(f"  ✗ новое: {x}")
         for x in fdiff.lost:
             print(f"  ⚠ потеряно: {x}")
+        for x in fdiff.claims_added:
+            print(f"  ⚠ утверждение появилось: {x}")
         if fdiff.soft_added:
             print(f"  ℹ мелкие количества появились: {', '.join(fdiff.soft_added)} "
                   "(идиомы и пересказ чисел не считаются, проверьте глазами)")
