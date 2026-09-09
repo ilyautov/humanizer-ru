@@ -5,23 +5,24 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="google-site-verification" content="_qISh546lYmuJdeWkXoEK0rgItLa30PUuxRw6tK7L4I">
 <meta name="yandex-verification" content="d5488a184cbab7f7">
-<title>Очеловечить AI-текст на русском: скилл humanizer-ru</title>
-<meta name="description" content="humanizer-ru: бесплатный open-source скилл для Claude. Очеловечивает русский AI-текст, убирает следы нейросети и канцелярит, делает текст живым.">
-<meta name="keywords" content="очеловечить текст, убрать следы нейросети, сделать текст человечным, humanizer на русском, humanizer claude, очеловечить текст бесплатно, убрать признаки ии в тексте">
+<title>Очеловечить AI-текст на русском: humanizer-ru</title>
+<meta name="description" content="humanizer-ru убирает следы нейросети из русского текста и показывает, где они: балл чистоты 0-100, подчёркнутые обороты, скилл для агентов и расширение Chrome. Бесплатно, open source.">
+<meta name="keywords" content="очеловечить текст, убрать следы нейросети, сделать текст человечным, humanizer на русском, проверить текст на ии, очеловечить текст бесплатно, убрать признаки ии в тексте">
 <link rel="canonical" href="https://humanizer-ru.aifrontier.tech/">
 <meta property="og:type" content="website">
-<meta property="og:title" content="Очеловечить AI-текст на русском: скилл humanizer-ru">
-<meta property="og:description" content="Бесплатный open-source скилл для Claude. Убирает следы нейросети в русском тексте и делает его живым.">
+<meta property="og:title" content="Очеловечить AI-текст на русском: humanizer-ru">
+<meta property="og:description" content="Убирает следы нейросети из русского текста и показывает, где они. Балл чистоты 0-100, скилл для агентов, расширение Chrome. Бесплатно, open source.">
 <meta property="og:url" content="https://humanizer-ru.aifrontier.tech/">
 <meta property="og:locale" content="ru_RU">
 <meta property="og:image" content="https://humanizer-ru.aifrontier.tech/social-preview.jpg">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Очеловечить AI-текст на русском: humanizer-ru">
-<meta name="twitter:description" content="Бесплатный скилл для Claude: убирает следы нейросети в русском тексте.">
+<meta name="twitter:description" content="Убирает следы нейросети из русского текста и показывает, где они. Балл чистоты 0-100, скилл для агентов, расширение Chrome.">
 <meta name="twitter:image" content="https://humanizer-ru.aifrontier.tech/social-preview.jpg">
 <link rel="icon" type="image/png" href="icon-128.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="image" href="hero.jpg">
 <link rel="stylesheet" href="style.css">
 <script type="application/ld+json">
 {
@@ -29,7 +30,7 @@
   "@type": "WebSite",
   "name": "humanizer-ru",
   "url": "https://humanizer-ru.aifrontier.tech/",
-  "description": "Бесплатный open-source скилл для Claude, который очеловечивает русский AI-текст и убирает следы нейросети.",
+  "description": "Бесплатный open-source инструмент, который убирает следы нейросети из русского текста и измеряет правку: скилл для агентов, расширение Chrome, сканер на сайте.",
   "inLanguage": "ru"
 }
 </script>
@@ -43,7 +44,7 @@
       "name": "Как очеловечить текст, написанный нейросетью?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Уберите маркеры машинной генерации: канцелярит («является», «данный»), длинные тире, кальки с английского, ровный ритм предложений. Верните живой голос: частицы «же», «ведь», «вот», разную длину фраз, конкретику вместо абстракций. Скилл humanizer-ru делает это автоматически в Claude по 64 признакам AI-текста."
+        "text": "Уберите маркеры машинной генерации: канцелярит («является», «данный»), длинные тире, кальки с английского, ровный ритм предложений. Верните живой голос: частицы «же», «ведь», «вот», разную длину фраз, конкретику вместо абстракций. Скилл humanizer-ru делает это в агенте (Claude Code, Cursor, Codex) по 64 признакам AI-текста, а сканер на сайте и в расширении Chrome показывает, что именно выдаёт текст."
       }
     },
     {
@@ -51,7 +52,7 @@
       "name": "humanizer-ru работает бесплатно?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Да. humanizer-ru это open-source скилл с лицензией MIT. Сам скилл бесплатный, вы платите только за работу модели Claude или используете её в рамках своего тарифа Claude Code, Cowork или API. Никаких отдельных подписок и лимитов «сделать текст человечным» нет."
+        "text": "Да. humanizer-ru это open-source проект с лицензией MIT. Сканер на сайте и в расширении бесплатный и считает в браузере. Скилл тоже бесплатный, вы платите только за работу модели в своём агенте по своему тарифу. Отдельных подписок и лимитов нет."
       }
     },
     {
@@ -98,66 +99,46 @@
 </header>
 
 <main>
-<div class="wrap hero">
+<div class="wrap">
 
-  <h1>Очеловечить русский AI-текст: убрать следы нейросети</h1>
-  <p class="lede">Бесплатный open-source скилл для Claude, Cursor, Codex и других агентов: снимает с русского текста следы нейросети и возвращает голос автора. 64 признака, 21 жёстких запретов, сканер <a href="#audit">работает прямо на этой странице</a>.</p>
+  <section class="hero" id="audit" aria-labelledby="hero-title">
+    <div class="hero-grid">
+      <div class="hero-main">
+        <h1 id="hero-title">Убирает следы нейросети из русского текста. И показывает, где они.</h1>
+        <p class="lede">Вставьте текст и получите балл чистоты от 0 до 100 с подчёркнутыми оборотами, которые выдают генерацию. Правьте сами, в расширении Chrome или отдайте агенту со скиллом.</p>
+        <p class="hero-proof">Правила откалиброваны на 55 тысячах размеченных русских текстов. <a href="https://github.com/ilyautov/humanizer-ru/tree/main/eval">Отчёты и команды воспроизведения открыты</a>.</p>
 
-  <section class="install" id="install" aria-labelledby="install-title">
-    <div class="install-head">
-      <h2 id="install-title" class="plain">Поставить за минуту</h2>
-      <p>Выберите среду и скопируйте команду. Проверить текст можно и без установки, в демо ниже.</p>
-    </div>
-    <div class="env-tabs" role="tablist" aria-label="Среда установки"></div>
-    <div class="env-panel" role="tabpanel">
-      <div class="env-cmd-wrap">
-        <pre class="env-cmd"><code id="env-cmd"></code></pre>
-        <button type="button" class="env-copy" id="env-copy" aria-label="Скопировать команду">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-          <span>Скопировать</span>
-        </button>
-      </div>
-      <p class="env-note" id="env-note"></p>
-    </div>
-  </section>
-
-  <section class="audit" id="audit" aria-labelledby="audit-title">
-    <div class="audit-head">
-      <h2 id="audit-title" class="plain">Живое демо: проверьте свой текст</h2>
-      <p>Тот же сканер, что едет со скиллом, только на JavaScript. Считается в браузере, текст никуда не отправляется. Вставьте абзац или возьмите готовый пример.</p>
-    </div>
-
-    <div class="audit-grid">
-      <div class="audit-input">
         <div class="audit-examples" role="group" aria-label="Готовые примеры">
           <span>Примеры</span>
           <button type="button" data-example="ai">Нейрочерновик</button>
-          <button type="button" data-example="human">Человеческий текст</button>
+          <button type="button" data-example="human">Статья из Википедии</button>
           <button type="button" data-example="tech">Пост с кодом и цитатой</button>
         </div>
         <label class="sr-only" for="audit-text">Текст для проверки</label>
-        <textarea id="audit-text" rows="11" spellcheck="false" placeholder="Вставьте русский текст: от абзаца до статьи"></textarea>
+        <textarea id="audit-text" rows="9" spellcheck="false" placeholder="Вставьте русский текст: от абзаца до статьи"></textarea>
         <div class="audit-controls">
           <label class="audit-genre">Жанр
             <select id="audit-genre">
-              <option value="">строгий (маркетинг, блоги)</option>
+              <option value="">маркетинг, блог</option>
+              <option value="news">новости, энциклопедия</option>
               <option value="academic">научный</option>
               <option value="legal">юридический</option>
               <option value="fiction">художественный</option>
-              <option value="news">новости, энциклопедия</option>
             </select>
           </label>
           <output class="audit-count" id="audit-count" for="audit-text">0 слов</output>
           <button type="button" class="cta audit-run" id="audit-run">Проверить</button>
         </div>
         <p class="audit-source" id="audit-source" hidden></p>
+        <p class="audit-privacy">Считается в браузере, текст никуда не отправляется.</p>
       </div>
 
-      <div class="audit-result" id="audit-result" aria-live="polite">
-        <div class="audit-empty">
-          <p>Здесь появится оценка чистоты от 0 до 100, список найденных оборотов и штрафы за ритм и структуру.</p>
-          <p class="audit-scale"><span class="z-bad">0</span> рерайт <span class="z-warn">60</span> точечная правка <span class="z-good">85</span> чисто <span>100</span></p>
-        </div>
+      <div class="hero-side">
+        <figure class="hero-art" id="hero-art">
+          <img src="hero.jpg" width="900" height="1041" alt="Лист с напечатанным текстом: верхняя половина ровная, нижняя исчерчена красным карандашом редактора">
+          <figcaption class="audit-scale" aria-label="Шкала балла"><span class="z-bad">0</span> рерайт <span class="z-warn">60</span> точечная правка <span class="z-good">85</span> чисто <span>100</span></figcaption>
+        </figure>
+        <div class="audit-result" id="audit-result" aria-live="polite" hidden></div>
       </div>
     </div>
 
@@ -165,47 +146,60 @@
       <div class="audit-legend">
         <span><mark class="ban">жёсткий запрет</mark></span>
         <span><mark class="mk">мягкий маркер</mark></span>
-        <span class="legend-note">код и цитаты не считаются</span>
+        <span class="legend-note">наведите на оборот, чтобы увидеть правило; код и цитаты не считаются</span>
       </div>
       <div class="audit-text-marked" id="audit-text-marked"></div>
     </div>
 
     <div class="audit-next" id="audit-next" hidden>
-      <p>Сканер только показывает, что выдаёт текст. Переписывает скилл, установленный в агент: <a href="#install">команды установки выше</a>.</p>
-      <p class="audit-note">В браузере считаются запреты, маркеры, ритм и структура. Номинальность (сущ./глаг.) добавляет только scan.py в комплекте скилла, поэтому его оценка бывает ниже на несколько баллов. Числа сканера это основания для правки, а не вердикт об авторстве.</p>
+      <h2 class="h-small">Что дальше</h2>
+      <div class="next-grid">
+        <div>
+          <h3>Править самому</h3>
+          <p>Начните с красного: уберите оборот или скажите то же конкретно. Потом жёлтое. Список замен по каждому признаку в статье <a href="kak-ubrat-sledy-neyroseti.html">Как убрать следы нейросети</a>.</p>
+        </div>
+        <div>
+          <h3>Проверять в браузере</h3>
+          <p>Расширение Chrome с тем же сканером: выделили текст на любой странице, получили балл и подсказки. В Web Store после модерации; пока ставится из папки <a href="https://github.com/ilyautov/humanizer-ru/tree/main/extension">extension/</a> репозитория.</p>
+        </div>
+        <div>
+          <h3>Отдать агенту</h3>
+          <p>Скилл переписывает текст в Claude Code, Cursor, Codex и других агентах, сохраняя числа и имена, и показывает «было N, стало M». <a href="#install">Одна команда установки</a>.</p>
+        </div>
+      </div>
+      <p class="audit-note">В браузере считаются запреты, маркеры, ритм и структура. Номинальность (сущ./глаг.) добавляет только scan.py в комплекте скилла, поэтому его балл бывает ниже на несколько пунктов. Балл это повод для правки, а не вердикт об авторстве.</p>
     </div>
   </section>
 
-  <h2>Что это и зачем</h2>
-  <p>Текст из ChatGPT, Claude или другой нейросети читается одинаково: гладко и никак, будто музак в лифте. Канцелярит, кальки с английского, длинные тире, ровный ритм без сбоев. Человек так не пишет. Живой русский текст неровный: он спотыкается, перебивает сам себя, то ускоряется, то замедляется.</p>
-  <p>humanizer-ru делает текст человечным не косметически. Он убирает маркеры машинной генерации и одновременно возвращает автора: мнение, интонацию, конкретику. Под капотом каталог из 64 признаков AI-текста в 14 категориях, 21 жёстких запретов и калибровка под голос автора.</p>
+  <section class="install" id="install" aria-labelledby="install-title">
+    <h2 id="install-title">Поставить скилл в агент</h2>
+    <p class="section-lede">Одна команда для Claude Code, Cursor, Codex, Copilot, Cline и других агентов, читающих SKILL.md. Дальше скилл включается сам на «очеловечь», «убери канцелярит», «проверь на следы нейросети».</p>
+    <div class="env-cmd-wrap">
+      <pre class="env-cmd"><code id="env-cmd-main">npx skills add ilyautov/humanizer-ru</code></pre>
+      <button type="button" class="env-copy" id="env-copy-main" aria-label="Скопировать команду">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        <span>Скопировать</span>
+      </button>
+    </div>
+    <details class="env-more">
+      <summary>Другие способы: плагин Claude Code, Claude.ai, Codex CLI, DeepSeek Harness</summary>
+      <div class="env-tabs" role="tablist" aria-label="Среда установки"></div>
+      <div class="env-panel" role="tabpanel">
+        <div class="env-cmd-wrap">
+          <pre class="env-cmd"><code id="env-cmd"></code></pre>
+          <button type="button" class="env-copy" id="env-copy" aria-label="Скопировать команду">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            <span>Скопировать</span>
+          </button>
+        </div>
+        <p class="env-note" id="env-note"></p>
+      </div>
+    </details>
+  </section>
 
-  <h2>Для кого</h2>
-  <div class="cards">
-    <div class="card">
-      <h3>Авторы и редакторы</h3>
-      <p>Черновик от нейросети звучит как робот. Скилл превращает его в живой текст под ваш голос, без ручной вычитки каждого «является».</p>
-    </div>
-    <div class="card">
-      <h3>Маркетинг и контент</h3>
-      <p>Лендинги, рассылки, посты. Убрать водянистость, «правило трёх» и пустые открытия, оставить смысл и энергию.</p>
-    </div>
-    <div class="card">
-      <h3>Эксперты и блогеры</h3>
-      <p>Длинные материалы с AI-черновика. Снять штампы, добавить ритм и характер, сохранить факты.</p>
-    </div>
-    <div class="card">
-      <h3>Разработчики на Claude</h3>
-      <p>Скилл для Claude Code, Cowork и API. Подключается один раз, работает в пайплайне как обычный навык.</p>
-    </div>
-  </div>
-
-  <h2 id="kak-rabotaet">Как это работает: три режима</h2>
-  <ol>
-    <li><strong>Полное редактирование.</strong> Режим по умолчанию: проходит по всем 64 признакам, калибрует текст под голос автора, выравнивает ритм (поднимает burstiness), снимает канцелярит и кальки.</li>
-    <li><strong>Точечная правка.</strong> Только указанная категория: например, убрать канцелярит или вычистить 21 жёстких запретов («является», «в современном мире», длинное тире). Остальное не трогается.</li>
-    <li><strong>Аудит без правки.</strong> Скилл показывает, какие маркеры нейросети есть в тексте и где, не переписывая. Полезно, чтобы понять, что именно вас выдаёт.</li>
-  </ol>
+  <h2>Почему русский AI-текст выдаёт себя иначе</h2>
+  <p>Текст из ChatGPT, GigaChat или другой нейросети читается одинаково: гладко и никак, будто музак в лифте. Но приметы у русской генерации свои: «является» через предложение, канцелярит («осуществление внедрения»), кальки с английского синтаксиса («стоит отметить, что»), пропавшие частицы «же», «ведь», «вот», ровный ритм без сбоев. Английские списки маркеров этого не видят, и <a href="https://github.com/blader/humanizer">английский humanizer</a> на русском тексте не работает.</p>
+  <p>Каталог humanizer-ru написан как редакторские правила: 64 признака в 14 категориях и 21 жёсткий запрет, включая слой моделей 2025-2026: псевдо-сократические вопросы, псевдо-терапевтический тон, эмодзи-декор. Каждое правило проверено на размеченных корпусах AINL-Eval, M4 и LLMTrace. Без жанровой поправки часть правил ловила учёных чаще, чем нейросети, поэтому у сканера есть режимы для научного, юридического, художественного текста и новостей.</p>
 
   <h2>Было и стало</h2>
   <div class="ba">
@@ -218,41 +212,48 @@
       <p>«ИИ уже не диковинка, а рабочий инструмент. Им пишут письма, разбирают данные, проектируют интерфейсы. Вопрос давно не в том, можно ли, а в том, где он реально экономит время, а где только мешает.»</p>
     </div>
   </div>
-  <p class="muted small">Заметьте: ни одного длинного тире, ни «является», ни «в современном мире». Предложения разной длины, есть конкретика и позиция автора.</p>
+  <p class="muted small">Ни одного длинного тире, ни «является», ни «в современном мире». Предложения разной длины, есть конкретика и позиция автора.</p>
 
-  <h2>Чем отличается от англоязычного humanizer</h2>
-  <p>Английский <a href="https://github.com/blader/humanizer">humanizer</a> для русского текста не работает. У русских AI-маркеров своя физика: канцелярит («осуществление внедрения»), кальки с английского синтаксиса («стоит отметить, что»), пропавшие частицы («же», «ведь», «вот»), которыми дышит живой русский. С английскими паттернами это не пересекается вообще.</p>
-  <p>Сверх того, в 2025-2026 модели научились имитировать «глубокомысленность»: рублеными фразами, псевдо-сократическими вопросами и псевдо-терапевтическим тоном. Это отдельный слой маркеров, которого нет ни в одном англоязычном инструменте. humanizer-ru ловит и его.</p>
-
-  <h2>Читать дальше</h2>
-  <div class="cards">
-    <div class="card">
-      <h3><a href="kak-ubrat-sledy-neyroseti.html">Как убрать следы нейросети</a></h3>
-      <p>Практическое руководство с конкретными до/после: канцелярит, тире, ритм, частицы.</p>
+  <h2>Для кого</h2>
+  <div class="who">
+    <div>
+      <h3>Маркетологам и копирайтерам</h3>
+      <p>Черновик из GPT или GigaChat: балл и подчёркнутые обороты прямо здесь или в расширении. Правка руками за десять минут вместо вычитки каждого «является».</p>
     </div>
-    <div class="card">
-      <h3><a href="52-priznaka-ai-teksta.html">64 признака AI-текста</a></h3>
-      <p>Полный справочник маркеров на русском, сгруппированный по 14 категориям.</p>
+    <div>
+      <h3>Редакторам и руководителям</h3>
+      <p>Текст от автора или подрядчика: выделили на странице, увидели балл, решили, возвращать ли на доработку. Отчёт со списком оборотов копируется одной кнопкой.</p>
     </div>
-    <div class="card">
-      <h3><a href="ai-detektory-na-russkom.html">Работают ли AI-детекторы на русском</a></h3>
-      <p>Честный разбор с нашими данными из eval-харнеса: почему детекторы на русском врут.</p>
-    </div>
-    <div class="card">
-      <h3><a href="antiplagiat-i-neyroset.html">Антиплагиат и нейросеть</a></h3>
-      <p>Чем антиплагиат отличается от AI-детектора и почему это разные вещи.</p>
+    <div>
+      <h3>Разработчикам с агентом</h3>
+      <p>Скилл для Claude Code, Cursor, Codex: правит доки, посты и письма по тем же правилам, держит факт-замок на числах и именах, показывает «было N, стало M».</p>
     </div>
   </div>
+
+  <h2 id="kak-rabotaet">Как работает скилл: три режима</h2>
+  <ol>
+    <li><strong>Полное редактирование.</strong> Режим по умолчанию: проходит по всем 64 признакам, калибрует текст под голос автора, выравнивает ритм, снимает канцелярит и кальки.</li>
+    <li><strong>Точечная правка.</strong> Только указанная категория: например, убрать канцелярит или вычистить 21 жёсткий запрет («является», «в современном мире», длинное тире). Остальное не трогается.</li>
+    <li><strong>Аудит без правки.</strong> Скилл показывает, какие маркеры нейросети есть в тексте и где, не переписывая. Тот же сканер, что на этой странице, плюс морфология.</li>
+  </ol>
+
+  <h2>Читать дальше</h2>
+  <ul class="reading">
+    <li><a href="kak-ubrat-sledy-neyroseti.html">Как убрать следы нейросети</a><span>Практическое руководство с до/после: канцелярит, тире, ритм, частицы.</span></li>
+    <li><a href="52-priznaka-ai-teksta.html">64 признака AI-текста</a><span>Полный справочник маркеров на русском по 14 категориям.</span></li>
+    <li><a href="ai-detektory-na-russkom.html">Работают ли AI-детекторы на русском</a><span>Разбор с данными из наших калибровок: почему детекторы на русском ошибаются.</span></li>
+    <li><a href="antiplagiat-i-neyroset.html">Антиплагиат и нейросеть</a><span>Чем антиплагиат отличается от AI-детектора и почему это разные вещи.</span></li>
+  </ul>
 
   <h2 id="faq">Частые вопросы</h2>
   <div class="faq">
     <details>
       <summary>Как очеловечить текст, написанный нейросетью?</summary>
-      <p>Уберите маркеры машинной генерации: канцелярит («является», «данный»), длинные тире, кальки с английского, ровный ритм предложений. Верните живой голос: частицы «же», «ведь», «вот», разную длину фраз, конкретику вместо абстракций. Скилл humanizer-ru делает это автоматически в Claude по 64 признакам AI-текста.</p>
+      <p>Уберите маркеры машинной генерации: канцелярит («является», «данный»), длинные тире, кальки с английского, ровный ритм предложений. Верните живой голос: частицы «же», «ведь», «вот», разную длину фраз, конкретику вместо абстракций. Скилл humanizer-ru делает это в агенте (Claude Code, Cursor, Codex) по 64 признакам AI-текста, а сканер на сайте и в расширении Chrome показывает, что именно выдаёт текст.</p>
     </details>
     <details>
       <summary>humanizer-ru работает бесплатно?</summary>
-      <p>Да. Это open-source скилл с лицензией MIT. Сам скилл бесплатный, вы платите только за работу модели Claude или используете её в рамках своего тарифа Claude Code, Cowork или API. Отдельных подписок «сделать текст человечным онлайн» здесь нет.</p>
+      <p>Да. Это open-source проект с лицензией MIT. Сканер на сайте и в расширении бесплатный и считает в браузере. Скилл тоже бесплатный, вы платите только за работу модели в своём агенте по своему тарифу. Отдельных подписок и лимитов нет.</p>
     </details>
     <details>
       <summary>Нужен ли GPTZero, чтобы проверить результат?</summary>
@@ -262,10 +263,6 @@
       <summary>Чем humanizer-ru отличается от англоязычного humanizer?</summary>
       <p>У русского AI-текста своя физика: канцелярит, кальки с английского, отсутствие частиц. Англоязычные правила сюда не переносятся. humanizer-ru заточен под русский и ловит то, чего нет в английских инструментах: псевдо-терапию, рваную медитативность, эмодзи-декор моделей 2025-2026.</p>
     </details>
-  </div>
-
-  <div class="cta-row">
-    <a class="cta" href="https://github.com/ilyautov/humanizer-ru">Установить скилл на GitHub</a>
   </div>
 
   <section class="tg-banner">
@@ -287,10 +284,10 @@
     <div class="foot-grid">
       <div>
         <a class="brand" href="index.html">humanizer<span>-ru</span></a>
-        <p>Open-source скилл для Claude, который убирает следы нейросети из русского текста и возвращает ему живой голос. Лицензия MIT.</p>
+        <p>Open-source инструмент, который убирает следы нейросети из русского текста и измеряет правку: скилл для агентов, расширение Chrome, сканер на этой странице. Лицензия MIT.</p>
       </div>
       <div>
-        <h4>Материалы</h4>
+        <h3>Материалы</h3>
         <ul>
           <li><a href="kak-ubrat-sledy-neyroseti.html">Убрать следы нейросети</a></li>
           <li><a href="52-priznaka-ai-teksta.html">64 признака AI-текста</a></li>
@@ -299,9 +296,10 @@
         </ul>
       </div>
       <div>
-        <h4>Автор</h4>
+        <h3>Проект</h3>
         <ul>
           <li><a href="https://github.com/ilyautov/humanizer-ru">GitHub: репозиторий и установка</a></li>
+          <li><a href="https://github.com/ilyautov/humanizer-ru/tree/main/extension">Расширение Chrome</a></li>
           <li><a href="https://t.me/gorilla_under_hood">Telegram: Under the Hood</a></li>
         </ul>
       </div>
