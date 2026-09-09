@@ -22,7 +22,7 @@
 <link rel="icon" type="image/png" href="icon-128.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="preload" as="image" href="hero.jpg">
+<link rel="preload" as="image" href="hero-paper.jpg">
 <link rel="stylesheet" href="style.css">
 <script type="application/ld+json">
 {
@@ -102,11 +102,16 @@
 <div class="wrap">
 
   <section class="hero" id="audit" aria-labelledby="hero-title">
-    <div class="hero-grid">
-      <div class="hero-main">
+    <div class="hero-top">
+      <div class="hero-copy">
         <h1 id="hero-title">Убирает следы нейросети из русского текста. И показывает, где они.</h1>
         <p class="lede">Вставьте текст и получите балл чистоты от 0 до 100 с подчёркнутыми оборотами, которые выдают генерацию. Правьте сами, в расширении Chrome или отдайте агенту со скиллом.</p>
         <p class="hero-proof">Правила откалиброваны на 55 тысячах размеченных русских текстов. <a href="https://github.com/ilyautov/humanizer-ru/tree/main/eval">Отчёты и команды воспроизведения открыты</a>.</p>
+      </div>
+      <figure class="hero-paper">
+        <img src="hero-paper.jpg" width="720" height="504" alt="Лист с напечатанным текстом, исчерченный красным карандашом редактора">
+      </figure>
+    </div>
 
         <div class="audit-examples" role="group" aria-label="Готовые примеры">
           <span>Примеры</span>
@@ -131,16 +136,8 @@
         </div>
         <p class="audit-source" id="audit-source" hidden></p>
         <p class="audit-privacy">Считается в браузере, текст никуда не отправляется.</p>
-      </div>
-
-      <div class="hero-side">
-        <figure class="hero-art" id="hero-art">
-          <img src="hero.jpg" width="900" height="1041" alt="Лист с напечатанным текстом: верхняя половина ровная, нижняя исчерчена красным карандашом редактора">
-          <figcaption class="audit-scale" aria-label="Шкала балла"><span class="z-bad">0</span> рерайт <span class="z-warn">60</span> точечная правка <span class="z-good">85</span> чисто <span>100</span></figcaption>
-        </figure>
+        <p class="audit-scale audit-scale-line" id="audit-scale-line" aria-label="Шкала балла"><span class="z-bad">0</span> рерайт <span class="z-warn">60</span> точечная правка <span class="z-good">85</span> чисто <span>100</span></p>
         <div class="audit-result" id="audit-result" aria-live="polite" hidden></div>
-      </div>
-    </div>
 
     <div class="audit-marked" id="audit-marked" hidden>
       <div class="audit-legend">
@@ -300,6 +297,7 @@
         <ul>
           <li><a href="https://github.com/ilyautov/humanizer-ru">GitHub: репозиторий и установка</a></li>
           <li><a href="https://github.com/ilyautov/humanizer-ru/tree/main/extension">Расширение Chrome</a></li>
+          <li><a href="privacy.html">Приватность расширения</a></li>
           <li><a href="https://t.me/gorilla_under_hood">Telegram: Under the Hood</a></li>
         </ul>
       </div>

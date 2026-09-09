@@ -6,7 +6,7 @@
   const textEl = $("audit-text"), genreEl = $("audit-genre"), runBtn = $("audit-run");
   const countEl = $("audit-count"), resultEl = $("audit-result"), sourceEl = $("audit-source");
   const markedWrap = $("audit-marked"), markedEl = $("audit-text-marked"), nextEl = $("audit-next"), installEl = $("install");
-  const artEl = $("hero-art");
+  const artEl = $("audit-scale-line");
   if (!textEl || typeof globalThis.humanizerScan !== "function") return;
   const RULES = globalThis.HUMANIZER_RULES || {};
 
