@@ -25,6 +25,7 @@ REQUIRED_FILES = (
     "SKILL.md",
     "agents/openai.yaml",
     "references/catalog.md",
+    "references/audit.md",
     "scripts/scan.py",
     "scripts/humanizer_metrics/__init__.py",
     "scripts/humanizer_metrics/markers.py",

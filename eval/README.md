@@ -269,3 +269,20 @@ eval/
 │   └── __init__.py        — registry: available_detectors() / perplexity_detectors()
 └── out/                   — results.json, baseline.json, triggers.json (gitignored)
 ```
+
+## Парные прогоны инструкции скилла (сентябрь 2026)
+
+Проверка не сканера, а самой инструкции: что делает Opus с исходником, получив
+SKILL.md. `probe_installed_skill.py` дёргает `claude -p` с чистым контекстом,
+складывает ответы в `out/<run>/raw` и слепые пакеты в `out/<run>/blind`; оценка
+по `PROBE_RUBRIC.md` агентами без меток условий; `probe_scanner.py <run>` считает
+балл сканера по условиям. Отчёты по порядку:
+
+- `SKILL_DEBUG.md`, `INSTALLED_SKILL_TEST.md`: официальный 3.23.0 против редактора
+  без скилла. Скилл снимает штампы, но добавляет риторику и меняет голос.
+- `SKILL_PATCH_CHECK.md`: первый патч (убраны квоты живости) не принят.
+- `LOCAL_EDIT_CHECK.md`, `SCOPE_CHECK.md`, `INTEGRATION_CHECK.md`: компактная
+  локальная редактура почти не ломает смысл (1 замечание из 65 против 15).
+- `MERGED_EDIT_CHECK.md`: локальная редактура без запретов не снимает маркеры
+  (business 4 → 73); объединённый скилл поднимает до 82 при нуле смысловых ошибок.
+- `COMPETITOR_SKILLS_REVIEW.md`: что взять у чужих инструкций, статический разбор.

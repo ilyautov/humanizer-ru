@@ -44,6 +44,12 @@ jobs:
       - name: Install-smoke skill source
         run: python scripts/install_smoke.py .
 
+      - name: Default edit route and audit packaging tests
+        run: |
+          python -m unittest discover -s eval -p test_skill_prompts.py
+          python -m unittest discover -s eval -p test_probe_installed_skill.py
+          python scripts/test_install_surface.py
+
       - name: Self-test скилла (lint_skill)
         run: python scripts/lint_skill.py
 
