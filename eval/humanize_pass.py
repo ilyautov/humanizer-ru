@@ -46,9 +46,10 @@ sys.path.insert(0, str(ROOT / "eval"))
 sys.path.insert(0, str(ROOT / "skills" / "humanizer-ru" / "scripts"))
 
 import remote_backend  # noqa: E402
-from author_profiles import distance, profile  # noqa: E402
+from author_profiles import distance, features as profile  # noqa: E402
 from llm_backend import generate  # noqa: E402
 from m4_calibration import is_russian  # noqa: E402
+from skill_prompts import load_edit_prompt  # noqa: E402
 
 from humanizer_metrics.markers import (  # noqa: E402
     effective_hard_bans,
@@ -74,7 +75,7 @@ def score(text: str) -> tuple[int, float]:
 
 def run(cell: Path, model: str, workers: int, num_ctx: int) -> int:
     provider, name = remote_backend.parse_target(model)
-    prompt_head = SKILL.read_text(encoding="utf-8")
+    prompt_head = load_edit_prompt(SKILL.parent)
     recs = [json.loads(s) for s in cell.read_text(encoding="utf-8").splitlines() if s]
     lock, done = threading.Lock(), {"n": 0}
     out_path = OUT / f"{cell.stem}__by-{name.replace('/', '_').replace(':', '-')}.jsonl"

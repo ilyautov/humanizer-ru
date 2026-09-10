@@ -38,7 +38,7 @@ Claude.ai, DeepSeek Harness and team rollout are covered in [Install](#install).
 
 ## What you get
 
-64 patterns across 14 categories: канцелярит, English calques, emotional sterility, persuasion tricks, information rhythm, hedging specifics, plus the 2025-2026 stylistic fingerprints (jagged-meditation single-word sentences, pseudo-Socratic Q-A chains, decorative emoji per list item, pseudo-therapeutic register) and the 2026 formulas (inanimate subject, Title Case headings, mid-sentence truncation, negation triad), plus a discourse layer (explicit final moral, portrait-style character introduction, emotion conveyed only through the body, seamless causal chains, strictly linear chronology, no direct reader address: narrative signals that survive stylistic rewriting, per StoryScope / COLM 2026). 21 hard-banned constructions that scream "GPT wrote this", including em-dashes (detectors count their frequency). A research-backed section on how detectors actually work (perplexity, burstiness, morphology) with verified numbers from DivEye, PIFE, AINL-Eval 2025 (every citation checked, see SOURCES.md). Five article formulas. Voice calibration. Quad-pass audit with a "Skeleton" pass that reads only the first lines of list items to catch templated openings.
+64 patterns across 14 categories: канцелярит, English calques, emotional sterility, persuasion tricks, information rhythm, hedging specifics, plus the 2025-2026 stylistic fingerprints (jagged-meditation single-word sentences, pseudo-Socratic Q-A chains, decorative emoji per list item, pseudo-therapeutic register) and the 2026 formulas (inanimate subject, Title Case headings, mid-sentence truncation, negation triad), plus a discourse layer (explicit final moral, portrait-style character introduction, emotion conveyed only through the body, seamless causal chains, strictly linear chronology, no direct reader address: narrative signals that survive stylistic rewriting, per StoryScope / COLM 2026). 21 hard-banned constructions that scream "GPT wrote this", including em-dashes (detectors count their frequency). A research-backed section on how detectors actually work (perplexity, burstiness, morphology) with verified numbers from DivEye, PIFE, AINL-Eval 2025 (every citation checked, see SOURCES.md). Five article formulas. Voice calibration. Local editing instead of rewriting: mark the exact spot, strip the wrapper around the claim, verify the result against the source (who did what, certainty, conditions, numbers with units). Nothing is added for "liveliness": no invented facts, emotions or particles; a 195-sample blind run (eval/LOCAL_EDIT_CHECK.md) showed that voice quotas produce foreign tone and staged rhetoric.
 
 ## Try it without installing
 
@@ -174,7 +174,7 @@ dsh scans `~/.agents/skills` and `~/.dsh/skills` on its own, no restart needed. 
 
 ## Modes
 
-- **Full rewrite** (default): all 64 patterns, voice calibration, quad-pass audit.
+- **Edit** (default): scanner diagnosis, local fixes by priority, verification against the source, "was N, now M" report.
 - **Audit**: diagnosis only, returns detected patterns with priority A-D.
 - **Targeted fix**: works on a specific category only.
 
