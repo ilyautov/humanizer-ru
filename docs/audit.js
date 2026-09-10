@@ -169,23 +169,26 @@
   }
 
   // --- Среды ------------------------------------------------------------------
+  // Блок установки есть только на главной. На странице-инструменте её нет, и
+  // тогда весь этот кусок пропускается: сканер выше от него не зависит.
+  const tabsEl = installEl && installEl.querySelector(".env-tabs");
   const TAB_ENVS = ENVS.slice(1); // ENVS[0] набран в разметке как главная команда
   let envKey = TAB_ENVS[0].key;
   function renderEnvs() {
-    const tabs = installEl.querySelector(".env-tabs");
-    tabs.innerHTML = TAB_ENVS.map((e) =>
+    if (!tabsEl) return;
+    tabsEl.innerHTML = TAB_ENVS.map((e) =>
       `<button type="button" role="tab" data-env="${e.key}" aria-selected="${e.key === envKey}">${e.label}</button>`).join("");
     const env = TAB_ENVS.find((e) => e.key === envKey);
     $("env-cmd").textContent = env.cmd;
     $("env-note").textContent = env.note;
   }
-  installEl.querySelector(".env-tabs").addEventListener("click", (ev) => {
+  if (tabsEl) tabsEl.addEventListener("click", (ev) => {
     const b = ev.target.closest("[data-env]");
     if (!b) return;
     envKey = b.dataset.env;
     renderEnvs();
   });
-  const bindCopy = (btnId, srcId) => $(btnId).addEventListener("click", async () => {
+  const bindCopy = (btnId, srcId) => $(btnId) && $(btnId).addEventListener("click", async () => {
     const btn = $(btnId), label = btn.querySelector("span");
     try {
       await navigator.clipboard.writeText($(srcId).textContent);
