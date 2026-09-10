@@ -18,7 +18,7 @@ python scripts/build_extension.py --zip dist/humanizer-ru-extension.zip
 
 ## Текст для карточки в Web Store
 
-**Название:** humanizer-ru: следы нейросети в русском тексте
+**Название:** humanizer-ru: проверка текста на нейросеть
 
 **Короткое описание (до 132):** в `manifest.json`.
 
