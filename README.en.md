@@ -5,7 +5,7 @@
 Claude Code / Cowork plugin. Kills AI smell in Russian text. The English [humanizer](https://github.com/blader/humanizer) won't help here. Russian AI markers are their own beast: bureaucratic noun-chains (канцелярит), English-syntax calques, missing particles like "же" and "ведь" that make Russian sound alive.
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-3.24.0-blueviolet)](https://github.com/ilyautov/humanizer-ru/blob/main/CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-3.25.0-blueviolet)](https://github.com/ilyautov/humanizer-ru/blob/main/CHANGELOG.md)
 [![Stars](https://img.shields.io/github/stars/ilyautov/humanizer-ru?style=social)](https://github.com/ilyautov/humanizer-ru/stargazers)
 [![skills.sh](https://skills.sh/b/ilyautov/humanizer-ru)](https://skills.sh/ilyautov/humanizer-ru/humanizer-ru)
 [![npm](https://img.shields.io/npm/v/humanizer-ru?label=npm%20%C2%B7%20dsh)](https://www.npmjs.com/package/humanizer-ru)
@@ -177,6 +177,7 @@ dsh scans `~/.agents/skills` and `~/.dsh/skills` on its own, no restart needed. 
 - **Edit** (default): scanner diagnosis, local fixes by priority, verification against the source, "was N, now M" report.
 - **Audit**: diagnosis only, returns detected patterns with priority A-D.
 - **Targeted fix**: works on a specific category only.
+- **Own draft** (silent, unprompted): while the skill is installed, the agent runs the Russian prose it writes itself past the 21 hard bans before you ever see it. No report, no ask. Text that is not the agent's own (your message, a file, a quote, someone's code) is never edited silently: it goes through the three modes above, where the edit is visible. Saying «не правь» turns the mode off for the rest of the conversation.
 
 ## Usage
 

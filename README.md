@@ -5,7 +5,7 @@
 > [English version](README.en.md) · [中文](README.zh.md)
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Версия](https://img.shields.io/badge/версия-3.24.0-blueviolet)](https://github.com/ilyautov/humanizer-ru/blob/main/CHANGELOG.md)
+[![Версия](https://img.shields.io/badge/версия-3.25.0-blueviolet)](https://github.com/ilyautov/humanizer-ru/blob/main/CHANGELOG.md)
 [![Звёзды](https://img.shields.io/github/stars/ilyautov/humanizer-ru?style=social)](https://github.com/ilyautov/humanizer-ru/stargazers)
 [![skills.sh](https://skills.sh/b/ilyautov/humanizer-ru)](https://skills.sh/ilyautov/humanizer-ru/humanizer-ru)
 [![npm](https://img.shields.io/npm/v/humanizer-ru?label=npm%20%C2%B7%20dsh)](https://www.npmjs.com/package/humanizer-ru)
@@ -72,10 +72,11 @@ Claude.ai, DeepSeek Harness и раскатка на команду в [разд
 
 **Калибровка под голос автора.** Если дать образцы своего письма, скилл выписывает ритм, лексику, пунктуацию и тон и держит замены в этих рамках. Это ограничение, а не разрешение дописывать в вашей манере.
 
-**Три режима работы:**
+**Четыре режима работы:**
 - Редактура (по умолчанию): диагностика сканером, разметка, правка, сверка, отчёт «было N, стало M»
 - Аудит: только диагностика, текст не трогает
 - Точечная правка: работа с одной категорией
+- Свой черновик (молча, без просьбы): пока скилл установлен, агент прогоняет по таблице жёстких банов то, что пишет по-русски сам, до того как вы это увидите. Чужой текст молча не правится никогда: ваше сообщение, файл, цитата и чужой код идут только через режимы выше, и правку вы видите. «Не правь» выключает режим до конца разговора
 
 **Что ловят детекторы:** секция с числами из исследований 2025-2026. DivEye: вторые производные surprisal дают 39.4% вклада в детекцию. Perplexity gap 29.5 vs 15.2 (человек vs LLM). AINL-Eval 2025: лучший результат на тесте около 86% (52K русских текстов, 12 доменов). Все ссылки и цифры верифицированы по первоисточникам, см. [SOURCES.md](SOURCES.md).
 
