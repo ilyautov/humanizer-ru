@@ -232,3 +232,19 @@ Full list, including bug reports that changed the code: [CONTRIBUTORS.md](CONTRI
 ## License
 
 MIT
+
+---
+
+## Who built this
+
+[Ilya Utov](https://github.com/ilyautov), the [AI Frontier](https://aifrontier.tech) lab. I write about how these tools work inside on [Telegram](https://t.me/gorilla_under_hood) and [LinkedIn](https://www.linkedin.com/in/ilyautov).
+
+**Nearby:**
+
+- [**marketplaces-mcp-ru**](https://github.com/ilyautov/marketplaces-mcp-ru): Wildberries, Ozon, Yandex Market and Avito straight from the agent
+- [**small-business-ru**](https://github.com/ilyautov/small-business-ru): 34 skills for Russian small business, the numbers computed in code
+- [**consilium-principis**](https://github.com/ilyautov/consilium-principis): a board of thinkers where every quote is checked word for word
+- [**hefest**](https://github.com/ilyautov/hefest): chemical safety for an industrial plant, kept inside the plant's own network
+- [**cordon**](https://github.com/ilyautov/cordon): a deterministic layer between untrusted content and agent actions
+
+Everything else: [github.com/ilyautov](https://github.com/ilyautov). Useful? Star it, that is how other people find it.
