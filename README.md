@@ -41,6 +41,8 @@ Claude.ai, DeepSeek Harness и раскатка на команду в [разд
 
 📖 **Документация и разборы:** [humanizer-ru.aifrontier.tech](https://humanizer-ru.aifrontier.tech/): [работают ли AI-детекторы на русском](https://humanizer-ru.aifrontier.tech/ai-detektory-na-russkom.html), [64 признака AI-текста](https://humanizer-ru.aifrontier.tech/52-priznaka-ai-teksta.html), [антиплагиат и нейросеть](https://humanizer-ru.aifrontier.tech/antiplagiat-i-neyroset.html).
 
+🧰 **Остальные инструменты:** MCP-серверы к кабинетам Wildberries, Ozon, Яндекс Маркета и Авито, пять серверов к hh.ru, VK, Диадоку, СБИС и Честному знаку, 34 скилла для малого бизнеса, совет мыслителей с дословной проверкой цитат. Все одним списком: [ilyautov.github.io](https://ilyautov.github.io/).
+
 ## Зачем это нужно
 
 Английский [humanizer](https://github.com/blader/humanizer) для русского текста не работает. У русских AI-маркеров своя физика: канцелярит («осуществление внедрения»), кальки с английского синтаксиса («стоит отметить, что»), отсутствующие частицы («же», «ведь», «вот»), которыми живой русский дышит. С английскими паттернами это не пересекается вообще.
