@@ -381,4 +381,4 @@ MIT: используйте свободно, форкайте, дорабаты
 - [**hefest**](https://github.com/ilyautov/hefest): химическая безопасность завода, целиком офлайн
 - [**cordon**](https://github.com/ilyautov/cordon): детерминированный слой между недоверенным контентом и действиями агента
 
-Все проекты: [github.com/ilyautov](https://github.com/ilyautov). Пригодилось, поставьте звезду: по ней это находят другие.
+Все проекты одним списком, разобранные по назначению: [ilyautov.github.io](https://ilyautov.github.io/). Исходники: [github.com/ilyautov](https://github.com/ilyautov). Пригодилось, поставьте звезду: по ней это находят другие.
