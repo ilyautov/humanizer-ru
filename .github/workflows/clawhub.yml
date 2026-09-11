@@ -18,6 +18,12 @@ on:
         type: choice
         options: [preview, publish]
         default: preview
+      owner:
+        description: >-
+          Хендл публикатора на clawhub.ai. Нужен, когда слаг заняли другие:
+          у нас так вышло с content-strategy и contract-review.
+        type: string
+        default: ""
 
 jobs:
   clawhub:
@@ -27,6 +33,7 @@ jobs:
     uses: openclaw/clawhub/.github/workflows/skill-publish.yml@v0.23.3
     with:
       root: skills
+      owner: ${{ inputs.owner }}
       dry_run: ${{ inputs.mode != 'publish' }}
     secrets:
       clawhub_token: ${{ secrets.CLAWHUB_TOKEN }}
