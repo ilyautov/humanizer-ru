@@ -1,0 +1,85 @@
+name: Publish to npm
+
+# На каждый тег v*: опубликовать пакет в npm через Trusted Publishing (OIDC),
+# без токена в секретах репозитория.
+#
+# Разовая настройка на стороне npm, ДО первого тега после подключения:
+#   npmjs.com -> пакет humanizer-ru -> Settings -> Trusted Publisher
+#     Publisher:      GitHub Actions
+#     Organization:   ilyautov
+#     Repository:     humanizer-ru
+#     Workflow file:  publish-npm.yml   <-- ровно имя этого файла
+#     Environment:    (пусто)
+#
+# Зачем вообще: раньше публикация делалась руками, и канал отстал на версию
+# (npm 3.24.0 при 3.25.0 в репозитории). Ручной шаг в конце релиза забывается,
+# автоматический нет.
+#
+# workflow_dispatch нужен, чтобы до-опубликовать уже выпущенный тег.
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Существующий тег релиза, например v3.25.0"
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  npm:
+    name: Publish
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write # OIDC -> Trusted Publishing в npm
+    steps:
+      - name: Определить тег
+        id: tag
+        shell: bash
+        run: |
+          REF="${{ github.event.inputs.tag || github.ref_name }}"
+          echo "ref=$REF" >> "$GITHUB_OUTPUT"
+          echo "version=${REF#v}" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ steps.tag.outputs.ref }}
+          persist-credentials: false
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Версия в теге должна совпасть с package.json
+        shell: bash
+        env:
+          V: ${{ steps.tag.outputs.version }}
+        run: |
+          PKG=$(node -p "require('./package.json').version")
+          echo "тег=$V package.json=$PKG"
+          [ "$V" = "$PKG" ] || { echo "версия тега не совпала с package.json" >&2; exit 1; }
+
+      # Trusted Publishing требует npm 11.5.1 и новее: в образе может быть старее.
+      - name: Свежий npm
+        run: npm install -g npm@latest
+
+      - name: Эта версия уже в npm? Тогда выходим без ошибки
+        id: check
+        shell: bash
+        env:
+          V: ${{ steps.tag.outputs.version }}
+        run: |
+          if npm view "humanizer-ru@$V" version >/dev/null 2>&1; then
+            echo "skip=1" >> "$GITHUB_OUTPUT"
+            echo "npm уже отдаёт $V, публиковать нечего"
+          else
+            echo "skip=0" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Публикация
+        if: steps.check.outputs.skip == '0'
+        run: npm publish --access public
