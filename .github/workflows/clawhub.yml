@@ -1,0 +1,32 @@
+name: Publish to ClawHub
+
+# Реестр скиллов OpenClaw: https://clawhub.ai
+#
+# Запускается только руками, сам по коммитам не срабатывает.
+# Разовая настройка, до первого реального выпуска:
+#   1. clawhub.ai -> Sign in with GitHub
+#   2. создать токен в веб-интерфейсе
+#   3. положить его в Settings -> Secrets and variables -> Actions
+#      под именем CLAWHUB_TOKEN
+# Без токена режим «preview» отработает, «publish» упадёт на авторизации.
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: preview показывает план, publish выкладывает в реестр
+        type: choice
+        options: [preview, publish]
+        default: preview
+
+jobs:
+  clawhub:
+    permissions:
+      contents: read
+      id-token: write
+    uses: openclaw/clawhub/.github/workflows/skill-publish.yml@v0.23.3
+    with:
+      root: skills
+      dry_run: ${{ inputs.mode != 'publish' }}
+    secrets:
+      clawhub_token: ${{ secrets.CLAWHUB_TOKEN }}
