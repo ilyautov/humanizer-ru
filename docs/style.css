@@ -598,3 +598,58 @@ tr:last-child td { border-bottom: none; }
   *, *::before, *::after { transition: none !important; animation: none !important; }
   .card:hover, .cta:hover { transform: none; }
 }
+
+/* Аудит: очистка, подсказка по клику, сравнение «было и стало» */
+.audit-clear {
+  font: inherit; font-size: 13px; color: var(--text-dim);
+  background: transparent; border: 1px solid transparent; border-radius: var(--radius-sm);
+  padding: 8px 10px; cursor: pointer; margin-left: auto;
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+.audit-clear:hover { color: var(--bad); border-color: var(--border); }
+.audit-controls .audit-run { margin-left: 0; }
+.audit-genre-note { color: var(--text-dim); font-size: 0.86em; margin: 10px 0 0; }
+.audit-text-marked mark { cursor: pointer; }
+.audit-text-marked mark:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.audit-text-marked mark[aria-pressed="true"] { box-shadow: 0 0 0 2px var(--accent); }
+.audit-hint { margin: 10px 0 0; padding: 10px 14px; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 0.92em; color: var(--text); box-shadow: 0 6px 18px -14px rgba(28, 27, 24, 0.35); }
+.audit-hint b { font-weight: 600; }
+.audit-hint b.ban { color: var(--bad); } .audit-hint b.mk { color: var(--warn); }
+
+.audit-compare-row { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 14px; margin-top: 14px; }
+.audit-compare-toggle {
+  font: inherit; font-size: 13.5px; font-weight: 600; color: var(--accent);
+  background: transparent; border: 1px solid var(--border); border-radius: var(--radius-sm);
+  padding: 7px 12px; cursor: pointer; transition: border-color 0.2s ease, background 0.2s ease;
+}
+.audit-compare-toggle:hover { border-color: var(--accent); background: var(--accent-dim); }
+.audit-compare-toggle[aria-expanded="true"] { color: var(--text-dim); font-weight: 500; }
+.audit-compare-hint { font-size: 12.5px; color: var(--text-dim); max-width: 60ch; }
+.audit-compare { margin-top: 10px; }
+#audit-after {
+  display: block; width: 100%; box-sizing: border-box; resize: vertical;
+  font: inherit; font-size: 15px; line-height: 1.55; color: var(--text);
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-sm);
+  padding: 12px 14px; min-height: 120px;
+}
+#audit-after::placeholder { color: var(--text-dim); }
+#audit-after:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-dim); }
+.audit-compare-result { margin-top: 12px; padding: 14px 16px; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-sm); }
+.cmp-scores { display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px 14px; font-family: var(--mono); font-size: 14px; color: var(--text-dim); }
+.cmp-scores b { font-size: 1.9em; font-weight: 700; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; margin-left: 4px; }
+.cmp-scores .good b { color: var(--good); } .cmp-scores .warn b { color: var(--warn); } .cmp-scores .bad b { color: var(--bad); }
+.cmp-arrow { color: var(--border-strong); font-size: 1.3em; }
+.cmp-delta { font-weight: 700; padding: 2px 8px; border-radius: 99px; background: var(--bg); border: 1px solid var(--border); font-variant-numeric: tabular-nums; }
+.cmp-delta.good { color: var(--good); } .cmp-delta.bad { color: var(--bad); }
+.cmp-verdict { margin: 10px 0 0; font-size: 0.92em; }
+.cmp-facts { margin: 8px 0 0; font-size: 0.9em; font-weight: 600; }
+.cmp-facts.good { color: var(--good); } .cmp-facts.warn { color: var(--warn); }
+.fact-list { list-style: none; padding: 0; margin: 8px 0 0; font-size: 0.9em; display: grid; gap: 6px; }
+.fact-list b { font-weight: 600; margin-right: 6px; }
+.fact-list code { font-family: var(--mono); font-size: 0.92em; padding: 1px 6px; border-radius: 4px; background: var(--bg); border: 1px solid var(--border); }
+.fact-list code.added { border-color: #b26a0055; background: #ffd76a33; }
+.fact-list code.lost { border-color: #d13b3b44; background: #d13b3b12; text-decoration: line-through; text-decoration-color: var(--bad); }
+@media (max-width: 720px) {
+  .audit-clear { margin-left: 0; }
+  .cmp-scores b { font-size: 1.5em; }
+}
