@@ -135,10 +135,20 @@
             </select>
           </label>
           <output class="audit-count" id="audit-count" for="audit-text">0 слов</output>
+          <button type="button" class="audit-clear" id="audit-clear">Очистить</button>
           <button type="button" class="cta audit-run" id="audit-run">Проверить</button>
         </div>
         <p class="audit-source" id="audit-source" hidden></p>
-        <p class="audit-privacy">Считается в браузере, текст никуда не отправляется.</p>
+        <p class="audit-privacy">Считается в браузере, текст никуда не отправляется. Черновик остаётся в памяти этого браузера до кнопки «Очистить».</p>
+        <div class="audit-compare-row">
+          <button type="button" class="audit-compare-toggle" id="audit-compare-toggle" aria-expanded="false" aria-controls="audit-compare">Сравнить с правкой</button>
+          <span class="audit-compare-hint">Вставьте отредактированную версию: балл «было и стало» и факт-замок покажут, что снято и не появилось ли лишнего.</span>
+        </div>
+        <div class="audit-compare" id="audit-compare" hidden>
+          <label class="sr-only" for="audit-after">Отредактированный текст</label>
+          <textarea id="audit-after" rows="6" spellcheck="false" placeholder="Сюда правку: свою, редактора или агента со скиллом"></textarea>
+          <div class="audit-compare-result" id="audit-compare-result" aria-live="polite" hidden></div>
+        </div>
         <p class="audit-scale audit-scale-line" id="audit-scale-line" aria-label="Шкала балла"><span class="z-bad">0</span> рерайт <span class="z-warn">60</span> точечная правка <span class="z-good">85</span> чисто <span>100</span></p>
         <div class="audit-result" id="audit-result" aria-live="polite" hidden></div>
 
@@ -146,9 +156,10 @@
       <div class="audit-legend">
         <span><mark class="ban">жёсткий запрет</mark></span>
         <span><mark class="mk">мягкий маркер</mark></span>
-        <span class="legend-note">наведите на оборот, чтобы увидеть правило; код и цитаты не считаются</span>
+        <span class="legend-note">нажмите на оборот: правило и что с ним делать; код и цитаты не считаются</span>
       </div>
       <div class="audit-text-marked" id="audit-text-marked"></div>
+      <p class="audit-hint" id="audit-hint" hidden></p>
     </div>
 
     <div class="audit-next" id="audit-next" hidden>
