@@ -1,38 +1,31 @@
 {
-  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-07-09/server.schema.json",
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.ilyautov/humanizer-ru",
+  "title": "humanizer-ru",
   "description": "Следы нейросети в русском тексте: балл чистоты 0-100, запреты и маркеры с позициями, факт-замок.",
   "repository": {
     "url": "https://github.com/ilyautov/humanizer-ru",
     "source": "github"
   },
+  "websiteUrl": "https://humanizer-ru.aifrontier.tech/",
   "version": "3.26.1",
   "packages": [
     {
-      "registry_type": "pypi",
+      "registryType": "pypi",
+      "registryBaseUrl": "https://pypi.org",
       "identifier": "ru-humanizer",
       "version": "3.26.1",
-      "runtime_hint": "uvx",
-      "runtime_arguments": [
-        {
-          "type": "positional",
-          "value": "--from",
-          "value_hint": "--from"
-        },
-        {
-          "type": "positional",
-          "value": "ru-humanizer",
-          "value_hint": "ru-humanizer"
-        },
-        {
-          "type": "positional",
-          "value": "ru-humanizer-mcp",
-          "value_hint": "ru-humanizer-mcp"
-        }
-      ],
+      "runtimeHint": "uvx",
       "transport": {
         "type": "stdio"
-      }
+      },
+      "packageArguments": [
+        {
+          "type": "positional",
+          "value": "mcp",
+          "valueHint": "mcp"
+        }
+      ]
     }
   ]
 }

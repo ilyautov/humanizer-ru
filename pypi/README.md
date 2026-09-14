@@ -36,7 +36,7 @@ ru-humanizer чистовик.md --before исходник.md
   "mcpServers": {
     "humanizer-ru": {
       "command": "uvx",
-      "args": ["--from", "ru-humanizer", "ru-humanizer-mcp"]
+      "args": ["ru-humanizer", "mcp"]
     }
   }
 }
