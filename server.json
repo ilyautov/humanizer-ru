@@ -8,13 +8,13 @@
     "source": "github"
   },
   "websiteUrl": "https://humanizer-ru.aifrontier.tech/",
-  "version": "3.26.1",
+  "version": "3.26.2",
   "packages": [
     {
       "registryType": "pypi",
       "registryBaseUrl": "https://pypi.org",
       "identifier": "ru-humanizer",
-      "version": "3.26.1",
+      "version": "3.26.2",
       "runtimeHint": "uvx",
       "transport": {
         "type": "stdio"
