@@ -122,6 +122,10 @@ def build() -> dict:
             "listicle_min_items": structure.LISTICLE_MIN_ITEMS,
             "human_zero_share": list(score.HUMAN_ZERO_SHARE),
             "sterile_min_words": score.STERILE_MIN_WORDS,
+            "staccato_max_words": burstiness.STACCATO_MAX_WORDS,
+            "staccato_min_run": burstiness.STACCATO_MIN_RUN,
+            "staccato_penalty": score.STACCATO_PENALTY,
+            "staccato_penalty_max": score.STACCATO_PENALTY_MAX,
         },
         "markdown": {"quote_max_words": markdown.QUOTE_MAX_WORDS, "gap": markdown.GAP},
     }
