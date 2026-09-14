@@ -1,0 +1,85 @@
+name: Publish to MCP Registry
+
+# На каждый опубликованный GitHub Release: выложить карточку сервера в
+# официальный реестр https://registry.modelcontextprotocol.io.
+#
+# Настройки на стороне реестра не нужно НИКАКОЙ: вход идёт по OIDC-подписи
+# GitHub Actions, пространство имён io.github.ilyautov/* принадлежит владельцу
+# репозитория. Это же снимает ручной шаг `mcp-publisher login github` из
+# PUBLISHING.md: браузер нужен был только человеку.
+#
+# Единственное условие: пакет ru-humanizer уже лежит на PyPI в этой версии,
+# иначе реестр не подтвердит, что сервер наш. Поэтому шаг ждёт PyPI до десяти
+# минут, а не падает сразу: publish-pypi.yml идёт по тому же событию параллельно.
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Существующий тег релиза, например v3.26.0"
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  registry:
+    name: Publish
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write # OIDC -> вход в реестр
+    steps:
+      - name: Определить тег
+        id: tag
+        shell: bash
+        env:
+          REF: ${{ github.event.inputs.tag || github.event.release.tag_name }}
+        run: |
+          [[ "$REF" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "тег не похож на vX.Y.Z: $REF" >&2; exit 1; }
+          echo "ref=$REF" >> "$GITHUB_OUTPUT"
+          echo "version=${REF#v}" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ steps.tag.outputs.ref }}
+          persist-credentials: false
+
+      - name: Версия в теге должна совпасть с pyproject.toml и server.json
+        shell: bash
+        env:
+          V: ${{ steps.tag.outputs.version }}
+        run: |
+          PY=$(sed -nE 's/^version *= *"([^"]+)"/\1/p' pyproject.toml | head -1)
+          SJ=$(python3 -c 'import json; print(json.load(open("server.json"))["version"])')
+          echo "тег=$V pyproject=$PY server.json=$SJ"
+          [ "$V" = "$PY" ] && [ "$V" = "$SJ" ] || { echo "версии разошлись" >&2; exit 1; }
+
+      - name: Дождаться, пока PyPI отдаст эту версию
+        shell: bash
+        env:
+          V: ${{ steps.tag.outputs.version }}
+        run: |
+          for i in $(seq 1 30); do
+            if curl -fsS "https://pypi.org/pypi/ru-humanizer/$V/json" >/dev/null 2>&1; then
+              echo "PyPI отдаёт $V"; exit 0
+            fi
+            echo "PyPI ещё не отдаёт $V (попытка $i из 30)"; sleep 20
+          done
+          echo "PyPI так и не отдал $V: publish-pypi.yml упал или ещё идёт" >&2
+          exit 1
+
+      - name: Поставить mcp-publisher
+        run: |
+          curl -fsSL "https://github.com/modelcontextprotocol/registry/releases/download/v1.8.1/mcp-publisher_linux_amd64.tar.gz" \
+            | tar xz mcp-publisher
+          ./mcp-publisher --help >/dev/null
+
+      - name: Вход по OIDC
+        run: ./mcp-publisher login github-oidc
+
+      # Без --dry-run: в mcp-publisher 1.8.1 он всё равно публикует, и честная
+      # публикация следом падает с «cannot publish duplicate version».
+      - name: Публикация
+        run: ./mcp-publisher publish
