@@ -1,0 +1,85 @@
+name: Publish to PyPI
+
+# На каждый опубликованный GitHub Release: собрать пакет ru-humanizer и выложить
+# на PyPI через Trusted Publishing (OIDC), без токена в секретах.
+#
+# Разовая настройка на стороне PyPI, ДО первого релиза после подключения
+# (подробно в PUBLISHING.md):
+#   pypi.org -> Your account -> Publishing -> Add a new pending publisher
+#     PyPI project name: ru-humanizer
+#     Owner:             ilyautov
+#     Repository name:   humanizer-ru
+#     Workflow name:     publish-pypi.yml   <-- ровно имя этого файла
+#     Environment name:  (пусто)
+#
+# workflow_dispatch нужен, чтобы до-опубликовать уже выпущенный тег.
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Существующий тег релиза, например v3.26.0"
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  pypi:
+    name: Publish
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write # OIDC -> Trusted Publishing на PyPI
+    steps:
+      - name: Определить тег
+        id: tag
+        shell: bash
+        env:
+          REF: ${{ github.event.inputs.tag || github.event.release.tag_name }}
+        run: |
+          [[ "$REF" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "тег не похож на vX.Y.Z: $REF" >&2; exit 1; }
+          echo "ref=$REF" >> "$GITHUB_OUTPUT"
+          echo "version=${REF#v}" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ steps.tag.outputs.ref }}
+          persist-credentials: false
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Версия в теге должна совпасть с pyproject.toml
+        shell: bash
+        env:
+          V: ${{ steps.tag.outputs.version }}
+        run: |
+          PKG=$(python -c 'import tomllib; print(tomllib.load(open("pyproject.toml","rb"))["project"]["version"])')
+          echo "тег=$V pyproject=$PKG"
+          [ "$V" = "$PKG" ] || { echo "версия тега не совпала с pyproject.toml" >&2; exit 1; }
+
+      - name: Эта версия уже на PyPI? Тогда выходим без ошибки
+        id: check
+        shell: bash
+        env:
+          V: ${{ steps.tag.outputs.version }}
+        run: |
+          if curl -fsS "https://pypi.org/pypi/ru-humanizer/$V/json" >/dev/null 2>&1; then
+            echo "skip=1" >> "$GITHUB_OUTPUT"
+            echo "PyPI уже отдаёт $V, публиковать нечего"
+          else
+            echo "skip=0" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Сборка
+        if: steps.check.outputs.skip == '0'
+        run: |
+          python -m pip install --quiet build
+          python -m build
+
+      - name: Публикация
+        if: steps.check.outputs.skip == '0'
+        uses: pypa/gh-action-pypi-publish@release/v1

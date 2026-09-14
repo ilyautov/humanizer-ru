@@ -1,0 +1,51 @@
+name: "humanizer-ru scan"
+description: "Балл чистоты русского текста 0-100 как гейт CI: следы нейросети в Markdown и текстовых файлах"
+author: "Ilya Utov"
+branding:
+  icon: "edit-3"
+  color: "red"
+
+inputs:
+  files:
+    description: "Файлы или glob-маски через пробел или перенос строки, ** обходит подпапки"
+    required: false
+    default: "**/*.md"
+  genre:
+    description: "Жанр текста: marketing (строгий, по умолчанию), academic, legal, fiction, news"
+    required: false
+    default: "marketing"
+  min-score:
+    description: "Порог балла чистоты, ниже которого шаг падает"
+    required: false
+    default: "60"
+  python-version:
+    description: "Версия Python для сканера"
+    required: false
+    default: "3.12"
+
+outputs:
+  score:
+    description: "Минимальный балл чистоты по проверенным файлам"
+    value: ${{ steps.scan.outputs.score }}
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-python@v5
+      with:
+        python-version: ${{ inputs.python-version }}
+
+    - name: Зависимости сканера
+      shell: bash
+      run: python -m pip install --quiet razdel pymorphy3
+
+    - name: Балл чистоты
+      id: scan
+      shell: bash
+      env:
+        FILES: ${{ inputs.files }}
+        GENRE: ${{ inputs.genre }}
+        MIN_SCORE: ${{ inputs.min-score }}
+      run: >-
+        python "$GITHUB_ACTION_PATH/scripts/scan_gate.py"
+        --files "$FILES" --genre "$GENRE" --min-score "$MIN_SCORE"

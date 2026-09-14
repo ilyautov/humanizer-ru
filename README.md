@@ -216,6 +216,34 @@ cp -r humanizer-ru/skills/humanizer-ru ~/.agents/skills/
 
 dsh сканирует `~/.agents/skills` и `~/.dsh/skills` сам, перезапуск не нужен. Ключ `allowed-tools` из фронтматтера dsh не читает, а `references/` разрешает относительно папки скилла, так что каталог и журнал правок открываются как в Claude Code.
 
+### 7. Сканер отдельно: pip, MCP-сервер и GitHub Action
+
+Сканер живёт и без скилла, пакетом [`ru-humanizer`](https://pypi.org/project/ru-humanizer/) на PyPI (имя `humanizer-ru` на PyPI занято). Это тот же `scan.py`, только командой:
+
+```bash
+pip install ru-humanizer
+ru-humanizer статья.md --genre academic
+ru-humanizer чистовик.md --before исходник.md
+```
+
+Тот же пакет поднимает MCP-сервер с двумя инструментами: `scan_text` даёт балл, штрафы, запреты и маркеры с позициями, `compare_texts` считает «было и стало» и факт-замок между исходником и правкой. Подключается к Claude Desktop, Cursor и любому клиенту MCP; в Claude Code одной командой:
+
+```bash
+claude mcp add humanizer-ru -- uvx --from ru-humanizer ru-humanizer-mcp
+```
+
+В CI сканер работает как GitHub Action: гейт на балл чистоты по Markdown и текстовым файлам, шаг падает ниже порога.
+
+```yaml
+- uses: ilyautov/humanizer-ru@main
+  with:
+    files: "docs/**/*.md"
+    genre: marketing
+    min-score: 60
+```
+
+Порядок разовой настройки публикации на PyPI и в реестре MCP описан в `PUBLISHING.md`.
+
 ## Использование
 
 Попросите Claude по-русски:
