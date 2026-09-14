@@ -1,0 +1,53 @@
+name: action-smoke
+
+# Смоук GitHub Action из корня репозитория (action.yml): человеческие тексты из
+# eval-корпуса проходят порог, машинный исходник валит шаг. Ловит сломанный
+# scan_gate.py и рассинхрон входов action.yml.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Человеческие тексты проходят порог
+        id: human
+        uses: ./
+        with:
+          files: |
+            eval/corpus/human/wiki_baikal.txt
+            eval/corpus/human/wiki_chaikovsky.txt
+          genre: news
+          min-score: 85
+
+      - name: Выход score заполнен
+        shell: bash
+        env:
+          SCORE: ${{ steps.human.outputs.score }}
+        run: |
+          echo "минимальный балл: $SCORE"
+          [ -n "$SCORE" ] && [ "$SCORE" -ge 85 ]
+
+      - name: Машинный исходник валит шаг
+        id: ai
+        uses: ./
+        continue-on-error: true
+        with:
+          files: eval/corpus/raw/marketing_gpt_01.txt
+          min-score: 60
+
+      - name: Падение ожидалось
+        shell: bash
+        env:
+          OUTCOME: ${{ steps.ai.outcome }}
+        run: |
+          echo "исход шага на машинном тексте: $OUTCOME"
+          [ "$OUTCOME" = "failure" ]

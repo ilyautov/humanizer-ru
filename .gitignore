@@ -27,3 +27,7 @@ node_modules/
 PRODUCT.md
 DESIGN.md
 .impeccable/
+
+# сборка пакета PyPI (uv build / python -m build)
+build/
+*.egg-info/

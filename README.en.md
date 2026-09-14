@@ -172,6 +172,34 @@ cp -r humanizer-ru/skills/humanizer-ru ~/.agents/skills/
 
 dsh scans `~/.agents/skills` and `~/.dsh/skills` on its own, no restart needed. It ignores the `allowed-tools` frontmatter key and resolves `references/` relative to the skill folder, so the catalog and the edit log open the same way as in Claude Code.
 
+### 7. Scanner on its own: pip, MCP server, GitHub Action
+
+The scanner also ships without the skill, as the [`ru-humanizer`](https://pypi.org/project/ru-humanizer/) package on PyPI (the `humanizer-ru` name on PyPI is taken). Same `scan.py`, as a command:
+
+```bash
+pip install ru-humanizer
+ru-humanizer article.md --genre academic
+ru-humanizer edited.md --before original.md
+```
+
+The same package runs an MCP server with two tools: `scan_text` returns the score, penalties, hard bans and markers with positions; `compare_texts` reports "was N, now M" plus the fact lock between source and edit. Works with Claude Desktop, Cursor and any MCP client; in Claude Code it is one command:
+
+```bash
+claude mcp add humanizer-ru -- uvx --from ru-humanizer ru-humanizer-mcp
+```
+
+In CI the scanner is a GitHub Action: a cleanliness gate over Markdown and text files that fails below the threshold.
+
+```yaml
+- uses: ilyautov/humanizer-ru@main
+  with:
+    files: "docs/**/*.md"
+    genre: marketing
+    min-score: 60
+```
+
+One-time publishing setup for PyPI and the MCP registry lives in `PUBLISHING.md`.
+
 ## Modes
 
 - **Edit** (default): scanner diagnosis, local fixes by priority, verification against the source, "was N, now M" report.

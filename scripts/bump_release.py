@@ -63,6 +63,8 @@ COUNT_FILES = [
     "gemini-extension.json",
     # Бандл DeepSeek Harness: description пакета несёт счётчик паттернов.
     "package.json",
+    # Пакет PyPI: описание и README пакета несут счётчики банов и признаков.
+    "pyproject.toml", "README.pypi.md",
 ]
 
 # Число + существительное, означающее «паттерны каталога». Лукахед не даёт
@@ -112,6 +114,9 @@ VERSION_TARGETS = [
     # нумерации всё равно было некому, а расхождение читалось как баг.
     ("skills/humanizer-ru/SKILL.md", r"# Humanizer-RU v([\d.]+)"),
     ("docs/index.html", r"<li>v([\d.]+)</li>"),
+    # Пакет PyPI и карточка реестра MCP: версия та же, что у тега.
+    ("pyproject.toml", r'\nversion = "([\d.]+)"'),
+    ("server.json", r'"version":\s*"([\d.]+)"'),
 ]
 
 
