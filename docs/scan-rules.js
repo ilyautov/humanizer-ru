@@ -797,7 +797,11 @@ globalThis.HUMANIZER_RULES = {
     15.1
    ]
   ],
-  "sterile_min_words": 100
+  "sterile_min_words": 100,
+  "staccato_max_words": 3,
+  "staccato_min_run": 3,
+  "staccato_penalty": 8,
+  "staccato_penalty_max": 14
  },
  "markdown": {
   "quote_max_words": 12,

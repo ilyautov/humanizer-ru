@@ -165,10 +165,32 @@
   const pstdev = (a) => { if (a.length < 2) return 0; const mu = mean(a); return Math.sqrt(mean(a.map((x) => (x - mu) ** 2))); };
   const round = (x, d) => { const k = 10 ** d; return Math.round(x * k) / k; };
 
+  // Рваная медитативность (каталог #49): цепочка из 3+ утверждений по 1-3 слова
+  // подряд в одной строке. Реплики диалога, восклицания, вопросы, подводки с
+  // двоеточием, пункты списков и заголовки не считаются. Порт burstiness.staccato_runs.
+  const DIALOG_RE = /^\s*[-–—«"']/;
+  const SKIP_LINE_RE = /^\s*(?:(?:[-*•]|\d+[.)])\s+|#)/;
+  function staccatoRuns(text) {
+    const S = R.score, runs = [];
+    for (const line of text.replace(/\\/g, "").split("\n")) {
+      if (!line.trim() || SKIP_LINE_RE.test(line)) continue;
+      let cur = 0;
+      for (const s of sentences(line)) {
+        const st = s.trim(), n = countWords(st);
+        if (!n) continue;
+        if (n <= S.staccato_max_words && !DIALOG_RE.test(st) && !"?!:;".includes(st[st.length - 1])) cur += 1;
+        else { if (cur >= S.staccato_min_run) runs.push(cur); cur = 0; }
+      }
+      if (cur >= S.staccato_min_run) runs.push(cur);
+    }
+    return [runs.length, runs.length ? Math.max(...runs) : 0];
+  }
+
   function rhythm(text) {
     const sents = sentences(text);
     const lengths = sents.map(countWords).filter((n) => n > 0);
     const mu = mean(lengths), sd = pstdev(lengths);
+    const [staccatoCount, staccatoMax] = staccatoRuns(text);
     return {
       sentences: lengths.length,
       words: lengths.reduce((x, y) => x + y, 0),
@@ -178,6 +200,8 @@
       max_len: lengths.length ? Math.max(...lengths) : 0,
       em_dash: (text.match(/—/g) || []).length,
       questions: sents.filter((s) => s.trimEnd().endsWith("?")).length,
+      staccato_runs: staccatoCount,
+      staccato_max: staccatoMax,
     };
   }
 
@@ -231,6 +255,14 @@
     if (rep.rhythm.sentences >= 4 && cv < S.cv_human_target) {
       const pen = Math.min(20, Math.round(((S.cv_human_target - cv) / S.cv_human_target) * 30));
       if (pen) { score -= pen; penalties.push({ reason: `ровный ритм (CV=${cv}, цель ≥${S.cv_human_target})`, points: -pen }); }
+    }
+
+    const runs = rep.rhythm.staccato_runs;
+    if (runs) {
+      const pen = Math.min(S.staccato_penalty_max, S.staccato_penalty * runs);
+      const word = runs % 10 === 1 && runs % 100 !== 11 ? "цепочка" : runs % 10 >= 2 && runs % 10 <= 4 && !(runs % 100 >= 12 && runs % 100 <= 14) ? "цепочки" : "цепочек";
+      score -= pen;
+      penalties.push({ reason: `рваная медитативность: ${runs} ${word} обрывков по ${S.staccato_min_run}+ подряд (самая длинная ${rep.rhythm.staccato_max})`, points: -pen });
     }
 
     const st = rep.structure;
