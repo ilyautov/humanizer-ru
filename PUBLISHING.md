@@ -1,7 +1,8 @@
 # Публикация носителей: PyPI и реестр MCP
 
-Оба шага делаются один раз руками владельца репозитория, дальше всё идёт
-по релизу само. Папка `dist/` в git не живёт, поэтому инструкция лежит здесь.
+Ручной шаг здесь ровно один: отложенный издатель для пакета `ru-humanizer` на
+PyPI, и он делается один раз. Карточка в реестре MCP публикуется из CI. Папка
+`dist/` в git не живёт, поэтому инструкция лежит здесь.
 
 ## PyPI: пакет `ru-humanizer`
 
@@ -35,20 +36,25 @@ Run workflow → тег.
 из корня репозитория и проверяет, что пакет на PyPI принадлежит нам: в README
 пакета (`README.pypi.md`) стоит строка `mcp-name: io.github.ilyautov/humanizer-ru`.
 
-Порядок, после того как пакет появился на PyPI:
+**Руками тут делать нечего.** Workflow `.github/workflows/publish-registry.yml`
+идёт по тому же событию, что и публикация на PyPI: ждёт, пока PyPI отдаст версию
+тега, входит в реестр по OIDC-подписи GitHub Actions и публикует карточку.
+Пространство имён `io.github.ilyautov/*` выдаётся владельцу репозитория, поэтому
+ни логина в браузере, ни токена в секретах не нужно. Так устроены и девять
+остальных наших серверов.
 
-1. Поставить издателя: `brew install mcp-publisher`, либо бинарник со страницы
-   релизов https://github.com/modelcontextprotocol/registry/releases.
-2. Из корня репозитория: `mcp-publisher login github` (откроется браузер,
-   войти в аккаунт ilyautov: пространство имён `io.github.ilyautov/*`
-   выдаётся владельцу этого логина).
-3. `mcp-publisher publish`. Издатель берёт `server.json`, сверяет версию с PyPI
-   и строку `mcp-name` в README пакета.
-4. Проверка: `curl -s "https://registry.modelcontextprotocol.io/v0.1/servers?search=humanizer-ru"`.
+Проверка после релиза:
+`curl -s "https://registry.modelcontextprotocol.io/v0.1/servers?search=humanizer-ru"`.
+В выдаче несколько версий, текущая та, у которой
+`_meta["io.modelcontextprotocol.registry/official"].isLatest` равно `true`.
 
-На каждый следующий релиз `scripts/bump_release.py --apply vX.Y.Z` двигает
-версию в `pyproject.toml` и `server.json`; после публикации на PyPI повторить
-`mcp-publisher publish`.
+На каждый следующий релиз `scripts/bump_release.py --apply vX.Y.Z` двигает версию
+сразу в `pyproject.toml` и `server.json`, иначе workflow остановится на сверке
+версий и ничего не опубликует.
+
+Запасной путь, если реестр отвалится: поставить издателя
+(`brew install mcp-publisher`), из корня репозитория `mcp-publisher login github`
+и `mcp-publisher publish`.
 
 ## Подключение сервера у клиентов
 
