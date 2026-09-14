@@ -66,6 +66,11 @@ def _cyrillic_share(text: str) -> float:
 
 
 def main() -> int:
+    # `ru-humanizer mcp` поднимает MCP-сервер той же командой, что и сканер:
+    # так карточка в реестре MCP запускает пакет как `uvx ru-humanizer mcp`.
+    if sys.argv[1:2] == ["mcp"]:
+        from humanizer_metrics.mcp_server import main as mcp_main
+        return mcp_main()
     ap = argparse.ArgumentParser(description="Детерминированный сканер AI-маркеров (humanizer-ru)")
     ap.add_argument("source", help="файл с текстом или '-' для stdin")
     ap.add_argument("--json", action="store_true", help="вывод в JSON")

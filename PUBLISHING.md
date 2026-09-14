@@ -65,7 +65,7 @@ Claude Desktop, Cursor, Claude Code и другие клиенты MCP:
   "mcpServers": {
     "humanizer-ru": {
       "command": "uvx",
-      "args": ["--from", "ru-humanizer", "ru-humanizer-mcp"]
+      "args": ["ru-humanizer", "mcp"]
     }
   }
 }
@@ -74,7 +74,7 @@ Claude Desktop, Cursor, Claude Code и другие клиенты MCP:
 В Claude Code то же одной командой:
 
 ```bash
-claude mcp add humanizer-ru -- uvx --from ru-humanizer ru-humanizer-mcp
+claude mcp add humanizer-ru -- uvx ru-humanizer mcp
 ```
 
 Без uv: `pip install ru-humanizer`, затем `"command": "ru-humanizer-mcp"` без

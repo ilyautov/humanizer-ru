@@ -185,7 +185,7 @@ ru-humanizer edited.md --before original.md
 The same package runs an MCP server with two tools: `scan_text` returns the score, penalties, hard bans and markers with positions; `compare_texts` reports "was N, now M" plus the fact lock between source and edit. Works with Claude Desktop, Cursor and any MCP client; in Claude Code it is one command:
 
 ```bash
-claude mcp add humanizer-ru -- uvx --from ru-humanizer ru-humanizer-mcp
+claude mcp add humanizer-ru -- uvx ru-humanizer mcp
 ```
 
 In CI the scanner is a GitHub Action: a cleanliness gate over Markdown and text files that fails below the threshold.

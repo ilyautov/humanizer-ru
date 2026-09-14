@@ -229,7 +229,7 @@ ru-humanizer чистовик.md --before исходник.md
 Тот же пакет поднимает MCP-сервер с двумя инструментами: `scan_text` даёт балл, штрафы, запреты и маркеры с позициями, `compare_texts` считает «было и стало» и факт-замок между исходником и правкой. Подключается к Claude Desktop, Cursor и любому клиенту MCP; в Claude Code одной командой:
 
 ```bash
-claude mcp add humanizer-ru -- uvx --from ru-humanizer ru-humanizer-mcp
+claude mcp add humanizer-ru -- uvx ru-humanizer mcp
 ```
 
 В CI сканер работает как GitHub Action: гейт на балл чистоты по Markdown и текстовым файлам, шаг падает ниже порога.
