@@ -70,10 +70,20 @@ jobs:
           echo "PyPI так и не отдал $V: publish-pypi.yml упал или ещё идёт" >&2
           exit 1
 
+      # Издатель качается с чужих релизов, поэтому архив сверяется по сумме, а не
+      # распаковывается на лету: подменённый файл здесь получил бы доступ к
+      # OIDC-токену с правом публикации от нашего имени. Сумма взята из
+      # registry_1.8.1_checksums.txt того же релиза и проверена локально.
       - name: Поставить mcp-publisher
+        env:
+          MCP_PUBLISHER_VERSION: "1.8.1"
+          MCP_PUBLISHER_SHA256: "a06c9096dcb9727c13555b6be26c7effa707b01f06a4c561ba7a3635443cf2cc"
         run: |
-          curl -fsSL "https://github.com/modelcontextprotocol/registry/releases/download/v1.8.1/mcp-publisher_linux_amd64.tar.gz" \
-            | tar xz mcp-publisher
+          curl -fsSL -o mcp-publisher.tar.gz \
+            "https://github.com/modelcontextprotocol/registry/releases/download/v${MCP_PUBLISHER_VERSION}/mcp-publisher_linux_amd64.tar.gz"
+          echo "${MCP_PUBLISHER_SHA256}  mcp-publisher.tar.gz" | sha256sum -c -
+          tar xzf mcp-publisher.tar.gz mcp-publisher
+          rm -f mcp-publisher.tar.gz
           ./mcp-publisher --help >/dev/null
 
       - name: Вход по OIDC
