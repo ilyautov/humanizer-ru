@@ -13,7 +13,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-from .burstiness import CV_HUMAN_TARGET
+from .burstiness import CV_HUMAN_TARGET, STACCATO_MIN_RUN
 from .markers import (GENRE_MUTED_BANS, GENRE_MUTED_CATEGORIES,
                       effective_hard_bans, mute_by_genre)
 from .morphology import NV_TARGET
@@ -50,6 +50,14 @@ BAND_EDIT = 60    # ≥ — точечная правка; < — полный р
 HUMAN_ZERO_SHARE: tuple[tuple[int, float], ...] = ((100, 42.2), (200, 21.0), (400, 15.1))
 STERILE_MIN_WORDS = 100
 
+# Рваная медитативность (каталог #49): цепочка обрывков «Короткие. Точные.
+# Отдельные.» это почерк хуманайзера, который вывернул ровный ритм наизнанку:
+# обратная сторона штрафа за ровный ритм. Штраф мягкий, как
+# у номинальности: на 400 постах Пикабу правило срабатывает на 4, и половина из
+# них настоящие авторские обрывки.
+STACCATO_PENALTY = 8
+STACCATO_PENALTY_MAX = 14
+
 
 @dataclass
 class ScoreResult:
@@ -73,6 +81,14 @@ def _band(score: float) -> str:
     if score >= BAND_EDIT:
         return "правка"
     return "рерайт"
+
+
+def _plural(n: int, one: str, few: str, many: str) -> str:
+    if n % 10 == 1 and n % 100 != 11:
+        return one
+    if 2 <= n % 10 <= 4 and not 12 <= n % 100 <= 14:
+        return few
+    return many
 
 
 def _per100(count: int, words: int) -> float:
@@ -136,6 +152,16 @@ def cleanliness_score(report, genre: str | None = None) -> ScoreResult:
         if pen:
             score -= pen
             penalties.append((f"ровный ритм (CV={cv}, цель ≥{CV_HUMAN_TARGET})", -pen))
+
+    # 5б. Рваная медитативность: цепочки обрывков подряд. Обратная сторона
+    #     ровного ритма, поэтому стоит рядом с ним.
+    runs = report.rhythm.staccato_runs
+    if runs:
+        pen = min(STACCATO_PENALTY_MAX, STACCATO_PENALTY * runs)
+        score -= pen
+        penalties.append((
+            f"рваная медитативность: {runs} {_plural(runs, 'цепочка', 'цепочки', 'цепочек')} "
+            f"обрывков по {STACCATO_MIN_RUN}+ подряд (самая длинная {report.rhythm.staccato_max})", -pen))
 
     # 6. Номинальность: сущ./глаг. выше цели 2.5 = канцелярит. Слабый сигнал и
     #    главный источник ложных срабатываний (энциклопедический/юр. регистр
