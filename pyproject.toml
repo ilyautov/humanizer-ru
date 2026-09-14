@@ -1,0 +1,46 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+# Пакет на PyPI: тот же сканер, что едет со скиллом, без копии кода.
+# package-dir показывает на skills/humanizer-ru/scripts, поэтому humanizer_metrics
+# в колесе и в скилле один и тот же файл. Имя humanizer-ru на PyPI занято
+# одноимённым проектом Vladimir-Human, отсюда ru-humanizer.
+# Версия одна на весь репозиторий: scripts/bump_release.py протаскивает её сюда.
+[project]
+name = "ru-humanizer"
+version = "3.25.0"
+description = "Сканер следов нейросети в русском тексте: балл чистоты 0-100, 21 жёсткий запрет, 64 признака, факт-замок. CLI и MCP-сервер проекта humanizer-ru."
+readme = "README.pypi.md"
+license = "MIT"
+license-files = ["LICENSE"]
+requires-python = ">=3.10"
+authors = [{ name = "Ilya Utov" }]
+keywords = ["russian", "humanizer", "ai-text", "ai-detector", "mcp", "canceljarit", "nlp"]
+classifiers = [
+  "Development Status :: 5 - Production/Stable",
+  "Environment :: Console",
+  "Intended Audience :: Developers",
+  "Natural Language :: Russian",
+  "Programming Language :: Python :: 3",
+  "Topic :: Text Processing :: Linguistic",
+]
+dependencies = ["razdel>=0.5", "pymorphy3>=2.0"]
+
+[project.urls]
+Homepage = "https://humanizer-ru.aifrontier.tech/"
+Repository = "https://github.com/ilyautov/humanizer-ru"
+Changelog = "https://github.com/ilyautov/humanizer-ru/blob/main/CHANGELOG.md"
+
+[project.scripts]
+# ru-humanizer = scripts/scan.py как есть: модуль scan лежит в папке скрипта,
+# которая ставится пакетом ru_humanizer_cli (см. package-dir ниже).
+ru-humanizer = "ru_humanizer_cli.scan:main"
+ru-humanizer-mcp = "humanizer_metrics.mcp_server:main"
+
+[tool.setuptools]
+packages = ["humanizer_metrics", "ru_humanizer_cli"]
+
+[tool.setuptools.package-dir]
+humanizer_metrics = "skills/humanizer-ru/scripts/humanizer_metrics"
+ru_humanizer_cli = "skills/humanizer-ru/scripts"
