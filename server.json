@@ -1,0 +1,24 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-07-09/server.schema.json",
+  "name": "io.github.ilyautov/humanizer-ru",
+  "description": "Сканер следов нейросети в русском тексте: балл чистоты 0-100, жёсткие запреты и маркеры с позициями, факт-замок между исходником и правкой. Офлайн, по stdio.",
+  "repository": {
+    "url": "https://github.com/ilyautov/humanizer-ru",
+    "source": "github"
+  },
+  "version": "3.25.0",
+  "packages": [
+    {
+      "registry_type": "pypi",
+      "identifier": "ru-humanizer",
+      "version": "3.25.0",
+      "runtime_hint": "uvx",
+      "runtime_arguments": [
+        { "type": "positional", "value": "--from", "value_hint": "--from" },
+        { "type": "positional", "value": "ru-humanizer", "value_hint": "ru-humanizer" },
+        { "type": "positional", "value": "ru-humanizer-mcp", "value_hint": "ru-humanizer-mcp" }
+      ],
+      "transport": { "type": "stdio" }
+    }
+  ]
+}
