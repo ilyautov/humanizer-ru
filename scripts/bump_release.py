@@ -64,7 +64,7 @@ COUNT_FILES = [
     # Бандл DeepSeek Harness: description пакета несёт счётчик паттернов.
     "package.json",
     # Пакет PyPI: описание и README пакета несут счётчики банов и признаков.
-    "pyproject.toml", "README.pypi.md",
+    "pyproject.toml", "pypi/README.md",
 ]
 
 # Число + существительное, означающее «паттерны каталога». Лукахед не даёт
