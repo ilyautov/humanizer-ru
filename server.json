@@ -6,12 +6,12 @@
     "url": "https://github.com/ilyautov/humanizer-ru",
     "source": "github"
   },
-  "version": "3.25.0",
+  "version": "3.26.0",
   "packages": [
     {
       "registry_type": "pypi",
       "identifier": "ru-humanizer",
-      "version": "3.25.0",
+      "version": "3.26.0",
       "runtime_hint": "uvx",
       "runtime_arguments": [
         { "type": "positional", "value": "--from", "value_hint": "--from" },

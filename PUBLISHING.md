@@ -34,7 +34,7 @@ Run workflow → тег.
 
 Официальный реестр https://registry.modelcontextprotocol.io читает `server.json`
 из корня репозитория и проверяет, что пакет на PyPI принадлежит нам: в README
-пакета (`README.pypi.md`) стоит строка `mcp-name: io.github.ilyautov/humanizer-ru`.
+пакета (`pypi/README.md`) стоит строка `mcp-name: io.github.ilyautov/humanizer-ru`.
 
 **Руками тут делать нечего.** Workflow `.github/workflows/publish-registry.yml`
 идёт по тому же событию, что и публикация на PyPI: ждёт, пока PyPI отдаст версию
