@@ -9,7 +9,7 @@ build-backend = "setuptools.build_meta"
 # Версия одна на весь репозиторий: scripts/bump_release.py протаскивает её сюда.
 [project]
 name = "ru-humanizer"
-version = "3.26.2"
+version = "3.27.0"
 description = "Сканер следов нейросети в русском тексте: балл чистоты 0-100, 21 жёсткий запрет, 64 признака, факт-замок. CLI и MCP-сервер проекта humanizer-ru."
 readme = "pypi/README.md"
 license = "MIT"
