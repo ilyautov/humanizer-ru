@@ -4,8 +4,18 @@
 Онлайн-аудит на сайте не должен стать вторым, расходящимся сканером. Правила
 уходят в веб экспортом (export_web_rules.py), а этот тест проверяет, что и
 исполнение совпадает: на всех текстах eval/corpus баны и маркеры сходятся
-поштучно, score в допуске. Допуск нужен, потому что в браузере нет морфологии
-(штраф до 8) и razdel заменён простым делителем предложений (ритм).
+поштучно, а ПОЛОСА вердикта («чисто» / «правка» / «рерайт») совпадает точно.
+
+Полоса важнее очков: пользователь читает её, а не число. Прежняя версия теста
+сверяла только score в допуске ±10, и допуск ровно накрывал единственное
+настоящее расхождение: wiki_baikal.txt в строгом режиме это 82 «правка» в
+Python и 90 «чисто» в браузере. Разные вердикты проходили как «в допуске».
+
+Поэтому расхождение теперь учитывается адресно. В браузере нет морфологии,
+значит нет и штрафа за номинальность (до NV_PENALTY_MAX). Тест прибавляет этот
+штраф обратно к питоновскому счёту и получает то, что браузер ОБЯЗАН показать;
+дальше полоса сверяется без допуска, а на очки остаётся маленький допуск под
+razdel (простой делитель предложений даёт другой ритм).
 
 Без Node тест пропускается с пометкой; в CI Node ставится отдельным шагом.
 """
@@ -22,8 +32,14 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "skills" / "humanizer-ru" / "scripts"))
 
 from humanizer_metrics import analyze, cleanliness_score  # noqa: E402
+from humanizer_metrics.score import _band  # noqa: E402
 
-SCORE_TOLERANCE = 10
+# Допуск только под замену razdel простым делителем предложений: штраф за
+# номинальность вычитается отдельно и в допуск не прячется. На текущем корпусе
+# после этой поправки разрыв нулевой на всех 22 текстах в трёх жанрах, так что
+# допуск — это запас на делитель предложений, а не покрытие известной дыры.
+SCORE_TOLERANCE = 2
+NV_REASON_PREFIX = "номинальность"
 CORPUS_DIRS = ("raw", "human", "humanized", "literary")
 # Синтетика на границы Markdown и жанры: то, чего в корпусе нет.
 SYNTHETIC = {
@@ -71,17 +87,31 @@ def main() -> int:
             py_marks = sorted((h.category, h.marker, h.count) for h in rep.markers)
             js_marks = sorted((c, n, k) for c, n, k in w["markers"])
             tag = f"{f.name}{' [' + genre + ']' if genre else ''}"
+            # Счёт, который браузер обязан показать: питоновский плюс то, чего
+            # браузер не измеряет. Он же объявляет этот пропуск в поле unmeasured.
+            nv_pen = sum(-pts for reason, pts in sc.penalties
+                         if reason.startswith(NV_REASON_PREFIX))
+            expected = min(100, sc.score + nv_pen)
+            expected_band = _band(expected)
             if py_bans != js_bans:
                 failures.append(f"{tag}: баны\n      py {py_bans}\n      js {js_bans}")
             elif py_marks != js_marks:
                 failures.append(f"{tag}: маркеры\n      py {py_marks}\n      js {js_marks}")
-            elif abs(sc.score - w["score"]) > SCORE_TOLERANCE:
-                failures.append(f"{tag}: score py {sc.score} vs js {w['score']} (допуск {SCORE_TOLERANCE}); "
+            elif expected_band != w["band"]:
+                failures.append(f"{tag}: полоса py {expected_band} (score {sc.score}"
+                                f"{f', +{nv_pen} за неизмеримую номинальность' if nv_pen else ''}) "
+                                f"vs js {w['band']} (score {w['score']}); "
                                 f"py {sc.penalties} js {w['penalties']}")
+            elif abs(expected - w["score"]) > SCORE_TOLERANCE:
+                failures.append(f"{tag}: score py {expected} vs js {w['score']} (допуск {SCORE_TOLERANCE}); "
+                                f"py {sc.penalties} js {w['penalties']}")
+            elif nv_pen and not w.get("unmeasured"):
+                failures.append(f"{tag}: браузер не объявил неизмеренную номинальность "
+                                f"(питон снял {nv_pen})")
             else:
                 passed += 1
-                if abs(sc.score - w["score"]) > worst[0]:
-                    worst = (abs(sc.score - w["score"]), f"{tag}: py {sc.score} vs js {w['score']}")
+                if abs(expected - w["score"]) > worst[0]:
+                    worst = (abs(expected - w["score"]), f"{tag}: py {expected} vs js {w['score']}")
 
     print("=== test_web_parity ===")
     print(f"  текстов: {len(files)} × 3 жанра, совпало: {passed}; наибольший разрыв score: {worst[0]} ({worst[1]})")
@@ -89,7 +119,8 @@ def main() -> int:
         for msg in failures:
             print("  ✗", msg)
         return 1
-    print("OK — браузерный сканер совпадает с Python по банам и маркерам, score в допуске.")
+    print("OK — браузерный сканер совпадает с Python по банам, маркерам и полосе "
+          "вердикта; score в допуске после поправки на неизмеримую номинальность.")
     return 0
 
 
