@@ -48,7 +48,7 @@ jobs:
           ref: ${{ steps.tag.outputs.ref }}
           persist-credentials: false
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
 
