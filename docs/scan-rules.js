@@ -801,7 +801,9 @@ globalThis.HUMANIZER_RULES = {
   "staccato_max_words": 3,
   "staccato_min_run": 3,
   "staccato_penalty": 8,
-  "staccato_penalty_max": 14
+  "staccato_penalty_max": 14,
+  "nv_target": 2.5,
+  "nv_max_penalty": 8
  },
  "markdown": {
   "quote_max_words": 12,

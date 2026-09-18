@@ -113,6 +113,17 @@
     return parts.length ? `Жанр «${genreLabel()}»: не считаются ${parts.join(" и ")}.` : `Жанр «${genreLabel()}»: часть маркеров не считается.`;
   }
 
+  // Что этот сканер посчитать не может. Браузер работает без морфологического
+  // разбора, поэтому штраф за номинальность (сущ./глаг.) здесь не считается — и
+  // счёт может оказаться выше, чем у того же текста в скилле. Показываем это
+  // всегда: разница в пользу текста, промолчать о ней значит приукрасить.
+  function unmeasuredLine(r) {
+    const gaps = r.unmeasured || [];
+    if (!gaps.length) return "";
+    const names = gaps.map((g) => `${g.name} — до ${g.max_points} баллов`).join("; ");
+    return `Не измерено в браузере: ${names}. Счёт в скилле для Claude может быть ниже на эту величину.`;
+  }
+
   // --- Подсказки по клику: что делать с находкой -----------------------------
   // Одна фраза на категорию, по каталогу скилла. Те же тексты в расширении.
   const HINTS = {
@@ -201,6 +212,7 @@
     const bandText = BAND_TEXT[band];
     const rows = r.penalties.map((p) => `<li title="${esc(p.reason)}"><b>${p.points}</b><span>${esc(humanReason(p.reason))}</span></li>`).join("");
     const notes = r.notes.map((n) => `<p class="audit-sterile">${esc(n)}</p>`).join("");
+    const gap = unmeasuredLine(r);
     const facts = factsLine(r);
     const gnote = genreNote();
     resultEl.hidden = false;
@@ -219,6 +231,7 @@
       ${rows ? `<ul class="penalties">${rows}</ul>` : `<p class="audit-none">Штрафов нет.</p>`}
       ${gnote ? `<p class="audit-genre-note">${esc(gnote)}</p>` : ""}
       ${notes}
+      ${gap ? `<p class="audit-unmeasured">${esc(gap)}</p>` : ""}
       <div class="audit-actions"><button type="button" id="audit-copy">Скопировать отчёт</button></div>`;
     animateNumber($("score-value"), r.score);
     requestAnimationFrame(() => { const f = resultEl.querySelector(".score-fill"); if (f) f.style.transform = `scaleX(${r.score / 100})`; });
@@ -230,6 +243,7 @@
       `жанр: ${genreLabel()} · ${num(r.words, "слово", "слова", "слов")} · ${facts}`,
       r.penalties.length ? "штрафы:\n" + r.penalties.map((p) => `  ${String(p.points).padStart(4)}  ${humanReason(p.reason)}`).join("\n") : "штрафов нет",
       found.size ? "найдено:\n" + [...found].map(([k, n]) => `  ${k}${n > 1 ? ` ×${n}` : ""}`).join("\n") : "",
+      gap,
     ].filter(Boolean).join("\n");
     $("audit-copy").addEventListener("click", async () => {
       const btn = $("audit-copy");

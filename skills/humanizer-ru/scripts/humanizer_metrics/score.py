@@ -57,6 +57,9 @@ STERILE_MIN_WORDS = 100
 # них настоящие авторские обрывки.
 STACCATO_PENALTY = 8
 STACCATO_PENALTY_MAX = 14
+# Потолок штрафа за номинальность. Именованный, потому что браузерный сканер
+# морфологии не имеет и объявляет ровно эту величину как неизмеренную.
+NV_PENALTY_MAX = 8
 
 
 @dataclass
@@ -168,7 +171,7 @@ def cleanliness_score(report, genre: str | None = None) -> ScoreResult:
     #    легитимно номинален), поэтому штраф мягкий и низко ограничен.
     nv = report.morph.noun_verb_ratio
     if nv > NV_TARGET:
-        pen = min(8, round((nv - NV_TARGET) / 0.5 * 3))
+        pen = min(NV_PENALTY_MAX, round((nv - NV_TARGET) / 0.5 * 3))
         if pen:
             score -= pen
             penalties.append((f"номинальность (сущ./глаг.={nv}, цель ≤{NV_TARGET})", -pen))

@@ -28,6 +28,7 @@ const out = files.map((f) => {
     hard_bans: r.hard_bans.map((h) => [h.name, h.count]),
     markers: r.markers.map((h) => [h.category, h.name, h.count]),
     rhythm: r.rhythm, structure: r.structure, penalties: r.penalties,
+    unmeasured: r.unmeasured,
   };
 });
 process.stdout.write(JSON.stringify(out, null, 1));

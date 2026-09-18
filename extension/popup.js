@@ -187,6 +187,15 @@
     return parts.length ? `Жанр «${genreLabel()}»: не считаются ${parts.join(" и ")}.` : `Жанр «${genreLabel()}»: часть маркеров не считается.`;
   }
 
+  // Чего расширение посчитать не может: без морфологического разбора нет штрафа
+  // за номинальность. Разница всегда в пользу текста, поэтому о ней говорим вслух.
+  function unmeasuredLine(r) {
+    const gaps = r.unmeasured || [];
+    if (!gaps.length) return "";
+    const names = gaps.map((g) => `${g.name} — до ${g.max_points} баллов`).join("; ");
+    return `Не измерено в браузере: ${names}. Счёт в скилле для Claude может быть ниже на эту величину.`;
+  }
+
   // --- Рендер результата ---------------------------------------------------------
   let lastReport = "";
   function renderResult(text, r) {
@@ -221,6 +230,8 @@
     $("genre-note").textContent = gn; $("genre-note").hidden = !gn;
     $("penalties").innerHTML = r.penalties.map((p) => `<li title="${esc(p.reason)}"><b>${p.points}</b><span>${esc(humanReason(p.reason))}</span></li>`).join("");
     $("notes").textContent = r.notes.join(" "); $("notes").hidden = !r.notes.length;
+    const gap = unmeasuredLine(r);
+    $("unmeasured").textContent = gap; $("unmeasured").hidden = !gap;
     statusEl.textContent = `Чистота ${r.score} из 100, ${bandText}`;
     if (r.score < CLEAN) { siteLink.textContent = "Как исправить: скилл для агентов"; siteLink.href = SITE + "#install"; }
     else { siteLink.textContent = "Сайт и скилл для агентов"; siteLink.href = SITE; }
@@ -234,6 +245,7 @@
       `жанр: ${genreLabel()} · ${num(r.words, "слово", "слова", "слов")} · ${$("facts").textContent}`,
       r.penalties.length ? "штрафы:\n" + r.penalties.map((p) => `  ${String(p.points).padStart(4)}  ${humanReason(p.reason)}`).join("\n") : "штрафов нет",
       found.size ? "найдено:\n" + [...found].map(([k, n]) => `  ${k}${n > 1 ? ` ×${n}` : ""}`).join("\n") : "",
+      gap,
       SITE,
     ].filter(Boolean).join("\n");
   }
