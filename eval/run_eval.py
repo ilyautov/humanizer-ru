@@ -39,7 +39,7 @@ EVAL_DIR = Path(__file__).resolve().parent
 ROOT = EVAL_DIR.parent
 sys.path.insert(0, str(ROOT / "skills" / "humanizer-ru" / "scripts"))
 
-from humanizer_metrics import Report, analyze  # noqa: E402
+from humanizer_metrics import Report, analyze, cleanliness_score  # noqa: E402
 
 # Детекторы, судья, faithfulness, Ollama-бэкенд — локальные опциональные модули.
 sys.path.insert(0, str(EVAL_DIR))
@@ -72,6 +72,7 @@ class ItemResult:
     source_model: str
     is_human: bool
     before: dict                       # analyze().as_dict() для raw
+    before_score: dict | None = None   # cleanliness_score().as_dict() для raw
     after: dict | None = None          # для humanized, если есть
     deltas: dict | None = None         # before -> after по ключевым метрикам
     detectors_before: dict = field(default_factory=dict)  # name -> score|None
@@ -87,6 +88,7 @@ class ItemResult:
             "source_model": self.source_model,
             "is_human": self.is_human,
             "before": self.before,
+            "before_score": self.before_score,
             "after": self.after,
             "deltas": self.deltas,
             "detectors_before": self.detectors_before,
@@ -170,7 +172,8 @@ def evaluate(
     for it in items:
         raw_path = corpus_dir / it["file"]
         raw_text = _read_text(raw_path)
-        before = analyze(raw_text).as_dict()
+        before_rep = analyze(raw_text)
+        before = before_rep.as_dict()
 
         res = ItemResult(
             id=it["id"],
@@ -178,6 +181,7 @@ def evaluate(
             source_model=it["source_model"],
             is_human=it["is_human"],
             before=before,
+            before_score=cleanliness_score(before_rep).as_dict(),
         )
 
         # humanized-версия по тому же id (любое расширение .txt).
@@ -446,21 +450,27 @@ def render_markdown(results: list[ItemResult], env: dict) -> str:
     lines.append("## Контроль переусердствования (человеческие тексты)\n")
     lines.append(
         "Живой человеческий текст скилл НЕ должен хотеть сильно править. "
-        f"Тревога, если HARD BANS > {HUMAN_HARD_BAN_LIMIT} или маркеров > {HUMAN_MARKER_LIMIT}.\n"
+        "Тревога, если вердикт сканера НЕ «чисто» — то есть если скилл "
+        "действительно взялся бы за правку. Сырые счётчики банов и маркеров "
+        "показаны справочно: по ним вердикт не выносится ни здесь, ни в самом "
+        "скилле.\n"
     )
-    lines.append("| id | тип | HARD BANS | маркеры | CV | сущ/глаг | тире | статус |")
-    lines.append("|---|---|---|---|---|---|---|---|")
+    lines.append("| id | тип | ЧИСТОТА | вердикт | HARD BANS | маркеры | CV | сущ/глаг | тире | статус |")
+    lines.append("|---|---|---|---|---|---|---|---|---|---|")
     overzealous = 0
     for r in human_items:
         b = r.before
         bans = b["hard_ban_count"]
         markers = b["marker_count"]
-        flagged = bans > HUMAN_HARD_BAN_LIMIT or markers > HUMAN_MARKER_LIMIT
+        sc = r.before_score or {}
+        score = sc.get("score", "—")
+        band = sc.get("band", "—")
+        flagged = band != "чисто"
         if flagged:
             overzealous += 1
         status = "⚠ ложная тревога" if flagged else "✓ ок"
         lines.append(
-            f"| `{r.id}` | {r.type} | {bans} | {markers} "
+            f"| `{r.id}` | {r.type} | {score} | {band} | {bans} | {markers} "
             f"| {b['rhythm']['cv_len']} | {b['morph']['noun_verb_ratio']} "
             f"| {b['rhythm']['em_dash']} | {status} |"
         )
@@ -474,17 +484,13 @@ def render_markdown(results: list[ItemResult], env: dict) -> str:
             lines.append("")
             lines.append(
                 "> **Как это читать.** Контроль — дословные отрывки статей "
-                "Википедии (заведомо человеческий, но **формальный** регистр). "
-                "Срабатывания здесь не баг, а та же ловушка, в которую попадают "
-                "AI-детекторы (см. FP-аудит выше): формальный человеческий текст "
-                "трудно отличить от машинного по поверхностным признакам. Конкретно "
-                "тревогу дают (1) длинные тире «—» — Википедия использует их "
-                "штатно, а скилл банит как маркер по строгой политике; (2) высокое "
-                "сущ/глаг — это энциклопедический стиль, а не нейросеть. Вывод "
-                "честный и в обе стороны: ни детектор, ни простые эвристики не "
-                "выносят надёжный вердикт «человек/AI» на формальном тексте. Скилл "
-                "поэтому и не детектирует, а **переписывает** — и нацелен на живой, "
-                "а не на энциклопедический регистр."
+                "Википедии: заведомо человеческий текст, но в формальном регистре. "
+                "Вердикт выносится по ЧИСТОТЕ, как и в самом скилле; сырые счётчики "
+                "банов в таблице справочные. Там, где вердикт не «чисто», причина "
+                "одна и та же: длинные тире, которые Википедия использует штатно, и "
+                "высокое отношение существительных к глаголам — признак "
+                "энциклопедического стиля, а не нейросети. Скилл нацелен на живой "
+                "регистр и вердиктов об авторстве не выносит."
             )
     lines.append("")
 
