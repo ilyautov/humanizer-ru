@@ -73,6 +73,7 @@ class ItemResult:
     is_human: bool
     before: dict                       # analyze().as_dict() для raw
     before_score: dict | None = None   # cleanliness_score().as_dict() для raw
+    genre: str | None = None           # регистр из meta.json, как флаг --genre
     after: dict | None = None          # для humanized, если есть
     deltas: dict | None = None         # before -> after по ключевым метрикам
     detectors_before: dict = field(default_factory=dict)  # name -> score|None
@@ -89,6 +90,7 @@ class ItemResult:
             "is_human": self.is_human,
             "before": self.before,
             "before_score": self.before_score,
+            "genre": self.genre,
             "after": self.after,
             "deltas": self.deltas,
             "detectors_before": self.detectors_before,
@@ -174,6 +176,7 @@ def evaluate(
         raw_text = _read_text(raw_path)
         before_rep = analyze(raw_text)
         before = before_rep.as_dict()
+        genre = it.get("genre")
 
         res = ItemResult(
             id=it["id"],
@@ -181,7 +184,8 @@ def evaluate(
             source_model=it["source_model"],
             is_human=it["is_human"],
             before=before,
-            before_score=cleanliness_score(before_rep).as_dict(),
+            before_score=cleanliness_score(before_rep, genre).as_dict(),
+            genre=genre,
         )
 
         # humanized-версия по тому же id (любое расширение .txt).
@@ -453,10 +457,12 @@ def render_markdown(results: list[ItemResult], env: dict) -> str:
         "Тревога, если вердикт сканера НЕ «чисто» — то есть если скилл "
         "действительно взялся бы за правку. Сырые счётчики банов и маркеров "
         "показаны справочно: по ним вердикт не выносится ни здесь, ни в самом "
-        "скилле.\n"
+        "скилле. Жанр берётся из `genre` в meta.json и передаётся в счёт так же, "
+        "как флаг `--genre` в самом скилле; в колонке «жанр» видно, какой "
+        "регистр объявлен. Прочерк — строгий режим.\n"
     )
-    lines.append("| id | тип | ЧИСТОТА | вердикт | HARD BANS | маркеры | CV | сущ/глаг | тире | статус |")
-    lines.append("|---|---|---|---|---|---|---|---|---|---|")
+    lines.append("| id | тип | жанр | ЧИСТОТА | вердикт | HARD BANS | маркеры | CV | сущ/глаг | тире | статус |")
+    lines.append("|---|---|---|---|---|---|---|---|---|---|---|")
     overzealous = 0
     for r in human_items:
         b = r.before
@@ -470,7 +476,8 @@ def render_markdown(results: list[ItemResult], env: dict) -> str:
             overzealous += 1
         status = "⚠ ложная тревога" if flagged else "✓ ок"
         lines.append(
-            f"| `{r.id}` | {r.type} | {score} | {band} | {bans} | {markers} "
+            f"| `{r.id}` | {r.type} | {r.genre or '—'} | {score} | {band} "
+            f"| {bans} | {markers} "
             f"| {b['rhythm']['cv_len']} | {b['morph']['noun_verb_ratio']} "
             f"| {b['rhythm']['em_dash']} | {status} |"
         )
@@ -480,18 +487,19 @@ def render_markdown(results: list[ItemResult], env: dict) -> str:
             f"Итог контроля: **{len(human_items) - overzealous}/{len(human_items)}** "
             f"человеческих текстов прошли чисто."
         )
-        if overzealous:
-            lines.append("")
-            lines.append(
-                "> **Как это читать.** Контроль — дословные отрывки статей "
-                "Википедии: заведомо человеческий текст, но в формальном регистре. "
-                "Вердикт выносится по ЧИСТОТЕ, как и в самом скилле; сырые счётчики "
-                "банов в таблице справочные. Там, где вердикт не «чисто», причина "
-                "одна и та же: длинные тире, которые Википедия использует штатно, и "
-                "высокое отношение существительных к глаголам — признак "
-                "энциклопедического стиля, а не нейросети. Скилл нацелен на живой "
-                "регистр и вердиктов об авторстве не выносит."
-            )
+        lines.append("")
+        lines.append(
+            "> **Как это читать.** Контроль — дословные отрывки статей Википедии: "
+            "заведомо человеческий текст в академическом регистре, и он объявлен "
+            "жанром `academic`, как объявил бы его человек, запускающий скилл на "
+            "своей статье. Жанр снимает штрафы, законные для регистра: длинное тире "
+            "и канцелярит Википедия использует штатно. Что жанр НЕ снимает — "
+            "номинальность (отношение существительных к глаголам); она остаётся в "
+            "счёте и в строгом режиме, и в академическом, поэтому идеальных 100 "
+            "здесь не бывает. Вердикт выносится по ЧИСТОТЕ, как и в самом скилле; "
+            "сырые счётчики банов в таблице справочные. Скилл нацелен на живой "
+            "регистр и вердиктов об авторстве не выносит."
+        )
     lines.append("")
 
     # --- Футер о доступности ---
