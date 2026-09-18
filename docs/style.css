@@ -273,6 +273,7 @@ pre code { background: none; border: none; padding: 0; }
 .penalties span { color: var(--text); }
 .audit-none { color: var(--good); font-size: 0.92em; margin: 0; }
 .audit-sterile { color: var(--text-dim); font-size: 0.86em; margin: 10px 0 0; border-top: 1px solid var(--border); padding-top: 10px; }
+.audit-unmeasured { color: var(--text-dim); font-size: 0.86em; margin: 10px 0 0; border-top: 1px dashed var(--border); padding-top: 10px; }
 
 .audit-marked { padding: 28px 0 0; }
 .audit-legend { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; font-size: 12.5px; color: var(--text-dim); margin-bottom: 10px; }

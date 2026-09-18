@@ -34,7 +34,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "skills" / "humanizer-ru" / "scripts"))
 
-from humanizer_metrics import burstiness, markdown, markers, score, structure  # noqa: E402
+from humanizer_metrics import (burstiness, markdown, markers, morphology,  # noqa: E402
+                                score, structure)
 
 OUT = ROOT / "docs" / "scan-rules.js"
 
@@ -126,6 +127,8 @@ def build() -> dict:
             "staccato_min_run": burstiness.STACCATO_MIN_RUN,
             "staccato_penalty": score.STACCATO_PENALTY,
             "staccato_penalty_max": score.STACCATO_PENALTY_MAX,
+            "nv_target": morphology.NV_TARGET,
+            "nv_max_penalty": score.NV_PENALTY_MAX,
         },
         "markdown": {"quote_max_words": markdown.QUOTE_MAX_WORDS, "gap": markdown.GAP},
     }

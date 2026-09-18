@@ -1,8 +1,11 @@
 // humanizer-ru: браузерный сканер. Зеркало humanizer_metrics (Python) на
 // правилах из scan-rules.js, которые экспортирует scripts/export_web_rules.py.
-// Паритет с scan.py проверяет scripts/test_web_parity.py: баны и маркеры
-// совпадают точно, score в допуске (в браузере нет морфологии pymorphy3 и
-// razdel заменён простым делителем предложений).
+// Паритет с scan.py проверяет scripts/test_web_parity.py: баны, маркеры и
+// полоса вердикта совпадают точно, score в допуске. Расхождение у счёта одно и
+// известное: без pymorphy3 браузер не считает штраф за номинальность (до −8),
+// поэтому его счёт может быть ВЫШЕ питоновского. Этот пропуск объявляется в
+// отчёте (поле unmeasured), а не замалчивается. razdel заменён простым
+// делителем предложений.
 //
 // API: globalThis.humanizerScan(text, genre) -> отчёт (см. конец файла).
 
@@ -281,8 +284,17 @@
       notes.push(`стерильно: ни одного маркера. Так пишет ${share}% людей на тексте в ${words} слов, остальные ${100 - share}% что-нибудь да используют. Цель не ноль, а типичная для жанра частота: вычищать дальше незачем`);
     }
 
+    // Чего браузер не измерил. Морфологии здесь нет, значит нет и штрафа за
+    // номинальность (сущ./глаг., до −8 в scan.py). Молча выдавать более высокий
+    // счёт нельзя: пусть читатель видит границу измерения.
+    const unmeasured = [{
+      name: "номинальность (сущ./глаг.)",
+      max_points: S.nv_max_penalty,
+      why: "в браузере нет морфологического разбора",
+    }];
+
     const final = Math.max(0, Math.min(100, Math.round(score)));
-    return { score: final, band: band(final), penalties, notes, effectiveBans: effBans, mutedMarkers: markers };
+    return { score: final, band: band(final), penalties, notes, unmeasured, effectiveBans: effBans, mutedMarkers: markers };
   }
 
   function humanizerScan(text, genre) {
@@ -295,6 +307,7 @@
     const sc = cleanlinessScore(rep, genre);
     return {
       score: sc.score, band: sc.band, penalties: sc.penalties, notes: sc.notes,
+      unmeasured: sc.unmeasured,
       hard_bans: rep.hardBans, effective_bans: sc.effectiveBans, markers: rep.markers, muted_markers: sc.mutedMarkers,
       rhythm: rh, structure: rep.structure, words: rh.words, genre,
     };
