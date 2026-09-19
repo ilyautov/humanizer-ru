@@ -30,8 +30,15 @@ try:
     from humanizer_metrics.morphology import morph_verdict
     from humanizer_metrics.structure import structure_verdict
 except ImportError as exc:
-    print(f"[ошибка] не хватает зависимостей сканера ({exc.name}).\n"
-          "Поставьте один раз: pip install razdel pymorphy3", file=sys.stderr)
+    print(f"[ошибка] не хватает зависимостей сканера ({exc.name}); балла не будет.\n"
+          "Поставьте один раз любым способом:\n"
+          "  uvx ru-humanizer файл.txt        (без установки, нужен uv)\n"
+          "  pipx install ru-humanizer        (даёт команду ru-humanizer)\n"
+          "  python3 -m venv ~/.humanizer-ru && ~/.humanizer-ru/bin/pip install razdel pymorphy3\n"
+          "    и запускайте ~/.humanizer-ru/bin/python scan.py файл.txt\n"
+          "Голый pip install на macOS с Homebrew и на Debian/Ubuntu падает с\n"
+          "externally-managed-environment (PEP 668): системный Python закрыт для pip.",
+          file=sys.stderr)
     raise SystemExit(2)
 
 

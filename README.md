@@ -141,9 +141,23 @@ cp -r /tmp/humanizer-ru/skills/humanizer-ru ~/.claude/skills/
 ```
 
 Копируйте папку целиком, а не один SKILL.md: вместе со скиллом едет
-детерминированный сканер `scripts/scan.py` (машинная половина режима «Аудит»;
-работает при наличии `pip install razdel pymorphy3`, без них скилл просто
-проводит аудит вручную).
+детерминированный сканер `scripts/scan.py` (машинная половина режима «Аудит»).
+Ему нужны пакеты `razdel` и `pymorphy3`. Без них скилл проводит аудит вручную
+и обязан сказать об этом; балла «Чистота: N/100» вы не увидите.
+
+Как поставить зависимости. На macOS с Python из Homebrew и на Debian/Ubuntu
+голый `pip install` падает с `externally-managed-environment` (PEP 668),
+поэтому любой из трёх способов:
+
+```bash
+uvx ru-humanizer файл.txt                       # без установки, нужен uv
+pipx install ru-humanizer                       # команда ru-humanizer в PATH
+python3 -m venv ~/.humanizer-ru && ~/.humanizer-ru/bin/pip install razdel pymorphy3
+~/.humanizer-ru/bin/python ~/.claude/skills/humanizer-ru/scripts/scan.py файл.txt
+```
+
+Проверка, что сканер живой: `python3 ~/.claude/skills/humanizer-ru/scripts/scan.py --help`
+без строки `[ошибка]`.
 
 ### 4. Codex CLI (OpenAI)
 
