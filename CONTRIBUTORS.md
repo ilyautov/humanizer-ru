@@ -63,6 +63,18 @@ arxiv, из которого выросла верифицированная ч�
 [#36](https://github.com/ilyautov/humanizer-ru/issues/36): `npx skills add`
 тащил весь репозиторий вместо `skills/humanizer-ru`.
 
+**Viktor** ([@vdovikovva](https://github.com/vdovikovva)),
+[#117](https://github.com/ilyautov/humanizer-ru/issues/117),
+[#118](https://github.com/ilyautov/humanizer-ru/issues/118),
+[#119](https://github.com/ilyautov/humanizer-ru/issues/119): три отчёта за
+один день, каждый с логами и версиями. Подсказка `pip install razdel pymorphy3`
+падала на macOS с Homebrew по PEP 668, и сканер у него молчал месяц, а скилл
+об этом не сообщал. Строка запрета про тире читалась наоборот. Команды
+`/humanize` и `/audit` не подавали SKILL.md в контекст. Отсюда рабочая подсказка
+по установке в ошибке сканера и README, обязанность скилла сообщать об
+упавшем сканере, однозначное правило про тире и загрузка скилла первым шагом
+команд.
+
 ## Зависимости
 
 Версии GitHub Actions и питон-пакетов ведёт Dependabot.
