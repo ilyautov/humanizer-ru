@@ -80,6 +80,17 @@ jobs:
             echo "skip=0" >> "$GITHUB_OUTPUT"
           fi
 
+      # Версия уже в npm: публиковать нечего, зато можно проверить Trusted Publishing.
+      # Обмен OIDC-токена в npm идёт до проверки --dry-run, в подробном логе видно,
+      # удался ли он («Successfully retrieved and set token») и почему нет.
+      - name: Диагностика Trusted Publishing без публикации
+        if: steps.check.outputs.skip == '1'
+        shell: bash
+        run: |
+          npm publish --access public --dry-run --loglevel verbose 2>&1 \
+            | grep -iE "oidc|publishing to|E404|npm error" \
+            | sed 's/\x1b\[[0-9;]*m//g' || true
+
       - name: Публикация
         if: steps.check.outputs.skip == '0'
         run: npm publish --access public
