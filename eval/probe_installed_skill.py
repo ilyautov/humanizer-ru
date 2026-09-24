@@ -30,6 +30,9 @@ VOICE = ("Пилот мы закрыли. Не потому, что модель
          "Пока я за то, чтобы оставить старый чат в покое.")
 
 
+TIMEOUT = 180
+
+
 def digest(text: str) -> str:
     return hashlib.sha256(text.encode()).hexdigest()
 
@@ -90,7 +93,8 @@ def run_probe(job: dict, files: dict, inputs: dict, out: Path, model: str,
                "--system-prompt", SYSTEM]
     record = {**job, "prompt_sha256": digest(prompt), "command": command}
     try:
-        proc = subprocess.run(command, input=prompt, text=True, capture_output=True, timeout=180)
+        proc = subprocess.run(command, input=prompt, text=True, capture_output=True,
+                              timeout=TIMEOUT)
         record.update(returncode=proc.returncode, stderr=proc.stderr, stdout=proc.stdout)
         response = json.loads(proc.stdout)
         record["response"] = response
@@ -116,6 +120,7 @@ def run_probe(job: dict, files: dict, inputs: dict, out: Path, model: str,
 
 
 def main() -> int:
+    global TASK, TIMEOUT
     parser = argparse.ArgumentParser(description=__doc__)
     primary = parser.add_mutually_exclusive_group(required=True)
     primary.add_argument("--skill", type=Path, help="Full three-file installed skill")
@@ -131,7 +136,12 @@ def main() -> int:
     parser.add_argument("--repeats", type=int, default=5)
     parser.add_argument("--workers", type=int, default=3)
     parser.add_argument("--seed", type=int, default=9102026)
+    parser.add_argument("--task", help="Replace the default edit request (text follows after it)")
+    parser.add_argument("--timeout", type=int, default=TIMEOUT, help="Seconds per CLI call")
     args = parser.parse_args()
+    if args.task:
+        TASK = args.task.rstrip() + "\n\n"
+    TIMEOUT = args.timeout
     if args.repeats < 1 or args.workers < 1:
         parser.error("repeats and workers must be positive")
     if args.cases_only:
