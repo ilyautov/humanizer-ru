@@ -225,6 +225,8 @@
 
   // --- Score: порт score.cleanliness_score без пункта 6 (морфология) ---------
   const per100 = (count, words) => (words ? (count / words) * 100 : 0);
+  const plural = (n, one, few, many) =>
+    n % 10 === 1 && n % 100 !== 11 ? one : n % 10 >= 2 && n % 10 <= 4 && !(n % 100 >= 12 && n % 100 <= 14) ? few : many;
   const band = (s) => (s >= R.score.band_clean ? "чисто" : s >= R.score.band_edit ? "правка" : "рерайт");
 
   function cleanlinessScore(rep, genre) {
@@ -242,10 +244,27 @@
     const copyPaste = markers.filter((h) => h.category === S.copy_paste_category).reduce((n, h) => n + h.count, 0);
     if (copyPaste) { score -= 60; penalties.push({ reason: `артефакты копипасты: ${copyPaste}`, points: -60 }); }
 
-    const soft = markers.filter((h) => h.category !== S.copy_paste_category).reduce((n, h) => n + h.count, 0);
+    const distinctCats = [S.signature_category, S.chat_wrap_category];
+    const soft = markers.filter((h) => h.category !== S.copy_paste_category && !distinctCats.includes(h.category))
+      .reduce((n, h) => n + h.count, 0);
     if (soft) {
       const pen = Math.min(30, Math.round(2 * per100(soft, words)));
       if (pen) { score -= pen; penalties.push({ reason: `маркеры: ${soft} (${per100(soft, words).toFixed(1)}/100 слов)`, points: -pen }); }
+    }
+
+    // Почерк модели и обвязка чата: по числу разных оборотов, не по плотности.
+    const distinct = (cat) => new Set(markers.filter((h) => h.category === cat).map((h) => h.name)).size;
+    const sig = distinct(S.signature_category);
+    if (sig) {
+      const pen = Math.min(S.signature_max, S.signature_first + S.signature_next * (sig - 1));
+      score -= pen;
+      penalties.push({ reason: `почерк модели: ${sig} ${plural(sig, "оборот", "оборота", "оборотов")}`, points: -pen });
+    }
+    const wrap = distinct(S.chat_wrap_category);
+    if (wrap) {
+      const pen = Math.min(S.chat_wrap_max, S.chat_wrap_each * wrap);
+      score -= pen;
+      penalties.push({ reason: `обвязка чата: ${wrap} ${plural(wrap, "след", "следа", "следов")}`, points: -pen });
     }
 
     const dashDensity = dashMuted ? 0 : per100(rep.rhythm.em_dash, words);
@@ -263,7 +282,7 @@
     const runs = rep.rhythm.staccato_runs;
     if (runs) {
       const pen = Math.min(S.staccato_penalty_max, S.staccato_penalty * runs);
-      const word = runs % 10 === 1 && runs % 100 !== 11 ? "цепочка" : runs % 10 >= 2 && runs % 10 <= 4 && !(runs % 100 >= 12 && runs % 100 <= 14) ? "цепочки" : "цепочек";
+      const word = plural(runs, "цепочка", "цепочки", "цепочек");
       score -= pen;
       penalties.push({ reason: `рваная медитативность: ${runs} ${word} обрывков по ${S.staccato_min_run}+ подряд (самая длинная ${rep.rhythm.staccato_max})`, points: -pen });
     }
@@ -278,7 +297,7 @@
       if (pen) { score -= pen; penalties.push({ reason: `листикл (${st.list_items} пунктов, ${Math.floor(st.listicle_share * 100)}% строк)`, points: -pen }); }
     }
 
-    if (!(hardPhrase || copyPaste || soft) && words >= S.sterile_min_words) {
+    if (!(hardPhrase || copyPaste || soft || sig || wrap) && words >= S.sterile_min_words) {
       const row = S.human_zero_share.find(([limit]) => words < limit) || S.human_zero_share[S.human_zero_share.length - 1];
       const share = Math.round(row[1]);
       notes.push(`стерильно: ни одного маркера. Так пишет ${share}% людей на тексте в ${words} слов, остальные ${100 - share}% что-нибудь да используют. Цель не ноль, а типичная для жанра частота: вычищать дальше незачем`);

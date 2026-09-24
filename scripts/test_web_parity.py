@@ -89,9 +89,13 @@ def main() -> int:
             tag = f"{f.name}{' [' + genre + ']' if genre else ''}"
             # Счёт, который браузер обязан показать: питоновский плюс то, чего
             # браузер не измеряет. Он же объявляет этот пропуск в поле unmeasured.
+            # Собирается из штрафов до зажима в [0, 100]: у очень грязного текста
+            # питоновский счёт уходит в минус и зажимается в 0, и прибавка
+            # номинальности к зажатому нулю дала бы ложный разрыв.
             nv_pen = sum(-pts for reason, pts in sc.penalties
                          if reason.startswith(NV_REASON_PREFIX))
-            expected = min(100, sc.score + nv_pen)
+            expected = max(0, min(100, 100 + sum(pts for reason, pts in sc.penalties
+                                                 if not reason.startswith(NV_REASON_PREFIX))))
             expected_band = _band(expected)
             if py_bans != js_bans:
                 failures.append(f"{tag}: баны\n      py {py_bans}\n      js {js_bans}")

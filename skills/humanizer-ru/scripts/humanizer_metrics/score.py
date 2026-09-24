@@ -30,6 +30,21 @@ from .structure import (
 EM_DASH_NAME = "Длинное тире"
 COPY_PASTE_CATEGORY = "Артефакты копипасты"
 
+# Почерк свежих моделей и обвязка чата (markers.py, eval/MODERN-SLOP.md).
+# Считаются числом РАЗНЫХ оборотов, а не плотностью: плотность размывается на
+# длинном тексте, а у современной модели два-три таких оборота на пост. Один
+# оборот бывает и у человека (до 3%), поэтому первый стоит 3 балла, каждый
+# следующий 10. Веса подобраны на половине корпуса и проверены на второй:
+# пойманного слопа 53% → 67%, ложных тревог на людях +1 п.п.
+SIGNATURE_CATEGORY = "Почерк модели"
+SIGNATURE_FIRST = 3
+SIGNATURE_NEXT = 10
+SIGNATURE_MAX = 24
+CHAT_WRAP_CATEGORY = "Обвязка чата"
+CHAT_WRAP_EACH = 10
+CHAT_WRAP_MAX = 20
+DISTINCT_CATEGORIES = (SIGNATURE_CATEGORY, CHAT_WRAP_CATEGORY)
+
 # Полосы. Совпадают с порогами вмешательства из SKILL.md.
 BAND_CLEAN = 85   # ≥ — следы ИИ не мешают, не править
 BAND_EDIT = 60    # ≥ — точечная правка; < — полный рерайт
@@ -130,12 +145,25 @@ def cleanliness_score(report, genre: str | None = None) -> ScoreResult:
         penalties.append((f"артефакты копипасты: {copy_paste}", -pen))
 
     # 3. Мягкие маркеры (кроме копипасты) по плотности на 100 слов.
-    soft = sum(h.count for h in markers if h.category != COPY_PASTE_CATEGORY)
+    soft = sum(h.count for h in markers
+               if h.category != COPY_PASTE_CATEGORY and h.category not in DISTINCT_CATEGORIES)
     if soft:
         pen = min(30, round(2 * _per100(soft, words)))
         if pen:
             score -= pen
             penalties.append((f"маркеры: {soft} ({_per100(soft, words):.1f}/100 слов)", -pen))
+
+    # 3б. Почерк модели и обвязка чата: по числу разных оборотов (см. константы).
+    sig = len({h.marker for h in markers if h.category == SIGNATURE_CATEGORY})
+    if sig:
+        pen = min(SIGNATURE_MAX, SIGNATURE_FIRST + SIGNATURE_NEXT * (sig - 1))
+        score -= pen
+        penalties.append((f"почерк модели: {sig} {_plural(sig, 'оборот', 'оборота', 'оборотов')}", -pen))
+    wrap = len({h.marker for h in markers if h.category == CHAT_WRAP_CATEGORY})
+    if wrap:
+        pen = min(CHAT_WRAP_MAX, CHAT_WRAP_EACH * wrap)
+        score -= pen
+        penalties.append((f"обвязка чата: {wrap} {_plural(wrap, 'след', 'следа', 'следов')}", -pen))
 
     # 4. Длинное тире по плотности с допуском ~2 на 100 слов: «—» штатно
     #    используется в русском (Википедия, «это —», диапазоны). Штраф мягкий,
@@ -199,7 +227,7 @@ def cleanliness_score(report, genre: str | None = None) -> ScoreResult:
     # Условие ровно то, что измерялось: ноль банов и ноль маркеров. Ритм,
     # номинальность и структура сюда не входят, иначе текст с минусом за ровный
     # ритм терял бы заметку, хотя по лексике он как раз стерилен.
-    if not (hard_phrase or copy_paste or soft) and words >= STERILE_MIN_WORDS:
+    if not (hard_phrase or copy_paste or soft or sig or wrap) and words >= STERILE_MIN_WORDS:
         share = next((s for limit, s in HUMAN_ZERO_SHARE if words < limit),
                      HUMAN_ZERO_SHARE[-1][1])
         notes.append(

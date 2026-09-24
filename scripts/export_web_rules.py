@@ -114,6 +114,13 @@ def build() -> dict:
         "score": {
             "em_dash_name": score.EM_DASH_NAME,
             "copy_paste_category": score.COPY_PASTE_CATEGORY,
+            "signature_category": score.SIGNATURE_CATEGORY,
+            "signature_first": score.SIGNATURE_FIRST,
+            "signature_next": score.SIGNATURE_NEXT,
+            "signature_max": score.SIGNATURE_MAX,
+            "chat_wrap_category": score.CHAT_WRAP_CATEGORY,
+            "chat_wrap_each": score.CHAT_WRAP_EACH,
+            "chat_wrap_max": score.CHAT_WRAP_MAX,
             "band_clean": score.BAND_CLEAN,
             "band_edit": score.BAND_EDIT,
             "cv_human_target": burstiness.CV_HUMAN_TARGET,
