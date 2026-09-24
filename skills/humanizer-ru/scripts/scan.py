@@ -24,6 +24,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 try:
     from humanizer_metrics import analyze, cleanliness_score, diff_facts, facts_verdict
     from humanizer_metrics.burstiness import rhythm_verdict
+    from humanizer_metrics.lexical import LEX_MIN_TOKENS
+    from humanizer_metrics.score import LEX_MUTED_GENRES, LEX_THRESHOLD
     from humanizer_metrics.markers import (GENRE_MUTED_BANS, GENRE_MUTED_CATEGORIES,
                                             GENRES, effective_hard_bans, marker_verdict,
                                             mute_by_genre)
@@ -185,6 +187,14 @@ def main() -> int:
           f"(min {rep.rhythm.min_len} / max {rep.rhythm.max_len}), CV: {rep.rhythm.cv_len}")
     print(f"  многоточий: {rep.rhythm.ellipsis}, скобок: {rep.rhythm.parentheses}, "
           f"вопросов: {rep.rhythm.questions}")
+    if rep.lexical.tokens >= LEX_MIN_TOKENS:
+        rule = (f"в жанре {genre} не штрафуется" if genre in LEX_MUTED_GENRES
+                else f"штраф выше {LEX_THRESHOLD}")
+        print(f"  лексическое разнообразие: MATTR {rep.lexical.mattr:.3f} "
+              f"(у людей обычно 0.90 ± 0.04, {rule})")
+    else:
+        print(f"  лексическое разнообразие: не считается, словоформ {rep.lexical.tokens} "
+              f"(нужно от {LEX_MIN_TOKENS})")
     print()
 
     print("Морфология:")

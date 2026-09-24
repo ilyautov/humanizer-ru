@@ -930,7 +930,18 @@ globalThis.HUMANIZER_RULES = {
   "staccato_penalty": 8,
   "staccato_penalty_max": 14,
   "nv_target": 2.5,
-  "nv_max_penalty": 8
+  "nv_max_penalty": 8,
+  "lex_window": 40,
+  "lex_max_tokens": 200,
+  "lex_min_tokens": 100,
+  "lex_threshold": 0.955,
+  "lex_slope": 1000,
+  "lex_penalty_max": 15,
+  "lex_muted_genres": [
+   "academic",
+   "legal",
+   "news"
+  ]
  },
  "markdown": {
   "quote_max_words": 12,

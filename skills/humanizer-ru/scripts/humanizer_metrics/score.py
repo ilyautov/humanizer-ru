@@ -11,9 +11,11 @@
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass, field
 
 from .burstiness import CV_HUMAN_TARGET, STACCATO_MIN_RUN
+from .lexical import LEX_MIN_TOKENS
 from .markers import (GENRE_MUTED_BANS, GENRE_MUTED_CATEGORIES,
                       effective_hard_bans, mute_by_genre)
 from .morphology import NV_TARGET
@@ -72,6 +74,24 @@ STERILE_MIN_WORDS = 100
 # них настоящие авторские обрывки.
 STACCATO_PENALTY = 8
 STACCATO_PENALTY_MAX = 14
+# Лексическое разнообразие (lexical.py): слова почти не повторяются, модель
+# подбирает синоним там, где человек сказал бы то же слово или «он». MATTR у
+# людей 0.902 ± 0.037, порог 0.955 это +1.4 σ. Балл за каждую тысячную выше
+# порога, потолок 15: ниже, чем у почерка модели, потому что признак
+# статистический и на одном тексте шумит. Подобрано на половине корпуса и
+# проверено на второй (eval/MODERN-SLOP.md): ловит GigaChat-Max и o3, а GPT-5.6
+# не сдвигает, его тексты лежат внутри человеческого разброса.
+#
+# В новостях, научном и юридическом регистре штраф снят: плотный фактический
+# текст разнообразен законно. На людях LLMTrace он срабатывал чаще всего на
+# новостях (2,8% текстов против 0,6-0,9% у статей и отзывов), а на справочных
+# текстах задевал людей почти так же часто, как машины, и ни одну машину не
+# перевёл из «чисто». В художественном жанре оставлен: на рассказах LLMTrace
+# машины срабатывают впятеро чаще людей.
+LEX_THRESHOLD = 0.955
+LEX_SLOPE = 1000
+LEX_PENALTY_MAX = 15
+LEX_MUTED_GENRES = frozenset({"news", "academic", "legal"})
 # Потолок штрафа за номинальность. Именованный, потому что браузерный сканер
 # морфологии не имеет и объявляет ровно эту величину как неизмеренную.
 NV_PENALTY_MAX = 8
@@ -193,6 +213,18 @@ def cleanliness_score(report, genre: str | None = None) -> ScoreResult:
         penalties.append((
             f"рваная медитативность: {runs} {_plural(runs, 'цепочка', 'цепочки', 'цепочек')} "
             f"обрывков по {STACCATO_MIN_RUN}+ подряд (самая длинная {report.rhythm.staccato_max})", -pen))
+
+    # 5в. Лексическое разнообразие: считается только на тексте от LEX_MIN_TOKENS
+    #     словоформ, на коротком MATTR шумит. floor, а не round: браузер обязан
+    #     получить то же целое, а округление половин в JS и Python разное.
+    lex = report.lexical
+    if (genre not in LEX_MUTED_GENRES and lex.tokens >= LEX_MIN_TOKENS
+            and lex.mattr > LEX_THRESHOLD):
+        pen = min(LEX_PENALTY_MAX, math.floor((lex.mattr - LEX_THRESHOLD) * LEX_SLOPE))
+        if pen:
+            score -= pen
+            penalties.append((f"лексическое разнообразие (MATTR={lex.mattr:.3f}, "
+                              f"порог {LEX_THRESHOLD})", -pen))
 
     # 6. Номинальность: сущ./глаг. выше цели 2.5 = канцелярит. Слабый сигнал и
     #    главный источник ложных срабатываний (энциклопедический/юр. регистр

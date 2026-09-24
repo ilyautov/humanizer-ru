@@ -31,6 +31,7 @@ REQUIRED_FILES = (
     "scripts/humanizer_metrics/markers.py",
     "scripts/humanizer_metrics/score.py",
     "scripts/humanizer_metrics/burstiness.py",
+    "scripts/humanizer_metrics/lexical.py",
     "scripts/humanizer_metrics/structure.py",
     "scripts/humanizer_metrics/morphology.py",
 )
