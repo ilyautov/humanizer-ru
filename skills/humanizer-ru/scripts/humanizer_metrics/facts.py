@@ -111,9 +111,20 @@ def _norm(word: str) -> str:
     return _MORPH.parse(low)[0].normal_form.replace("ё", "е")
 
 
+# Начало строки и всё, что Markdown ставит перед первым словом: маркер списка
+# («-», «*», «•», «1.», «2)»), цитата «>», решётки заголовка, «**» жирного,
+# эмодзи-буллет. Без этого «- Говорить» или «**Тема**» давали «имя:говорить».
+LINE_LEAD_RE = re.compile(r"^[ \t]*(?:(?:\d{1,3}[.)]|[^\w\s«\"'(\[])[ \t]*)*", re.MULTILINE)
+
+
 def _sentence_starts(text: str) -> set[int]:
     starts = {0}
-    for m in re.finditer(r"[.!?…]\s+|^[>\-*]\s+|«|\n", text):
+    # После двоеточия, тире, открывающей кавычки и скобки заглавная тоже бывает
+    # у обычного слова («Совет: Не паникуйте», «(Например: …)»). Имя из словаря
+    # (теги Name, Geox, Orgn) и незнакомое словарю слово ловятся и там.
+    for m in re.finditer(r"[.!?…:;—–][*_]*\s+[*_«\"„“(]*|[«\"„“(]|\n", text):
+        starts.add(m.end())
+    for m in LINE_LEAD_RE.finditer(text):
         starts.add(m.end())
     return starts
 

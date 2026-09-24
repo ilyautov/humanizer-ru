@@ -324,7 +324,10 @@
   const stem = (w) => w.toLowerCase().replace(/ё/g, "е").replace(/-+$/, "").slice(0, 5);
   function sentenceStarts(text) {
     const starts = new Set([0]);
-    for (const m of text.matchAll(/[.!?…]\s+|^[>\-*]\s+|«|\n/gm)) starts.add(m.index + m[0].length);
+    for (const m of text.matchAll(/[.!?…]\s+|«|\n/g)) starts.add(m.index + m[0].length);
+    // Начало строки после маркера списка («-», «1.», «2)»), «>», «#», «**» и
+    // эмодзи-буллета: «- Говорить» не имя. Как LINE_LEAD_RE в facts.py.
+    for (const m of text.matchAll(/^[ \t]*(?:(?:\d{1,3}[.)]|[^\p{L}\p{N}_\s«"'(\[])[ \t]*)*/gmu)) starts.add(m.index + m[0].length);
     return starts;
   }
   function extractFacts(text) {

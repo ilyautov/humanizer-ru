@@ -92,6 +92,22 @@ check(r.returncode == 0 and "утверждение появилось: утве
 r = run([str(_d / "kept.txt"), "--before", str(_d / "before.txt"), "--json"])
 check('"facts"' in r.stdout and '"before"' in r.stdout, "--json несёт facts и before")
 
+# --- факт-замок: начало пункта списка и строки разметки не имя ---------------
+sys.path.insert(0, str(SCAN.parent))
+from humanizer_metrics import diff_facts  # noqa: E402
+
+_list_before = ("Как готовиться:\n- Повторите основы\n* Говорите спокойно\n1. Логика важнее ответа\n"
+                "2) Возьмите резюме\n**Тема:** перенос сроков\n✅ Готовность\n\nСовет: Не паникуйте.\n"
+                "**Простыми словами:** Прививка учит иммунитет.")
+_list_after = "Как готовиться: повторите основы, говорите спокойно, логика важнее ответа, возьмите резюме."
+_names = [x for x in diff_facts(_list_before, _list_after).lost if x.startswith("имя:")]
+check(not _names, f"слово в начале пункта списка, после «**», эмодзи и двоеточия не имя: {_names}")
+_d2 = diff_facts("- Работали с Яндексом и Стэнфордом.", "Работали вместе.")
+check("имя:яндекс" in _d2.lost and "имя:стэнфорд" in _d2.lost,
+      f"настоящие имена в пункте списка по-прежнему ловятся: {_d2.lost}")
+check("имя:excel" in diff_facts("- Excel выгружает отчёт.", "Отчёт выгружается.").lost,
+      "латиница в начале пункта списка остаётся именем")
+
 
 if __name__ == "__main__":
     print(f"OK — {passed} проверок прошли.")
