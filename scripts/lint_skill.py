@@ -35,7 +35,7 @@ SKILL_DIR = ROOT / "skills" / "humanizer-ru"
 
 EXPECTED_PATTERNS = 64
 EXPECTED_HARD_BANS = 21
-EXPECTED_SCANNER_CATS = 27
+EXPECTED_SCANNER_CATS = 29
 
 errors: list[str] = []
 notes: list[str] = []

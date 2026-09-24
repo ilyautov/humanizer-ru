@@ -27,7 +27,7 @@ const out = files.map((f) => {
     file: f, score: r.score, band: r.band,
     hard_bans: r.hard_bans.map((h) => [h.name, h.count]),
     markers: r.markers.map((h) => [h.category, h.name, h.count]),
-    rhythm: r.rhythm, structure: r.structure, penalties: r.penalties,
+    rhythm: r.rhythm, structure: r.structure, lexical: r.lexical, penalties: r.penalties,
     unmeasured: r.unmeasured,
   };
 });

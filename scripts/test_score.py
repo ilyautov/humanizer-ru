@@ -139,5 +139,72 @@ check(analyze("- Да\n- Нет\n- Может\n").rhythm.staccato_runs == 0, "п
 check(analyze(lit).rhythm.staccato_runs == 0, "живая проза не должна давать цепочек обрывков")
 
 
+# Современный слоп (eval/MODERN-SLOP.md): ни одного старого бана, а полоса была
+# «чисто». Собран из оборотов постов Claude Haiku (корпус gen_modern_slop.py).
+_MODERN = ("**Режим — ваш друг.** Включайте работу в одно время, заканчивайте в одно.\n\n"
+           "Первые сотрудники — это архитекторы вашей культуры. Это не просто наём, "
+           "это выбор людей, что делает его важным шагом. Важность этого шага "
+           "невозможно не почувствовать, и он вдохновляет команду.\n\n"
+           "Хотите, чтобы я переписал вступление в другом стиле?")
+check(band(_MODERN) != "чисто", f"современный слоп не должен быть «чисто», получено {score(_MODERN)}")
+check("почерк модели" in penalty_reasons(_MODERN), "почерк модели должен штрафоваться")
+check("обвязка чата" in penalty_reasons(_MODERN), "оферта доработки = обвязка чата")
+# Один оборот бывает у человека: стоит 3 балла и не роняет чистый текст из полосы.
+_ONE = ("Москва — это город, где я прожил двадцать лет. Каждое утро я шёл пешком до метро, "
+        "покупал кофе у одной и той же палатки и думал, что так будет всегда. Потом палатку снесли.")
+check(band(_ONE) == "чисто", f"один оборот почерка не должен ронять полосу, получено {score(_ONE)}")
+check(("почерк модели: 1 оборот", -3) in cleanliness_score(analyze(_ONE)).penalties,
+      "первый оборот почерка стоит 3 балла")
+# В новостном жанре почерк модели не считается: «свидетельствует о» там норма.
+_NEWS = "Отчёт свидетельствует о росте цен. Министр подчёркивает важность мер."
+check(not any(r.startswith("почерк модели") for r, _ in cleanliness_score(analyze(_NEWS), "news").penalties),
+      "в жанре news почерк модели не штрафуется")
+
+
+# Лексическое разнообразие (lexical.py, eval/MODERN-SLOP.md). Токенизация
+# зафиксирована: браузер повторяет её байт в байт, и тихая правка регулярки
+# здесь разошлась бы с сайтом.
+from dataclasses import replace as _replace  # noqa: E402
+
+from humanizer_metrics.lexical import (LEX_MIN_TOKENS, LEX_WINDOW, LexicalStats,  # noqa: E402
+                                       lexical_tokens, mattr)
+from humanizer_metrics.score import LEX_PENALTY_MAX, LEX_THRESHOLD  # noqa: E402
+
+check(lexical_tokens("ЁЛКА Ёлка елка. Кто-то КТО-ТО Wi-Fi-роутер 5-й -нибудь слово-")
+      == ["елка", "елка", "елка", "кто-то", "кто-то", "роутер", "й", "нибудь", "слово"],
+      "токены: нижний регистр, ё → е, дефис только внутри кириллического слова")
+check(mattr([f"w{i}" for i in range(60)]) == 1.0, "все словоформы разные: MATTR 1.0")
+check(mattr(["а"] * 60) == 1 / LEX_WINDOW, "одна словоформа: MATTR 1/окно")
+check(mattr(["а"] * (LEX_WINDOW - 1)) == 0.0, "короче окна: MATTR не считается")
+
+
+def _lex_pen(text: str, genre: str | None = None, **lex) -> list[tuple[str, int]]:
+    rep = analyze(text)
+    if lex:
+        rep = _replace(rep, lexical=LexicalStats(**lex))
+    return [(r, p) for r, p in cleanliness_score(rep, genre).penalties
+            if r.startswith("лексическое разнообразие")]
+
+
+_PLAIN = "Я пришёл домой и лёг спать."
+check(_lex_pen(_PLAIN, tokens=150, mattr=LEX_THRESHOLD) == [], "ровно на пороге штрафа нет")
+check([p for _, p in _lex_pen(_PLAIN, tokens=150, mattr=LEX_THRESHOLD + 0.0015)] == [-1],
+      "балл за каждую полную тысячную выше порога (floor, как в браузере)")
+check([p for _, p in _lex_pen(_PLAIN, tokens=150, mattr=0.999)] == [-LEX_PENALTY_MAX],
+      "штраф за разнообразие ограничен потолком")
+check(_lex_pen(_PLAIN, tokens=LEX_MIN_TOKENS - 1, mattr=0.999) == [],
+      "на коротком тексте MATTR шумит и не штрафуется")
+for g in ("news", "academic", "legal"):
+    check(_lex_pen(_PLAIN, g, tokens=150, mattr=0.999) == [], f"в жанре {g} разнообразие не штрафуется")
+check(_lex_pen(_PLAIN, "fiction", tokens=150, mattr=0.999) != [], "в жанре fiction штраф остаётся")
+# Живой текст из настоящего корпуса: сырой ответ Claude без единого повтора
+# штрафуется, повторяющаяся человеческая проза нет.
+_RAW = (Path(__file__).resolve().parent.parent / "eval" / "corpus" / "raw" / "business_claude_05.txt").read_text(encoding="utf-8")
+check(analyze(_RAW).lexical.tokens >= LEX_MIN_TOKENS and _lex_pen(_RAW) != [],
+      "сырой ответ модели без повторов должен получить штраф за разнообразие")
+_STERILE = " ".join(["Гайка лежала на верстаке. Я взял её и пошёл домой, было поздно и холодно."] * 12)
+check(_lex_pen(_STERILE) == [], "текст с повторами штрафа за разнообразие не получает")
+
+
 if __name__ == "__main__":
     print(f"OK — {passed} проверок прошли.")

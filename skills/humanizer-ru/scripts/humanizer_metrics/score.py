@@ -11,9 +11,11 @@
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass, field
 
 from .burstiness import CV_HUMAN_TARGET, STACCATO_MIN_RUN
+from .lexical import LEX_MIN_TOKENS
 from .markers import (GENRE_MUTED_BANS, GENRE_MUTED_CATEGORIES,
                       effective_hard_bans, mute_by_genre)
 from .morphology import NV_TARGET
@@ -29,6 +31,21 @@ from .structure import (
 # штрафуем по плотности с допуском. Имя берём из HARD_BANS markers.py.
 EM_DASH_NAME = "Длинное тире"
 COPY_PASTE_CATEGORY = "Артефакты копипасты"
+
+# Почерк свежих моделей и обвязка чата (markers.py, eval/MODERN-SLOP.md).
+# Считаются числом РАЗНЫХ оборотов, а не плотностью: плотность размывается на
+# длинном тексте, а у современной модели два-три таких оборота на пост. Один
+# оборот бывает и у человека (до 3%), поэтому первый стоит 3 балла, каждый
+# следующий 10. Веса подобраны на половине корпуса и проверены на второй:
+# пойманного слопа 53% → 67%, ложных тревог на людях +1 п.п.
+SIGNATURE_CATEGORY = "Почерк модели"
+SIGNATURE_FIRST = 3
+SIGNATURE_NEXT = 10
+SIGNATURE_MAX = 24
+CHAT_WRAP_CATEGORY = "Обвязка чата"
+CHAT_WRAP_EACH = 10
+CHAT_WRAP_MAX = 20
+DISTINCT_CATEGORIES = (SIGNATURE_CATEGORY, CHAT_WRAP_CATEGORY)
 
 # Полосы. Совпадают с порогами вмешательства из SKILL.md.
 BAND_CLEAN = 85   # ≥ — следы ИИ не мешают, не править
@@ -57,6 +74,24 @@ STERILE_MIN_WORDS = 100
 # них настоящие авторские обрывки.
 STACCATO_PENALTY = 8
 STACCATO_PENALTY_MAX = 14
+# Лексическое разнообразие (lexical.py): слова почти не повторяются, модель
+# подбирает синоним там, где человек сказал бы то же слово или «он». MATTR у
+# людей 0.902 ± 0.037, порог 0.955 это +1.4 σ. Балл за каждую тысячную выше
+# порога, потолок 15: ниже, чем у почерка модели, потому что признак
+# статистический и на одном тексте шумит. Подобрано на половине корпуса и
+# проверено на второй (eval/MODERN-SLOP.md): ловит GigaChat-Max и o3, а GPT-5.6
+# не сдвигает, его тексты лежат внутри человеческого разброса.
+#
+# В новостях, научном и юридическом регистре штраф снят: плотный фактический
+# текст разнообразен законно. На людях LLMTrace он срабатывал чаще всего на
+# новостях (2,8% текстов против 0,6-0,9% у статей и отзывов), а на справочных
+# текстах задевал людей почти так же часто, как машины, и ни одну машину не
+# перевёл из «чисто». В художественном жанре оставлен: на рассказах LLMTrace
+# машины срабатывают впятеро чаще людей.
+LEX_THRESHOLD = 0.955
+LEX_SLOPE = 1000
+LEX_PENALTY_MAX = 15
+LEX_MUTED_GENRES = frozenset({"news", "academic", "legal"})
 # Потолок штрафа за номинальность. Именованный, потому что браузерный сканер
 # морфологии не имеет и объявляет ровно эту величину как неизмеренную.
 NV_PENALTY_MAX = 8
@@ -130,12 +165,25 @@ def cleanliness_score(report, genre: str | None = None) -> ScoreResult:
         penalties.append((f"артефакты копипасты: {copy_paste}", -pen))
 
     # 3. Мягкие маркеры (кроме копипасты) по плотности на 100 слов.
-    soft = sum(h.count for h in markers if h.category != COPY_PASTE_CATEGORY)
+    soft = sum(h.count for h in markers
+               if h.category != COPY_PASTE_CATEGORY and h.category not in DISTINCT_CATEGORIES)
     if soft:
         pen = min(30, round(2 * _per100(soft, words)))
         if pen:
             score -= pen
             penalties.append((f"маркеры: {soft} ({_per100(soft, words):.1f}/100 слов)", -pen))
+
+    # 3б. Почерк модели и обвязка чата: по числу разных оборотов (см. константы).
+    sig = len({h.marker for h in markers if h.category == SIGNATURE_CATEGORY})
+    if sig:
+        pen = min(SIGNATURE_MAX, SIGNATURE_FIRST + SIGNATURE_NEXT * (sig - 1))
+        score -= pen
+        penalties.append((f"почерк модели: {sig} {_plural(sig, 'оборот', 'оборота', 'оборотов')}", -pen))
+    wrap = len({h.marker for h in markers if h.category == CHAT_WRAP_CATEGORY})
+    if wrap:
+        pen = min(CHAT_WRAP_MAX, CHAT_WRAP_EACH * wrap)
+        score -= pen
+        penalties.append((f"обвязка чата: {wrap} {_plural(wrap, 'след', 'следа', 'следов')}", -pen))
 
     # 4. Длинное тире по плотности с допуском ~2 на 100 слов: «—» штатно
     #    используется в русском (Википедия, «это —», диапазоны). Штраф мягкий,
@@ -165,6 +213,18 @@ def cleanliness_score(report, genre: str | None = None) -> ScoreResult:
         penalties.append((
             f"рваная медитативность: {runs} {_plural(runs, 'цепочка', 'цепочки', 'цепочек')} "
             f"обрывков по {STACCATO_MIN_RUN}+ подряд (самая длинная {report.rhythm.staccato_max})", -pen))
+
+    # 5в. Лексическое разнообразие: считается только на тексте от LEX_MIN_TOKENS
+    #     словоформ, на коротком MATTR шумит. floor, а не round: браузер обязан
+    #     получить то же целое, а округление половин в JS и Python разное.
+    lex = report.lexical
+    if (genre not in LEX_MUTED_GENRES and lex.tokens >= LEX_MIN_TOKENS
+            and lex.mattr > LEX_THRESHOLD):
+        pen = min(LEX_PENALTY_MAX, math.floor((lex.mattr - LEX_THRESHOLD) * LEX_SLOPE))
+        if pen:
+            score -= pen
+            penalties.append((f"лексическое разнообразие (MATTR={lex.mattr:.3f}, "
+                              f"порог {LEX_THRESHOLD})", -pen))
 
     # 6. Номинальность: сущ./глаг. выше цели 2.5 = канцелярит. Слабый сигнал и
     #    главный источник ложных срабатываний (энциклопедический/юр. регистр
@@ -199,7 +259,7 @@ def cleanliness_score(report, genre: str | None = None) -> ScoreResult:
     # Условие ровно то, что измерялось: ноль банов и ноль маркеров. Ритм,
     # номинальность и структура сюда не входят, иначе текст с минусом за ровный
     # ритм терял бы заметку, хотя по лексике он как раз стерилен.
-    if not (hard_phrase or copy_paste or soft) and words >= STERILE_MIN_WORDS:
+    if not (hard_phrase or copy_paste or soft or sig or wrap) and words >= STERILE_MIN_WORDS:
         share = next((s for limit, s in HUMAN_ZERO_SHARE if words < limit),
                      HUMAN_ZERO_SHARE[-1][1])
         notes.append(
