@@ -14,6 +14,7 @@ from __future__ import annotations
 from dataclasses import dataclass, replace
 
 from .burstiness import RhythmStats, rhythm, rhythm_verdict
+from .lexical import LexicalStats, lexical_stats
 from .markers import (
     MarkerHit,
     marker_verdict,
@@ -30,12 +31,14 @@ __all__ = [
     "RhythmStats",
     "MorphStats",
     "StructureStats",
+    "LexicalStats",
     "MarkerHit",
     "ScoreResult",
     "cleanliness_score",
     "rhythm",
     "morph_stats",
     "structure_stats",
+    "lexical_stats",
     "scan_hard_bans",
     "scan_markers",
     "mask_foreign",
@@ -52,6 +55,7 @@ class Report:
     rhythm: RhythmStats
     morph: MorphStats
     structure: StructureStats
+    lexical: LexicalStats
 
     @property
     def hard_ban_count(self) -> int:
@@ -70,6 +74,7 @@ class Report:
             "rhythm": self.rhythm.as_dict(),
             "morph": self.morph.as_dict(),
             "structure": self.structure.as_dict(),
+            "lexical": self.lexical.as_dict(),
         }
 
 
@@ -97,4 +102,5 @@ def analyze(text: str) -> Report:
         rhythm=stats,
         morph=morph_stats(prose),
         structure=structure_stats(prose),
+        lexical=lexical_stats(prose),
     )

@@ -6,6 +6,8 @@
 // поэтому его счёт может быть ВЫШЕ питоновского. Этот пропуск объявляется в
 // отчёте (поле unmeasured), а не замалчивается. razdel (делитель предложений
 // и счёт слов) перенесён в JS правило в правило, ритм совпадает точно.
+// Лексическое разнообразие (MATTR) от razdel не зависит и совпадает с Python
+// точно, до бита.
 //
 // API: globalThis.humanizerScan(text, genre) -> отчёт (см. конец файла).
 
@@ -364,6 +366,39 @@
     };
   }
 
+  // --- Лексическое разнообразие: порт humanizer_metrics/lexical.py ----------
+  // Токенизация обязана совпасть с Python байт в байт: нижний регистр, ё → е,
+  // слово это кириллица с внутренними дефисами. Паритет MATTR проверяется
+  // точным равенством (scripts/test_web_parity.py).
+  const LEX_TOKEN = /[а-яё]+(?:-[а-яё]+)*/g;
+  function lexicalTokens(text) {
+    return (text.toLowerCase().match(LEX_TOKEN) || []).map((t) => t.replace(/ё/g, "е"));
+  }
+  // MATTR: среднее по окнам доли разных словоформ. Сумма копится в целых и
+  // делится один раз, как в Python, поэтому число совпадает до бита.
+  function mattr(tokens, window) {
+    const n = tokens.length;
+    if (n < window) return 0;
+    const counts = new Map();
+    for (const t of tokens.slice(0, window)) counts.set(t, (counts.get(t) || 0) + 1);
+    let distinct = counts.size, total = distinct;
+    for (let i = window; i < n; i++) {
+      const nw = tokens[i], old = tokens[i - window];
+      const c = (counts.get(nw) || 0) + 1;
+      counts.set(nw, c);
+      if (c === 1) distinct += 1;
+      const o = counts.get(old) - 1;
+      counts.set(old, o);
+      if (o === 0) distinct -= 1;
+      total += distinct;
+    }
+    return total / ((n - window + 1) * window);
+  }
+  function lexicalStats(text) {
+    const toks = lexicalTokens(text);
+    return { tokens: toks.length, mattr: mattr(toks.slice(0, R.score.lex_max_tokens), R.score.lex_window) };
+  }
+
   // --- Score: порт score.cleanliness_score без пункта 6 (морфология) ---------
   const per100 = (count, words) => (words ? (count / words) * 100 : 0);
   const plural = (n, one, few, many) =>
@@ -428,6 +463,13 @@
       penalties.push({ reason: `рваная медитативность: ${runs} ${word} обрывков по ${S.staccato_min_run}+ подряд (самая длинная ${rep.rhythm.staccato_max})`, points: -pen });
     }
 
+    // Лексическое разнообразие: floor, а не round, чтобы целое совпало с Python.
+    const lex = rep.lexical;
+    if (!S.lex_muted_genres.includes(genre) && lex.tokens >= S.lex_min_tokens && lex.mattr > S.lex_threshold) {
+      const pen = Math.min(S.lex_penalty_max, Math.floor((lex.mattr - S.lex_threshold) * S.lex_slope));
+      if (pen) { score -= pen; penalties.push({ reason: `лексическое разнообразие (MATTR=${lex.mattr.toFixed(3)}, порог ${S.lex_threshold})`, points: -pen }); }
+    }
+
     const st = rep.structure;
     if (st.paragraphs >= S.para_min_count && st.para_cv < S.para_cv_ai) {
       const pen = Math.min(10, Math.round(((S.para_cv_ai - st.para_cv) / S.para_cv_ai) * 20));
@@ -463,16 +505,16 @@
     const prose = stripForeign(text);
     const rh = rhythm(prose);
     rh.em_dash = (lexical.match(/—/g) || []).length;
-    const rep = { hardBans: scanHardBans(lexical), markers: scanMarkers(lexical), rhythm: rh, structure: structureStats(prose) };
+    const rep = { hardBans: scanHardBans(lexical), markers: scanMarkers(lexical), rhythm: rh, structure: structureStats(prose), lexical: lexicalStats(prose) };
     const sc = cleanlinessScore(rep, genre);
     return {
       score: sc.score, band: sc.band, penalties: sc.penalties, notes: sc.notes,
       unmeasured: sc.unmeasured,
       hard_bans: rep.hardBans, effective_bans: sc.effectiveBans, markers: rep.markers, muted_markers: sc.mutedMarkers,
-      rhythm: rh, structure: rep.structure, words: rh.words, genre,
+      rhythm: rh, structure: rep.structure, lexical: rep.lexical, words: rh.words, genre,
     };
   }
 
   globalThis.humanizerScan = humanizerScan;
-  globalThis.humanizerScanInternals = { maskForeign, stripForeign, sentences, countWords };
+  globalThis.humanizerScanInternals = { maskForeign, stripForeign, sentences, countWords, lexicalTokens, mattr };
 })();

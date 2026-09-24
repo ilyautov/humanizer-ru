@@ -3,9 +3,9 @@
 
 Онлайн-аудит на сайте считает те же баны, маркеры и штрафы, что scan.py, но
 на JavaScript. Чтобы веб не стал вторым расходящимся сканером, правила не
-переписываются руками: этот скрипт читает markers.py, score.py, burstiness.py и
-structure.py и печатает их в один JS-файл. В CI стоит `--check`: если файл в
-репозитории отличается от свежего экспорта, сборка падает.
+переписываются руками: этот скрипт читает markers.py, score.py, burstiness.py,
+structure.py и lexical.py и печатает их в один JS-файл. В CI стоит `--check`:
+если файл в репозитории отличается от свежего экспорта, сборка падает.
 
 Что переводится из Python-регулярок в JavaScript (флаги `iu`):
 - `\\b` в Python знает кириллицу, в JS только ASCII. Заменяется на явную
@@ -34,8 +34,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "skills" / "humanizer-ru" / "scripts"))
 
-from humanizer_metrics import (burstiness, markdown, markers, morphology,  # noqa: E402
-                                score, structure)
+from humanizer_metrics import (burstiness, lexical, markdown, markers,  # noqa: E402
+                                morphology, score, structure)
 
 OUT = ROOT / "docs" / "scan-rules.js"
 
@@ -136,6 +136,13 @@ def build() -> dict:
             "staccato_penalty_max": score.STACCATO_PENALTY_MAX,
             "nv_target": morphology.NV_TARGET,
             "nv_max_penalty": score.NV_PENALTY_MAX,
+            "lex_window": lexical.LEX_WINDOW,
+            "lex_max_tokens": lexical.LEX_MAX_TOKENS,
+            "lex_min_tokens": lexical.LEX_MIN_TOKENS,
+            "lex_threshold": score.LEX_THRESHOLD,
+            "lex_slope": score.LEX_SLOPE,
+            "lex_penalty_max": score.LEX_PENALTY_MAX,
+            "lex_muted_genres": sorted(score.LEX_MUTED_GENRES),
         },
         "markdown": {"quote_max_words": markdown.QUOTE_MAX_WORDS, "gap": markdown.GAP},
     }
