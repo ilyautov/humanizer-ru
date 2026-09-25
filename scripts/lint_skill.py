@@ -33,7 +33,7 @@ CANON = ROOT / "skills" / "humanizer-ru" / "SKILL.md"
 CATALOG = ROOT / "skills" / "humanizer-ru" / "references" / "catalog.md"
 SKILL_DIR = ROOT / "skills" / "humanizer-ru"
 
-EXPECTED_PATTERNS = 65
+EXPECTED_PATTERNS = 67
 EXPECTED_HARD_BANS = 21
 EXPECTED_SCANNER_CATS = 29
 

@@ -13,7 +13,7 @@ Claude Code / Cowork plugin. Kills AI smell in Russian text. The English [humani
 
 <p align="center">
   <a href="https://humanizer-ru.aifrontier.tech/">
-    <img src="assets/social-preview.png" alt="humanizer-ru: removes AI tells from Russian text. 65 patterns, 21 hard bans, scanner included" width="720">
+    <img src="assets/social-preview.png" alt="humanizer-ru: removes AI tells from Russian text. 67 patterns, 21 hard bans, scanner included" width="720">
   </a>
 </p>
 
@@ -34,11 +34,11 @@ The CLI detects your installed agents and asks where to put the skill. In Claude
 
 Claude.ai, DeepSeek Harness and team rollout are covered in [Install](#install).
 
-📖 **Docs & write-ups (RU):** [humanizer-ru.aifrontier.tech](https://humanizer-ru.aifrontier.tech/): do AI detectors work on Russian, the 65 markers, plagiarism vs AI detection.
+📖 **Docs & write-ups (RU):** [humanizer-ru.aifrontier.tech](https://humanizer-ru.aifrontier.tech/): do AI detectors work on Russian, the 67 markers, plagiarism vs AI detection.
 
 ## What you get
 
-65 patterns across 15 categories: канцелярит, English calques, emotional sterility, persuasion tricks, information rhythm, hedging specifics, plus the 2025-2026 stylistic fingerprints (jagged-meditation single-word sentences, pseudo-Socratic Q-A chains, decorative emoji per list item, pseudo-therapeutic register) and the 2026 formulas (inanimate subject, Title Case headings, mid-sentence truncation, negation triad), plus a discourse layer (explicit final moral, portrait-style character introduction, emotion conveyed only through the body, seamless causal chains, strictly linear chronology, no direct reader address: narrative signals that survive stylistic rewriting, per StoryScope / COLM 2026). 21 hard-banned constructions that scream "GPT wrote this", including em-dashes (detectors count their frequency). A research-backed section on how detectors actually work (perplexity, burstiness, morphology) with verified numbers from DivEye, PIFE, AINL-Eval 2025 (every citation checked, see SOURCES.md). Five article formulas. Voice calibration. Local editing instead of rewriting: mark the exact spot, strip the wrapper around the claim, verify the result against the source (who did what, certainty, conditions, numbers with units). Nothing is added for "liveliness": no invented facts, emotions or particles; a 195-sample blind run (eval/LOCAL_EDIT_CHECK.md) showed that voice quotas produce foreign tone and staged rhetoric.
+67 patterns across 16 categories: канцелярит, English calques, emotional sterility, persuasion tricks, information rhythm, hedging specifics, plus the 2025-2026 stylistic fingerprints (jagged-meditation single-word sentences, pseudo-Socratic Q-A chains, decorative emoji per list item, pseudo-therapeutic register) and the 2026 formulas (inanimate subject, Title Case headings, mid-sentence truncation, negation triad), plus a discourse layer (explicit final moral, portrait-style character introduction, emotion conveyed only through the body, seamless causal chains, strictly linear chronology, no direct reader address: narrative signals that survive stylistic rewriting, per StoryScope / COLM 2026). 21 hard-banned constructions that scream "GPT wrote this", including em-dashes (detectors count their frequency). A research-backed section on how detectors actually work (perplexity, burstiness, morphology) with verified numbers from DivEye, PIFE, AINL-Eval 2025 (every citation checked, see SOURCES.md). Five article formulas. Voice calibration. Local editing instead of rewriting: mark the exact spot, strip the wrapper around the claim, verify the result against the source (who did what, certainty, conditions, numbers with units). Nothing is added for "liveliness": no invented facts, emotions or particles; a 195-sample blind run (eval/LOCAL_EDIT_CHECK.md) showed that voice quotas produce foreign tone and staged rhetoric.
 
 ## Try it without installing
 
