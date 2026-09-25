@@ -4,7 +4,7 @@
 Онлайн-аудит на сайте считает те же баны, маркеры и штрафы, что scan.py, но
 на JavaScript. Чтобы веб не стал вторым расходящимся сканером, правила не
 переписываются руками: этот скрипт читает markers.py, score.py, burstiness.py,
-structure.py и lexical.py и печатает их в один JS-файл. В CI стоит `--check`:
+structure.py, lexical.py и repeats.py и печатает их в один JS-файл. В CI стоит `--check`:
 если файл в репозитории отличается от свежего экспорта, сборка падает.
 
 Что переводится из Python-регулярок в JavaScript (флаги `iu`):
@@ -35,7 +35,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "skills" / "humanizer-ru" / "scripts"))
 
 from humanizer_metrics import (burstiness, lexical, markdown, markers,  # noqa: E402
-                                morphology, score, structure)
+                                morphology, repeats, score, structure)
 
 OUT = ROOT / "docs" / "scan-rules.js"
 
@@ -145,6 +145,14 @@ def build() -> dict:
             "lex_muted_genres": sorted(score.LEX_MUTED_GENRES),
         },
         "markdown": {"quote_max_words": markdown.QUOTE_MAX_WORDS, "gap": markdown.GAP},
+        "repeats": {
+            "n": repeats.REPEAT_N,
+            "max_tokens": repeats.REPEAT_MAX_TOKENS,
+            "min_content": repeats.REPEAT_MIN_CONTENT,
+            "min_phrases": repeats.REPEAT_MIN_PHRASES,
+            "show": score.REPEAT_SHOW,
+            "function_words": sorted(repeats.FUNCTION_WORDS),
+        },
     }
 
 

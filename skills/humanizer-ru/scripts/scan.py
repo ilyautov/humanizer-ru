@@ -30,6 +30,7 @@ try:
                                             GENRES, effective_hard_bans, marker_verdict,
                                             mute_by_genre)
     from humanizer_metrics.morphology import morph_verdict
+    from humanizer_metrics.repeats import REPEAT_MAX_TOKENS, REPEAT_N
     from humanizer_metrics.structure import structure_verdict
 except ImportError as exc:
     print(f"[ошибка] не хватает зависимостей сканера ({exc.name}); балла не будет.\n"
@@ -205,6 +206,16 @@ def main() -> int:
 
     print("Структура (уровень документа):")
     print(f"  {structure_verdict(rep.structure)}")
+    phrases = rep.repeats.phrases
+    if phrases:
+        print(f"  повтор фраз между абзацами: {len(phrases)} (цепочки от {REPEAT_N} слов в первых "
+              f"{REPEAT_MAX_TOKENS} словоформах, в счёт не входит)")
+        for ph in phrases[:5]:
+            print(f"    «{ph}»")
+        if len(phrases) > 5:
+            print(f"    … и ещё {len(phrases) - 5}")
+    else:
+        print(f"  повторов фраз между абзацами нет (цепочки от {REPEAT_N} слов)")
 
     if fdiff is not None:
         print()

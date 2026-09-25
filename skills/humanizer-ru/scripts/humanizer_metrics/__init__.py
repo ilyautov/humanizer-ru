@@ -22,6 +22,7 @@ from .markers import (
     scan_markers,
 )
 from .morphology import MorphStats, morph_stats, morph_verdict
+from .repeats import RepeatStats, repeat_stats
 from .structure import StructureStats, structure_stats, structure_verdict
 from .score import ScoreResult, cleanliness_score
 
@@ -32,6 +33,7 @@ __all__ = [
     "MorphStats",
     "StructureStats",
     "LexicalStats",
+    "RepeatStats",
     "MarkerHit",
     "ScoreResult",
     "cleanliness_score",
@@ -39,6 +41,7 @@ __all__ = [
     "morph_stats",
     "structure_stats",
     "lexical_stats",
+    "repeat_stats",
     "scan_hard_bans",
     "scan_markers",
     "mask_foreign",
@@ -56,6 +59,7 @@ class Report:
     morph: MorphStats
     structure: StructureStats
     lexical: LexicalStats
+    repeats: RepeatStats
 
     @property
     def hard_ban_count(self) -> int:
@@ -75,6 +79,7 @@ class Report:
             "morph": self.morph.as_dict(),
             "structure": self.structure.as_dict(),
             "lexical": self.lexical.as_dict(),
+            "repeats": self.repeats.as_dict(),
         }
 
 
@@ -103,4 +108,5 @@ def analyze(text: str) -> Report:
         morph=morph_stats(prose),
         structure=structure_stats(prose),
         lexical=lexical_stats(prose),
+        repeats=repeat_stats(prose),
     )

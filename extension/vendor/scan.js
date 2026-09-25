@@ -6,8 +6,8 @@
 // поэтому его счёт может быть ВЫШЕ питоновского. Этот пропуск объявляется в
 // отчёте (поле unmeasured), а не замалчивается. razdel (делитель предложений
 // и счёт слов) перенесён в JS правило в правило, ритм совпадает точно.
-// Лексическое разнообразие (MATTR) от razdel не зависит и совпадает с Python
-// точно, до бита.
+// Лексическое разнообразие (MATTR) и повтор фраз между абзацами от razdel не
+// зависят и совпадают с Python точно: MATTR до бита, фразы дословно.
 //
 // API: globalThis.humanizerScan(text, genre) -> отчёт (см. конец файла).
 
@@ -399,6 +399,63 @@
     return { tokens: toks.length, mattr: mattr(toks.slice(0, R.score.lex_max_tokens), R.score.lex_window) };
   }
 
+  // --- Повтор фразы между абзацами: порт humanizer_metrics/repeats.py -------
+  // Абзац это непустая строка, заголовки Markdown и цитаты в кавычках не
+  // считаются, латиница, цифры и знаки конца предложения рвут цепочку. Список
+  // фраз обязан совпасть с Python дословно (scripts/test_web_parity.py). В счёт
+  // признак не входит, это заметка для правки.
+  const RP = R.repeats;
+  const RP_FUNCTION = new Set(RP.function_words);
+  const RP_TOKEN = /[а-яё]+(?:-[а-яё]+)*|[a-z0-9]+|[.!?…;:()[\]"«»“”„]/g;
+  const RP_QUOTE = /«[^«»\n]*»|„[^„“\n]*“|"[^"\n]*"/g;
+  const RP_HEADING = /^[ \t]*#{1,6}[ \t]/;
+  function repeatRuns(line) {
+    const runs = [];
+    let cur = [];
+    for (const tok of line.toLowerCase().match(RP_TOKEN) || []) {
+      if ((tok[0] >= "а" && tok[0] <= "я") || tok[0] === "ё") cur.push(tok.replace(/ё/g, "е"));
+      else { if (cur.length) runs.push(cur); cur = []; }
+    }
+    if (cur.length) runs.push(cur);
+    return runs;
+  }
+  function repeatStats(text) {
+    const n = RP.n;
+    let budget = RP.max_tokens, pos = 0;
+    const where = new Map(), order = [];
+    const lines = text.replace(RP_QUOTE, " . ").split("\n");
+    for (let li = 0; li < lines.length && budget > 0; li++) {
+      if (RP_HEADING.test(lines[li])) continue;
+      for (let run of repeatRuns(lines[li])) {
+        run = run.slice(0, budget);
+        budget -= run.length;
+        for (let i = 0; i + n <= run.length; i++) {
+          const words = run.slice(i, i + n), key = words.join(" ");
+          if (!where.has(key)) where.set(key, new Set());
+          where.get(key).add(li);
+          order.push([li, pos + i, words]);
+        }
+        pos += run.length + 1;
+        if (budget <= 0) break;
+      }
+    }
+    const repeated = (words) => where.get(words.join(" ")).size >= 2 &&
+      words.filter((w) => !RP_FUNCTION.has(w)).length >= RP.min_content;
+    const phrases = [], keys = new Set();
+    let cur = [], curKey = "", prev = [-1, -2];
+    for (const [li, p, words] of order) {
+      if (!repeated(words)) continue;
+      if (prev[0] === li && prev[1] === p - 1 && cur.length) cur.push(words[words.length - 1]);
+      else {
+        if (cur.length && !keys.has(curKey)) { keys.add(curKey); phrases.push(cur.join(" ")); }
+        cur = words.slice(); curKey = words.join(" ");
+      }
+      prev = [li, p];
+    }
+    if (cur.length && !keys.has(curKey)) phrases.push(cur.join(" "));
+    return { tokens: RP.max_tokens - Math.max(budget, 0), phrases };
+  }
+
   // --- Score: порт score.cleanliness_score без пункта 6 (морфология) ---------
   const per100 = (count, words) => (words ? (count / words) * 100 : 0);
   const plural = (n, one, few, many) =>
@@ -486,6 +543,15 @@
       notes.push(`стерильно: ни одного маркера. Так пишет ${share}% людей на тексте в ${words} слов, остальные ${100 - share}% что-нибудь да используют. Цель не ноль, а типичная для жанра частота: вычищать дальше незачем`);
     }
 
+    // Повтор фраз между абзацами: заметка без штрафа, как в score.py.
+    const phrases = rep.repeats.phrases;
+    if (phrases.length >= R.repeats.min_phrases) {
+      const show = R.repeats.show;
+      const shown = phrases.slice(0, show).map((p) => `«${p}»`).join(", ");
+      const more = phrases.length > show ? ` и ещё ${phrases.length - show}` : "";
+      notes.push(`повтор фраз между абзацами: ${shown}${more}. В счёт не входит: у людей так бывает в новостях и справках. Если повтор не нарочный, оставьте фразу в одном месте`);
+    }
+
     // Чего браузер не измерил. Морфологии здесь нет, значит нет и штрафа за
     // номинальность (сущ./глаг., до −8 в scan.py). Молча выдавать более высокий
     // счёт нельзя: пусть читатель видит границу измерения.
@@ -505,16 +571,16 @@
     const prose = stripForeign(text);
     const rh = rhythm(prose);
     rh.em_dash = (lexical.match(/—/g) || []).length;
-    const rep = { hardBans: scanHardBans(lexical), markers: scanMarkers(lexical), rhythm: rh, structure: structureStats(prose), lexical: lexicalStats(prose) };
+    const rep = { hardBans: scanHardBans(lexical), markers: scanMarkers(lexical), rhythm: rh, structure: structureStats(prose), lexical: lexicalStats(prose), repeats: repeatStats(prose) };
     const sc = cleanlinessScore(rep, genre);
     return {
       score: sc.score, band: sc.band, penalties: sc.penalties, notes: sc.notes,
       unmeasured: sc.unmeasured,
       hard_bans: rep.hardBans, effective_bans: sc.effectiveBans, markers: rep.markers, muted_markers: sc.mutedMarkers,
-      rhythm: rh, structure: rep.structure, lexical: rep.lexical, words: rh.words, genre,
+      rhythm: rh, structure: rep.structure, lexical: rep.lexical, repeats: rep.repeats, words: rh.words, genre,
     };
   }
 
   globalThis.humanizerScan = humanizerScan;
-  globalThis.humanizerScanInternals = { maskForeign, stripForeign, sentences, countWords, lexicalTokens, mattr };
+  globalThis.humanizerScanInternals = { maskForeign, stripForeign, sentences, countWords, lexicalTokens, mattr, repeatStats };
 })();
