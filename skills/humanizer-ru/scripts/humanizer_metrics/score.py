@@ -19,6 +19,7 @@ from .lexical import LEX_MIN_TOKENS
 from .markers import (GENRE_MUTED_BANS, GENRE_MUTED_CATEGORIES,
                       effective_hard_bans, mute_by_genre)
 from .morphology import NV_TARGET
+from .repeats import REPEAT_MIN_PHRASES
 from .structure import (
     LISTICLE_MIN_ITEMS,
     LISTICLE_SHARE_AI,
@@ -92,6 +93,10 @@ LEX_THRESHOLD = 0.955
 LEX_SLOPE = 1000
 LEX_PENALTY_MAX = 15
 LEX_MUTED_GENRES = frozenset({"news", "academic", "legal"})
+# Повтор фразы между абзацами (repeats.py): заметка без штрафа. Даже бесконечный
+# штраф вывел бы из «чисто» 0,8-2,8% текстов одной Llama-3.3, у людей потери
+# того же порядка (eval/MODERN-SLOP.md). Показываем не больше REPEAT_SHOW фраз.
+REPEAT_SHOW = 3
 # Потолок штрафа за номинальность. Именованный, потому что браузерный сканер
 # морфологии не имеет и объявляет ровно эту величину как неизмеренную.
 NV_PENALTY_MAX = 8
@@ -266,6 +271,15 @@ def cleanliness_score(report, genre: str | None = None) -> ScoreResult:
             f"стерильно: ни одного маркера. Так пишет {share:.0f}% людей на тексте "
             f"в {words} слов, остальные {100 - share:.0f}% что-нибудь да используют. "
             "Цель не ноль, а типичная для жанра частота: вычищать дальше незачем")
+
+    # Заметка о повторе фраз между абзацами. Почему не штраф: комментарий у REPEAT_SHOW.
+    phrases = report.repeats.phrases
+    if len(phrases) >= REPEAT_MIN_PHRASES:
+        shown = ", ".join(f"«{p}»" for p in phrases[:REPEAT_SHOW])
+        more = f" и ещё {len(phrases) - REPEAT_SHOW}" if len(phrases) > REPEAT_SHOW else ""
+        notes.append(
+            f"повтор фраз между абзацами: {shown}{more}. В счёт не входит: у людей так "
+            "бывает в новостях и справках. Если повтор не нарочный, оставьте фразу в одном месте")
 
     final = max(0, min(100, round(score)))
     return ScoreResult(score=final, band=_band(final), penalties=penalties, notes=notes)

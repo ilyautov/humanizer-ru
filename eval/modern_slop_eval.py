@@ -34,6 +34,7 @@ sys.path.insert(0, str(ROOT / "eval"))
 sys.path.insert(0, str(ROOT / "skills" / "humanizer-ru" / "scripts"))
 
 from humanizer_metrics import analyze, cleanliness_score  # noqa: E402
+from humanizer_metrics.repeats import REPEAT_MIN_PHRASES  # noqa: E402
 
 OUT = ROOT / "eval" / "out" / "modern-slop-eval.json"
 # Генераторы LLMTrace, которые ещё в ходу; старьё (gpt-3.5, ruGPT, llama-7b) не берём.
@@ -93,11 +94,13 @@ def sample(texts: list[str], n: int, rng: random.Random) -> list[str]:
     return texts if len(texts) <= n else rng.sample(texts, n)
 
 
-def verdicts(texts: list[str]) -> list[tuple[int, str, str]]:
+def verdicts(texts: list[str]) -> list[tuple[int, str, str, bool]]:
+    """(score, полоса, текст, есть ли заметка о повторе фраз между абзацами)."""
     out = []
     for t in texts:
-        s = cleanliness_score(analyze(t))
-        out.append((s.score, s.band, t))
+        rep = analyze(t)
+        s = cleanliness_score(rep)
+        out.append((s.score, s.band, t, len(rep.repeats.phrases) >= REPEAT_MIN_PHRASES))
     return out
 
 
@@ -120,7 +123,7 @@ def main() -> int:
 
     table = {}
     misses = []
-    print(f"{'источник':<42}{'n':>5}{'чисто':>8}{'правка':>8}{'рерайт':>8}{'медиана':>9}")
+    print(f"{'источник':<42}{'n':>5}{'чисто':>8}{'правка':>8}{'рерайт':>8}{'медиана':>9}{'повтор':>8}")
     for kind, groups in (("AI", slop), ("человек", human)):
         print(f"--- {kind}")
         for name, texts in sorted(groups.items()):
@@ -128,13 +131,16 @@ def main() -> int:
             if not vs:
                 continue
             n = len(vs)
-            share = {b: round(100 * sum(1 for _, band, _ in vs if band == b) / n, 1)
+            share = {b: round(100 * sum(1 for _, band, _, _ in vs if band == b) / n, 1)
                      for b in ("чисто", "правка", "рерайт")}
-            med = statistics.median(s for s, _, _ in vs)
-            table[name] = {"kind": kind, "n": n, **share, "median": med}
-            print(f"{name:<42}{n:>5}{share['чисто']:>7}%{share['правка']:>7}%{share['рерайт']:>7}%{med:>9}")
+            med = statistics.median(s for s, _, _, _ in vs)
+            # Доля текстов с заметкой о повторе фраз (в счёт не входит).
+            rep_share = round(100 * sum(1 for *_, r in vs if r) / n, 1)
+            table[name] = {"kind": kind, "n": n, **share, "median": med, "repeat_note": rep_share}
+            print(f"{name:<42}{n:>5}{share['чисто']:>7}%{share['правка']:>7}%{share['рерайт']:>7}%{med:>9}"
+                  f"{rep_share:>7}%")
             if kind == "AI":
-                misses += [(name, s, t) for s, band, t in vs if band == "чисто"]
+                misses += [(name, s, t) for s, band, t, _ in vs if band == "чисто"]
 
     OUT.write_text(json.dumps(table, ensure_ascii=False, indent=2), encoding="utf-8")
     for name, s, t in rng.sample(misses, min(args.misses, len(misses))):

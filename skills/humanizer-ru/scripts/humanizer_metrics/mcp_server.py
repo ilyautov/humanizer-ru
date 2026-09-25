@@ -108,6 +108,7 @@ def scan(text: str, genre: str | None = None) -> dict:
         "morph": rep.morph.as_dict(),
         "structure": rep.structure.as_dict(),
         "lexical": rep.lexical.as_dict(),
+        "repeats": rep.repeats.as_dict(),
     }
 
 
