@@ -19,6 +19,9 @@
 идиоматичны («с одной стороны») и обычно пересказывают число исходника. Они
 считаются, но не валят проверку.
 
+Оговорки: «обычно», «примерно», «может», «от 5000». Снятая оговорка делает
+из «обычно помогает» обещание «помогает»; она попадает в потери.
+
 Утверждения: слова-кванторы, которые звучат как пафос, а несут факт:
 «первый в России», «единственный», «впервые», «рекордный», «до сих пор».
 Срезать «первый в России сервис» до «сервис» значит исказить исходник, а
@@ -70,6 +73,16 @@ CLAIM_WORDS = {
     "старейший", "никогда", "никто", "навсегда", "беспрецедентный",
 }
 CLAIM_PHRASE_RE = re.compile(r"\bдо сих пор\b|\bв мире\b|\bв россии\b", re.IGNORECASE)
+# Оговорки при факте: задают его точность («обычно», «примерно», «от 5000»).
+# Скилл снимал их в 5 ответах из 25 (eval/MODERN-SKILL-CHECK.md), и строка в
+# промпте не помогла, поэтому пропавшая оговорка попадает в список потерь.
+# «Может показаться» это оговорка мнения, её снимать можно.
+HEDGE_RE = re.compile(
+    r"\b(?:может\s+быть|мо(?:жет|гут)(?!\s+показаться)|обычно|как\s+правило|часто|иногда|"
+    r"примерно|приблизительно|около|почти|в\s+среднем|не\s+обязательно|не\s+всегда|"
+    r"вероятно|скорее\s+всего|по\s+оценкам|предположительно|ожида\w*|"
+    r"(?:от|до|свыше|более|менее|больше|меньше)(?=\s+\d))\b",
+    re.IGNORECASE)
 # Одна сущность под разными именами не считается новым фактом.
 ALIASES = {
     "ai": ("искусственный", "интеллект", "ии", "нейросеть", "модель"),
@@ -84,6 +97,7 @@ class Facts:
     soft: set[str] = field(default_factory=set)   # "два", "половина"
     words: set[str] = field(default_factory=set)  # все слова в нормальной форме, для алиасов
     claims: set[str] = field(default_factory=set)  # "утверждение:первый", "утверждение:до сих пор"
+    hedges: set[str] = field(default_factory=set)  # "оговорка:обычно", "оговорка:от"
 
 
 @dataclass
@@ -111,9 +125,20 @@ def _norm(word: str) -> str:
     return _MORPH.parse(low)[0].normal_form.replace("ё", "е")
 
 
+# Начало строки и всё, что Markdown ставит перед первым словом: маркер списка
+# («-», «*», «•», «1.», «2)»), цитата «>», решётки заголовка, «**» жирного,
+# эмодзи-буллет. Без этого «- Говорить» или «**Тема**» давали «имя:говорить».
+LINE_LEAD_RE = re.compile(r"^[ \t]*(?:(?:\d{1,3}[.)]|[^\w\s«\"'(\[])[ \t]*)*", re.MULTILINE)
+
+
 def _sentence_starts(text: str) -> set[int]:
     starts = {0}
-    for m in re.finditer(r"[.!?…]\s+|^[>\-*]\s+|«|\n", text):
+    # После двоеточия, тире, открывающей кавычки и скобки заглавная тоже бывает
+    # у обычного слова («Совет: Не паникуйте», «(Например: …)»). Имя из словаря
+    # (теги Name, Geox, Orgn) и незнакомое словарю слово ловятся и там.
+    for m in re.finditer(r"[.!?…:;—–][*_]*\s+[*_«\"„“(]*|[«\"„“(]|\n", text):
+        starts.add(m.end())
+    for m in LINE_LEAD_RE.finditer(text):
         starts.add(m.end())
     return starts
 
@@ -143,6 +168,9 @@ def extract_facts(text: str) -> Facts:
     body = CODE_RE.sub(" ", URL_RE.sub(" ", text))
     for m in MONTH_RE.finditer(body):
         f.hard.add("месяц:" + m.group(1).lower())
+    for m in HEDGE_RE.finditer(body):
+        h = re.sub(r"\s+", " ", m.group(0).lower())
+        f.hedges.add("оговорка:" + ("может" if h in ("могут", "может") else "ожидается" if h.startswith("ожида") else h))
     for m in CLAIM_PHRASE_RE.finditer(body):
         f.claims.add("утверждение:" + m.group(0).lower().replace("ё", "е"))
     starts = _sentence_starts(body)
@@ -175,7 +203,7 @@ def _alias_covered(fact: str, before_words: set[str]) -> bool:
 
 def diff_facts(before: str, after: str) -> FactsDiff:
     b, a = extract_facts(before), extract_facts(after)
-    lost = sorted(b.hard - a.hard) + sorted(b.claims - a.claims)
+    lost = sorted(b.hard - a.hard) + sorted(b.claims - a.claims) + sorted(b.hedges - a.hedges)
     added = sorted(x for x in a.hard - b.hard if not _alias_covered(x, b.words))
     return FactsDiff(lost=lost, added=added, kept=len(b.hard & a.hard),
                      soft_added=sorted(a.soft - b.soft),

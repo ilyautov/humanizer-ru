@@ -35,7 +35,7 @@ from probe_installed_skill import TASK, digest, write_json
 # сообщение то в конец, то в начало, поэтому первый абзац снимается, если похож на
 # служебную заметку, а хвост снимается от строки «Чистота:».
 REPORT_TAIL = re.compile(r"\n+(?:-{3,}\s*\n+)?\**Чистота:[\s\S]*$")
-META_HEAD = re.compile(r"\d+\s*/\s*100|Чистота|\b[Ss]core\b|\bclean\b|\b[Ff]inal\b|[Фф]айл\w* не|"
+META_HEAD = re.compile(r"\d+\s*/\s*100|[Чч]истот[аы]|[Хх]ард-бан|hard ban|\b[Ff]ile\b|\b[Ss]core\b|\bclean\b|\b[Ff]inal\b|[Фф]айл\w* не|"
                        r"итоговый текст|итоговую версию|финальную версию|сканер|временных файлов|"
                        r"лишних файлов|Пользователь просил")
 
