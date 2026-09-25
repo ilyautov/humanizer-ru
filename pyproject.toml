@@ -10,7 +10,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "ru-humanizer"
 version = "3.29.0"
-description = "Сканер следов нейросети в русском тексте: балл чистоты 0-100, 21 жёсткий запрет, 64 признака, факт-замок. CLI и MCP-сервер проекта humanizer-ru."
+description = "Сканер следов нейросети в русском тексте: балл чистоты 0-100, 21 жёсткий запрет, 65 признаков, факт-замок. CLI и MCP-сервер проекта humanizer-ru."
 readme = "pypi/README.md"
 license = "MIT"
 license-files = ["LICENSE"]
