@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Сборка Chrome-расширения из extension/ и браузерного сканера сайта.
 
-Расширение не держит своей копии правил: движок docs/scan.js и правила
-docs/scan-rules.js (экспорт из Python, гейт export_web_rules.py --check)
-копируются в extension/vendor/. Копии закоммичены, чтобы папку можно было
+Расширение не держит своей копии правил: движок docs/scan.js, правила
+docs/scan-rules.js (экспорт из Python, гейт export_web_rules.py --check) и
+браузерный факт-замок docs/facts.js копируются в extension/vendor/. Копии закоммичены, чтобы папку можно было
 загрузить в Chrome как есть, а этот скрипт с --check следит, что они не
 отстали от docs/: третий расходящийся сканер нам не нужен.
 
@@ -24,7 +24,13 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 EXT = ROOT / "extension"
 VENDOR = EXT / "vendor"
-SOURCES = {"scan.js": ROOT / "docs" / "scan.js", "scan-rules.js": ROOT / "docs" / "scan-rules.js"}
+SOURCES = {
+    "scan.js": ROOT / "docs" / "scan.js",
+    "scan-rules.js": ROOT / "docs" / "scan-rules.js",
+    "facts.js": ROOT / "docs" / "facts.js",
+}
+# Тексты интерфейса и карточки Web Store: длинное тире под запретом проекта.
+UI_TEXTS = [EXT / "popup.html", EXT / "README.md"]
 PACKAGE = ROOT / "package.json"
 MANIFEST = EXT / "manifest.json"
 # Что едет в архив для Web Store: всё из extension/, кроме служебного.
@@ -57,6 +63,12 @@ def check_manifest() -> list[str]:
         errors.append(f"description {len(desc)} символов, Web Store принимает до 132")
     if "—" in desc or "—" in m.get("name", ""):
         errors.append("длинное тире в манифесте")
+    for p in UI_TEXTS:
+        if "—" in p.read_text(encoding="utf-8"):
+            errors.append(f"длинное тире в {p.relative_to(ROOT)}")
+    for rel in ("fonts/OFL-IBMPlexMono.txt", "fonts/OFL-Onest.txt"):
+        if not (EXT / rel).exists():
+            errors.append(f"нет {rel}: шрифты под OFL едут только вместе с лицензией")
     return errors
 
 
@@ -107,7 +119,8 @@ def main() -> int:
         return 1
     if args.zip:
         n = build_zip(args.zip)
-        print(f"[extension] ✓ {args.zip.relative_to(ROOT) if args.zip.is_absolute() else args.zip}: {n} файлов")
+        shown = args.zip.relative_to(ROOT) if args.zip.is_absolute() and args.zip.is_relative_to(ROOT) else args.zip
+        print(f"[extension] ✓ {shown}: {n} файлов")
     print("[extension] ✓ vendor/ совпадает с docs/, манифест в порядке")
     return 0
 
