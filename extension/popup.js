@@ -62,7 +62,7 @@
     countEl.textContent = num(wordsOf(textEl.value), "слово", "слова", "слов");
     clearBtn.hidden = !textEl.value;
     emptyEl.hidden = !!textEl.value.trim();
-    runBtn.disabled = !textEl.value.trim();
+    if (textEl.value.trim()) $("run-hint").hidden = true;
   };
 
   // Пример с сайта (нейрочерновик для eval-корпуса). Данные, не текст интерфейса.
@@ -195,20 +195,23 @@
     const post = e < text.length && !STOP.test(text[e - 1]) ? "…" : "";
     return `${pre}${esc(text.slice(s, a))}<mark class="${kind}">${esc(text.slice(a, b))}</mark>${esc(text.slice(b, e).trimEnd())}${post}`;
   }
-  const KIND_TITLE = { ban: "Жёсткий запрет", mk: "Маркер", struct: "Структура текста" };
+  const KIND_TITLE = { ban: "Лучше убрать", mk: "Проверьте по смыслу", struct: "Структура текста" };
   function showCard(i, opts = {}) {
     if (!queue.length || !checked) return;
     cur = (i + queue.length) % queue.length;
     const f = queue[cur];
-    $("counter").textContent = `${cur + 1} из ${queue.length}`;
+    $("counter").textContent = `Замечание ${cur + 1} из ${queue.length}`;
     $("kind").className = `kind ${f.kind}`;
-    $("kind").textContent = f.kind === "mk" && f.cat ? `${KIND_TITLE.mk}, ${f.cat.toLowerCase()}` : KIND_TITLE[f.kind];
+    $("kind").textContent = KIND_TITLE[f.kind];
+    $("kind").title = f.kind === "struct" ? "" : spanTitle(f);
     if (f.kind === "struct") {
       $("rule").textContent = humanReason(f.reason);
+      $("rule").hidden = false;
       $("quote").hidden = true;
       $("todo").textContent = f.hint;
     } else {
       $("rule").textContent = ruleName(f.name);
+      $("rule").hidden = true;
       $("quote").hidden = false;
       $("quote").innerHTML = sentenceAround(checked.text, f.a, f.b, f.kind);
       $("todo").textContent = hintFor(f.kind, f.cat, f.name);
@@ -218,16 +221,18 @@
     card.classList.remove("step"); void card.offsetWidth; card.classList.add("step");
     const one = queue.length < 2;
     $("prev").disabled = one; $("next-f").disabled = one;
-    $("next-f").firstChild.textContent = cur === queue.length - 1 && !one ? "К первой" : "Дальше";
+    $("next-f").firstChild.textContent = cur === queue.length - 1 && !one ? "К первому" : "Следующее";
     markedEl.querySelectorAll("mark.cur").forEach((m) => m.classList.remove("cur"));
     if (f.kind !== "struct") {
       const m = markedEl.querySelector(`mark[data-i="${f.i}"]`);
       if (m) {
         m.classList.add("cur");
-        if (opts.scrollText) m.scrollIntoView({ block: "nearest" });
+        // В попапе текст идёт в общем потоке: прокрутка к нему увела бы карточку
+        // из виду. Во вкладке карточка липкая, текст можно подвинуть.
+        if (opts.scrollText && !isPopup) m.scrollIntoView({ block: "nearest" });
       }
     }
-    if (opts.announce) statusEl.textContent = `${cur + 1} из ${queue.length}. ${$("rule").textContent}. ${$("todo").textContent}`;
+    if (opts.announce) statusEl.textContent = `Замечание ${cur + 1} из ${queue.length}. ${KIND_TITLE[f.kind]}: ${$("rule").textContent}. ${$("todo").textContent}`;
   }
   function renderQueue(band, spans, r) {
     queue = buildQueue(spans, r);
@@ -265,11 +270,11 @@
 
   // --- Вердикт словами ------------------------------------------------------------
   const bandOf = (r) => (r.band === "чисто" ? "good" : r.band === "правка" ? "warn" : "bad");
-  const TAG = { good: "чисто", warn: "правка", bad: "переработка" };
+  const TAG = { good: "чисто", warn: "есть что поправить", bad: "много шаблонов" };
   function verdictOf(band, r, spans) {
     if (band === "good") return r.words < 100 && !spans.length ? "Чисто, но текста пока мало" : "Текст чистый";
     if (band === "warn") return "Нужна точечная правка";
-    return "Много шаблонных оборотов: нужна переработка";
+    return "Много шаблонных оборотов";
   }
   function nextLine(band, spans, r) {
     if (!spans.length) {
@@ -280,7 +285,7 @@
       }
       return "Обороты не найдены, штраф только за структуру.";
     }
-    if (band === "bad") return "Начните с жёстких запретов, потом маркеры.";
+    if (band === "bad") return "Начните с замечаний «лучше убрать».";
     if (band === "warn") return "Пройдитесь по подчёркнутому, структуру не трогайте.";
     return "Подчёркнутое можно поправить, но это уже вкус.";
   }
@@ -331,6 +336,8 @@
     editEl.hidden = !edit;
     resultEl.hidden = edit;
     body.dataset.mode = mode;
+    // Жанр один: под полем ввода или над текстом результата.
+    (edit ? $("edit-meta") : $("text-genre")).appendChild($("genre-box"));
     if (edit) updateCount();
   }
 
@@ -346,30 +353,30 @@
     $("gauge").setAttribute("aria-label", `Чистота ${r.score} из 100`);
     // setTimeout, а не requestAnimationFrame: в неактивной вкладке rAF не тикает.
     setTimeout(() => { $("fill").style.transform = `scaleX(${r.score / 100})`; $("pin").style.left = `${r.score}%`; }, 30);
-    const verdict = verdictOf(band, r, spans);
-    $("verdict").textContent = verdict;
+    let verdict = verdictOf(band, r, spans);
 
     const pens = [...r.penalties].sort((a, b) => a.points - b.points);
     $("pens").innerHTML = pens.map((p) => reasonRow(p, r)).join("");
     $("pens").hidden = !pens.length;
     $("why").open = false;
-    $("why-sum").textContent = pens.length ? `Из чего сложился балл: ${num(pens.length, "штраф", "штрафа", "штрафов")}` : "Как считался балл";
+    $("why-sum").textContent = pens.length ? "Как считается балл и что его снизило" : "Как считается балл";
 
     const gn = genreNote();
     $("genre-note").textContent = gn; $("genre-note").hidden = !gn;
     $("notes").textContent = r.notes.join(" "); $("notes").hidden = !r.notes.length;
     const gap = unmeasuredLine(r);
     $("unmeasured").textContent = gap; $("unmeasured").hidden = !gap;
-    $("why").hidden = !pens.length && !gn && !r.notes.length && !gap;
-    $("text-meta").textContent = `Текст, ${num(r.words, "слово", "слова", "слов")}${stale ? ", прошлая проверка" : ""}`;
-    promptBtn.className = `btn ${r.score < CLEAN || spans.length ? "btn-cta" : ""}`;
-    statusEl.textContent = `Чистота ${r.score} из 100. ${verdict}.`;
+    $("text-meta").textContent = `Ваш текст, ${num(r.words, "слово", "слова", "слов")}${stale ? ", прошлая проверка" : ""}`;
+    promptBtn.className = `btn btn-wide ${r.score < CLEAN || spans.length ? "btn-cta" : ""}`;
     if (r.score < CLEAN) { siteLink.textContent = "Скилл для агентов: правка по тем же правилам"; siteLink.href = SITE + "#install"; }
     else { siteLink.textContent = "Сайт и скилл для агентов"; siteLink.href = SITE; }
 
     renderMarked(text, spans);
     renderQueue(band, spans, r);
+    if (queue.length && band !== "good") verdict = `${num(queue.length, "замечание", "замечания", "замечаний")}, начните с первого`;
+    $("verdict").textContent = verdict;
     renderCompare();
+    statusEl.textContent = `Балл чистоты ${r.score} из 100. ${verdict}.`;
 
     const bans = r.effective_bans.reduce((n, h) => n + h.count, 0);
     const marks = r.muted_markers.reduce((n, h) => n + h.count, 0);
@@ -388,7 +395,7 @@
 
   function check(opts = {}) {
     const text = textEl.value;
-    if (!text.trim()) { setMode("edit"); return false; }
+    if (!text.trim()) { setMode("edit"); if (opts.focus) { $("run-hint").hidden = false; textEl.focus(); } return false; }
     renderResult(text, globalThis.humanizerScan(text, genreEl.value || null), !!opts.stale);
     setMode("view");
     if (!opts.stale) store.set("local", "last", { text, after: afterEl.value });
@@ -463,7 +470,7 @@
     clearTimeout(copyText.t);
     copyText.t = setTimeout(() => { copiedEl.hidden = true; }, 4000);
   }
-  promptBtn.addEventListener("click", () => copyText(promptBtn, buildPrompt(), "Промпт скопирован. Вставьте его в любой чат-бот, а ответ сравните здесь: «Было / стало»."));
+  promptBtn.addEventListener("click", () => copyText(promptBtn, buildPrompt(), "Задание скопировано. Вставьте его в любой чат-бот, а ответ вставьте сюда кнопкой «Проверить исправленный текст»."));
   copyBtn.addEventListener("click", () => copyText(copyBtn, lastReport + (lastCompareReport ? "\n" + lastCompareReport : ""), "Отчёт скопирован."));
 
   // --- Было / стало ------------------------------------------------------------------
@@ -509,36 +516,40 @@
     const fd = facts ? facts.factsDiff(checked.text, after) : null;
     const risky = fd && (fd.added.length || fd.claimsAdded.length);
     let lockText;
-    if (!fd) lockText = "Факт-замок не загрузился: сверьте числа и имена глазами.";
-    else if (risky) lockText = "В правке есть то, чего не было в исходнике. Выдуманная цифра хуже канцелярита: проверьте глазами.";
-    else if (fd.lost.length) lockText = `Новых фактов нет, но часть исходных пропала: ${fd.kept} из ${fd.total} на месте. Проверьте, не ушёл ли смысл.`;
-    else if (fd.total) lockText = `${fd.kept} из ${num(fd.total, "факта исходника", "фактов исходника", "фактов исходника")} на месте, новых нет.`;
-    else lockText = "Чисел, имён и ссылок в исходнике нет, сравнивать нечего.";
+    if (!fd) lockText = "Проверка фактов не загрузилась: сверьте числа и имена глазами.";
+    else if (risky) lockText = "В исправленном тексте есть числа, имена или обобщения, которых не было в исходном. Проверьте, не выдуманы ли они: выдуманная цифра хуже канцелярита.";
+    else if (fd.lost.length) lockText = `Новых фактов нет, но часть исходных пропала: на месте ${fd.kept} из ${fd.total}. Проверьте, не ушёл ли смысл.`;
+    else if (fd.total) lockText = `Числа и имена исходного текста на месте (${fd.kept} из ${fd.total}), новых нет.`;
+    else lockText = "В исходном тексте нет чисел, имён и ссылок, сверять нечего.";
     const lockRows = [];
-    if (fd && fd.lost.length) lockRows.push(`<div class="cmp-block"><span class="cap">Пропало</span>${chips(fd.lost.map((x) => [x, 1]), "lost")}</div>`);
-    if (fd && fd.added.length) lockRows.push(`<div class="cmp-block"><span class="cap">Появилось</span>${chips(fd.added.map((x) => [x, 1]), "added")}</div>`);
-    if (fd && fd.claimsAdded.length) lockRows.push(`<div class="cmp-block"><span class="cap">Новый квантор</span>${chips(fd.claimsAdded.map((x) => [x, 1]), "added")}</div>`);
+    if (fd && fd.lost.length) lockRows.push(`<div class="cmp-block"><span class="cap">Пропало из исходного</span>${chips(fd.lost.map((x) => [x, 1]), "lost")}</div>`);
+    if (fd && fd.added.length) lockRows.push(`<div class="cmp-block"><span class="cap">Новое, чего не было</span>${chips(fd.added.map((x) => [x, 1]), "added")}</div>`);
+    if (fd && fd.claimsAdded.length) lockRows.push(`<div class="cmp-block"><span class="cap">Новые обобщения</span>${chips(fd.claimsAdded.map((x) => [x, 1]), "added")}</div>`);
     const bBand = bandOf(rBefore), aBand = bandOf(rAfter);
-    const verdict = d > 0 ? "Правка сняла шаблонные обороты." : d < 0 ? "После правки оборотов стало больше." : "Балл не изменился.";
+    const verdict = d > 0 ? "Шаблонов стало меньше." : d < 0 ? "После правки шаблонов стало больше." : "Балл не изменился.";
+    const warnLock = risky || (fd && fd.lost.length) || !fd;
+    const lockHtml = `<div class="lock ${warnLock ? "warn" : ""}">
+        <span class="lock-title">Проверка фактов</span>
+        <p>${esc(lockText)}</p>
+        ${lockRows.join("")}
+      </div>`;
     const wasHidden = cmpOut.hidden;
     cmpOut.hidden = false;
-    cmpOut.innerHTML = `
+    const scoresHtml = `
       <div class="cmp-scores" role="group" aria-label="Балл до и после">
         <span class="cmp-score"><span class="cap">Было</span><b class="num z-${bBand}">${rBefore.score}</b></span>
         <svg class="cmp-arrow" viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><path d="M4 10h11M11 5.5 15.5 10 11 14.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
         <span class="cmp-score"><span class="cap">Стало</span><b class="num z-${aBand}">${rAfter.score}</b></span>
         <span class="cmp-delta num ${d > 0 ? "up" : d < 0 ? "down" : ""}">${delta}</span>
       </div>
-      <p class="cmp-verdict">${esc(verdict)}</p>
-      <div class="lock ${risky || (fd && fd.lost.length) || !fd ? "warn" : ""}">
-        <span class="lock-title">Факт-замок</span>
-        <p>${esc(lockText)}</p>
-        ${lockRows.join("")}
-      </div>
-      ${gone.length ? `<div class="cmp-block"><span class="cap">Ушли: ${num(sum(gone), "совпадение", "совпадения", "совпадений")}</span>${chips(gone, "gone")}</div>` : ""}
-      ${stayed.length ? `<div class="cmp-block"><span class="cap">Остались: ${num(sum(stayed), "совпадение", "совпадения", "совпадений")}</span>${chips(stayed, "")}</div>` : ""}
-      ${fresh.length ? `<div class="cmp-block"><span class="cap">Появились: ${num(sum(fresh), "совпадение", "совпадения", "совпадений")}</span>${chips(fresh, "added")}</div>` : ""}
-      <div class="row"><button type="button" id="adopt" class="btn btn-sm">Сделать правку основным текстом</button></div>`;
+      <p class="cmp-verdict">${esc(verdict)}</p>`;
+    // Предупреждение о фактах идёт раньше поздравления с баллом.
+    cmpOut.innerHTML = `
+      ${warnLock ? lockHtml + scoresHtml : scoresHtml + lockHtml}
+      ${fresh.length ? `<div class="cmp-block"><span class="cap">Новые шаблоны в правке</span>${chips(fresh, "added")}</div>` : ""}
+      ${stayed.length ? `<div class="cmp-block"><span class="cap">Что осталось</span>${chips(stayed, "")}</div>` : ""}
+      ${gone.length ? `<details class="cmp-block why"><summary>Какие шаблоны ушли</summary>${chips(gone, "gone")}</details>` : ""}
+      <div class="row"><button type="button" id="adopt" class="btn btn-sm">Заменить исходный текст исправленным</button></div>`;
     // Балл и факт-замок должны попасть в экран попапа, а не остаться под сгибом.
     if (wasHidden) cmpOut.querySelector(".lock").scrollIntoView({ block: "nearest" });
     lastCompareReport = [
