@@ -13,7 +13,7 @@
 
   const textEl = $("text"), genreEl = $("genre"), countEl = $("count"), clearBtn = $("clear");
   const editEl = $("edit"), emptyEl = $("empty"), resultEl = $("result"), runBtn = $("run");
-  const markedEl = $("marked"), hintEl = $("hint"), statusEl = $("status"), siteLink = $("site-link");
+  const markedEl = $("marked"), statusEl = $("status"), siteLink = $("site-link");
   const copyBtn = $("copy"), promptBtn = $("prompt"), copiedEl = $("copied");
   const cmpToggle = $("cmp-toggle"), cmpEl = $("cmp"), afterEl = $("after"), cmpOut = $("cmp-out");
   const SITE = "https://humanizer-ru.aifrontier.tech/";
@@ -141,13 +141,14 @@
   };
 
   // --- Находки в тексте --------------------------------------------------------
-  // Конец подсветки тянем до границы слова только для показа: «ключев|ым» режет
+  // Края подсветки тянем до границы слова только для показа: «ключев|ым» режет
   // слово и выглядит ошибкой. Счёт при этом не меняется.
   const wordEnd = (text, b) => { while (b < text.length && /[\p{L}\p{M}]/u.test(text[b])) b++; return b; };
+  const wordStart = (text, a) => { while (a > 0 && /[\p{L}\p{M}]/u.test(text[a - 1])) a--; return a; };
   function collectSpans(text, r) {
     const spans = [];
-    for (const h of r.effective_bans) for (const [a, b] of h.positions) spans.push({ a, b: wordEnd(text, b), kind: "ban", cat: "", name: h.name });
-    for (const h of r.muted_markers) for (const [a, b] of h.positions) spans.push({ a, b: wordEnd(text, b), kind: "mk", cat: h.category, name: h.name });
+    for (const h of r.effective_bans) for (const [a, b] of h.positions) spans.push({ a: wordStart(text, a), b: wordEnd(text, b), kind: "ban", cat: "", name: h.name });
+    for (const h of r.muted_markers) for (const [a, b] of h.positions) spans.push({ a: wordStart(text, a), b: wordEnd(text, b), kind: "mk", cat: h.category, name: h.name });
     spans.sort((x, y) => x.a - y.a || (x.kind === "ban" ? -1 : 1));
     const out = []; let pos = 0;
     for (const s of spans) { if (s.a < pos) continue; out.push(s); pos = s.b; }
@@ -157,11 +158,10 @@
   const spanTitle = (s) => ruleName(s.kind === "ban" ? s.name : `${s.cat}: ${s.name}`);
 
   function renderMarked(text, spans) {
-    hintEl.hidden = true;
     let out = "", pos = 0;
     spans.forEach((s, i) => {
       out += esc(text.slice(pos, s.a));
-      out += `<mark class="${s.kind}" tabindex="0" role="button" aria-pressed="false" data-i="${i}" aria-label="${esc(kindLabel(s.kind))}: ${esc(spanTitle(s))}">${esc(text.slice(s.a, s.b))}</mark>`;
+      out += `<mark class="${s.kind}" tabindex="0" role="button" data-i="${i}" aria-label="${esc(kindLabel(s.kind))}: ${esc(spanTitle(s))}">${esc(text.slice(s.a, s.b))}</mark>`;
       pos = s.b;
     });
     out += esc(text.slice(pos));
@@ -169,24 +169,98 @@
     $("legend").hidden = !spans.length;
   }
 
-  let lastSpans = [];
-  function showHint(mark) {
-    const s = lastSpans[+mark.dataset.i];
-    if (!s) return;
-    const pressed = mark.getAttribute("aria-pressed") === "true";
-    markedEl.querySelectorAll('mark[aria-pressed="true"]').forEach((m) => m.setAttribute("aria-pressed", "false"));
-    if (pressed) { hintEl.hidden = true; return; }
-    mark.setAttribute("aria-pressed", "true");
-    hintEl.className = `hint ${s.kind}`;
-    hintEl.innerHTML = `<span class="label">${esc(kindLabel(s.kind))} / ${esc(spanTitle(s))}</span>${esc(hintFor(s.kind, s.cat, s.name))}`;
-    hintEl.hidden = false;
+  // --- Очередь находок ----------------------------------------------------------
+  // Одна находка в карточке: оборот в своём предложении, правило, что сделать.
+  // Сначала жёсткие запреты, потом маркеры, внутри по порядку текста; в конце
+  // штрафы за структуру, у них нет оборота. Поле i связывает находку с подсветкой.
+  let queue = [], cur = 0;
+  function buildQueue(spans, r) {
+    const q = spans.map((s, i) => ({ ...s, i }));
+    q.sort((x, y) => (x.kind === y.kind ? x.a - y.a : x.kind === "ban" ? -1 : 1));
+    for (const p of [...r.penalties].sort((a, b) => a.points - b.points)) {
+      const h = structHint(p.reason);
+      if (h) q.push({ kind: "struct", reason: p.reason, hint: h });
+    }
+    return q;
   }
-  markedEl.addEventListener("click", (ev) => { const m = ev.target.closest("mark"); if (m) showHint(m); });
+  // Предложение вокруг оборота, не длиннее ~200 знаков: иначе карточка станет текстом.
+  const STOP = /[.!?…\n]/;
+  function sentenceAround(text, a, b, kind) {
+    const LIM = 90;
+    let s = a; while (s > 0 && !STOP.test(text[s - 1]) && a - s < LIM) s--;
+    let e = b; while (e < text.length && !STOP.test(text[e]) && e - b < LIM) e++;
+    if (e < text.length && /[.!?…]/.test(text[e])) e++;
+    while (s < a && /\s/.test(text[s])) s++;
+    const pre = s > 0 && !STOP.test(text[s - 1]) ? "…" : "";
+    const post = e < text.length && !STOP.test(text[e - 1]) ? "…" : "";
+    return `${pre}${esc(text.slice(s, a))}<mark class="${kind}">${esc(text.slice(a, b))}</mark>${esc(text.slice(b, e).trimEnd())}${post}`;
+  }
+  const KIND_TITLE = { ban: "Жёсткий запрет", mk: "Маркер", struct: "Структура текста" };
+  function showCard(i, opts = {}) {
+    if (!queue.length || !checked) return;
+    cur = (i + queue.length) % queue.length;
+    const f = queue[cur];
+    $("counter").textContent = `${cur + 1} из ${queue.length}`;
+    $("kind").className = `kind ${f.kind}`;
+    $("kind").textContent = f.kind === "mk" && f.cat ? `${KIND_TITLE.mk}, ${f.cat.toLowerCase()}` : KIND_TITLE[f.kind];
+    if (f.kind === "struct") {
+      $("rule").textContent = humanReason(f.reason);
+      $("quote").hidden = true;
+      $("todo").textContent = f.hint;
+    } else {
+      $("rule").textContent = ruleName(f.name);
+      $("quote").hidden = false;
+      $("quote").innerHTML = sentenceAround(checked.text, f.a, f.b, f.kind);
+      $("todo").textContent = hintFor(f.kind, f.cat, f.name);
+    }
+    // Шаг по очереди виден: содержимое карточки коротко проявляется заново.
+    const card = $("card");
+    card.classList.remove("step"); void card.offsetWidth; card.classList.add("step");
+    const one = queue.length < 2;
+    $("prev").disabled = one; $("next-f").disabled = one;
+    $("next-f").firstChild.textContent = cur === queue.length - 1 && !one ? "К первой" : "Дальше";
+    markedEl.querySelectorAll("mark.cur").forEach((m) => m.classList.remove("cur"));
+    if (f.kind !== "struct") {
+      const m = markedEl.querySelector(`mark[data-i="${f.i}"]`);
+      if (m) {
+        m.classList.add("cur");
+        if (opts.scrollText) m.scrollIntoView({ block: "nearest" });
+      }
+    }
+    if (opts.announce) statusEl.textContent = `${cur + 1} из ${queue.length}. ${$("rule").textContent}. ${$("todo").textContent}`;
+  }
+  function renderQueue(band, spans, r) {
+    queue = buildQueue(spans, r);
+    $("card").hidden = !queue.length;
+    $("card-clean").hidden = !!queue.length;
+    if (!queue.length) {
+      $("clean-title").textContent = verdictOf(band, r, spans);
+      $("clean-text").textContent = nextLine(band, spans, r);
+      return;
+    }
+    showCard(0);
+  }
+  $("prev").addEventListener("click", () => showCard(cur - 1, { scrollText: true, announce: true }));
+  $("next-f").addEventListener("click", () => showCard(cur + 1, { scrollText: true, announce: true }));
+  // Стрелки листают очередь, пока фокус не в поле ввода.
+  document.addEventListener("keydown", (ev) => {
+    if (body.dataset.mode !== "view" || !queue.length) return;
+    if (ev.target.closest("textarea, input, select") || ev.altKey || ev.ctrlKey || ev.metaKey) return;
+    if (ev.key === "ArrowRight") { ev.preventDefault(); showCard(cur + 1, { scrollText: true, announce: true }); }
+    if (ev.key === "ArrowLeft") { ev.preventDefault(); showCard(cur - 1, { scrollText: true, announce: true }); }
+  });
+  // Клик по обороту в тексте открывает его в карточке.
+  function pickMark(m) {
+    const qi = queue.findIndex((f) => f.i === +m.dataset.i);
+    if (qi < 0) return;
+    showCard(qi, { announce: true });
+    const top = $("card").getBoundingClientRect().top;
+    if (top < 0 || top > window.innerHeight - 80) $("card").scrollIntoView({ block: "start", behavior: "smooth" });
+  }
+  markedEl.addEventListener("click", (ev) => { const m = ev.target.closest("mark"); if (m) pickMark(m); });
   markedEl.addEventListener("keydown", (ev) => {
     const m = ev.target.closest("mark");
-    if (!m) return;
-    if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); showHint(m); }
-    if (ev.key === "Escape") { m.setAttribute("aria-pressed", "false"); hintEl.hidden = true; }
+    if (m && (ev.key === "Enter" || ev.key === " ")) { ev.preventDefault(); pickMark(m); }
   });
 
   // --- Вердикт словами ------------------------------------------------------------
@@ -204,9 +278,9 @@
           ? `На ${num(r.words, "слове", "словах", "словах")} балл мало что значит: проверьте текст целиком.`
           : "Шаблонных оборотов не найдено.";
       }
-      return "Обороты не найдены, штраф только за структуру: причины ниже.";
+      return "Обороты не найдены, штраф только за структуру.";
     }
-    if (band === "bad") return "Начните с жёстких запретов (сплошная линия), потом маркеры (пунктир).";
+    if (band === "bad") return "Начните с жёстких запретов, потом маркеры.";
     if (band === "warn") return "Пройдитесь по подчёркнутому, структуру не трогайте.";
     return "Подчёркнутое можно поправить, но это уже вкус.";
   }
@@ -226,7 +300,7 @@
   }
   const reasonRow = (p, r) => {
     const detail = reasonDetail(p.reason, r);
-    return `<li title="${esc(p.reason)}"><span class="txt">${esc(humanReason(p.reason))}${detail ? `<br><span class="note">${esc(detail)}</span>` : ""}</span><span class="pts">${esc(String(p.points).replace("-", "−"))}</span></li>`;
+    return `<li title="${esc(p.reason)}"><span class="txt">${esc(humanReason(p.reason))}${detail ? `<span class="sub">${esc(detail)}</span>` : ""}</span><span class="pts num">${esc(String(p.points).replace("-", "−"))}</span></li>`;
   };
 
   function genreNote() {
@@ -257,50 +331,44 @@
     editEl.hidden = !edit;
     resultEl.hidden = edit;
     body.dataset.mode = mode;
-    if (edit) { hintEl.hidden = true; updateCount(); }
+    if (edit) updateCount();
   }
 
   let lastReport = "";
   function renderResult(text, r, stale) {
     const band = bandOf(r);
     const spans = collectSpans(text, r);
-    lastSpans = spans;
     checked = { text, r, spans };
 
     resultEl.className = band;
     $("score").textContent = r.score;
-    $("tag").textContent = TAG[band];
+    $("band").textContent = TAG[band];
     $("gauge").setAttribute("aria-label", `Чистота ${r.score} из 100`);
     // setTimeout, а не requestAnimationFrame: в неактивной вкладке rAF не тикает.
-    setTimeout(() => { $("fill").style.transform = `scaleX(${r.score / 100})`; }, 30);
+    setTimeout(() => { $("fill").style.transform = `scaleX(${r.score / 100})`; $("pin").style.left = `${r.score}%`; }, 30);
     const verdict = verdictOf(band, r, spans);
     $("verdict").textContent = verdict;
-    $("next").textContent = nextLine(band, spans, r);
 
     const pens = [...r.penalties].sort((a, b) => a.points - b.points);
-    // В попапе две главные причины, во вкладке три: текст должен попасть в экран.
-    const nTop = isPopup ? 2 : 3;
-    const top = pens.slice(0, nTop), rest = pens.slice(nTop);
-    $("reasons-wrap").hidden = !pens.length;
-    $("reasons").innerHTML = top.map((p) => reasonRow(p, r)).join("");
-    $("more").hidden = !rest.length;
-    $("more").open = false;
-    $("more-sum").textContent = `ещё ${rest.length}`;
-    $("reasons-more").style.counterReset = `r ${nTop}`;
-    $("reasons-more").innerHTML = rest.map((p) => reasonRow(p, r)).join("");
+    $("pens").innerHTML = pens.map((p) => reasonRow(p, r)).join("");
+    $("pens").hidden = !pens.length;
+    $("why").open = false;
+    $("why-sum").textContent = pens.length ? `Из чего сложился балл: ${num(pens.length, "штраф", "штрафа", "штрафов")}` : "Как считался балл";
 
     const gn = genreNote();
     $("genre-note").textContent = gn; $("genre-note").hidden = !gn;
     $("notes").textContent = r.notes.join(" "); $("notes").hidden = !r.notes.length;
     const gap = unmeasuredLine(r);
     $("unmeasured").textContent = gap; $("unmeasured").hidden = !gap;
-    $("text-meta").textContent = `Текст / ${num(r.words, "слово", "слова", "слов")}${stale ? " / прошлая проверка" : ""}`;
-    promptBtn.className = `btn ${r.score < CLEAN || spans.length ? "btn-cta" : "btn-ghost"}`;
+    $("why").hidden = !pens.length && !gn && !r.notes.length && !gap;
+    $("text-meta").textContent = `Текст, ${num(r.words, "слово", "слова", "слов")}${stale ? ", прошлая проверка" : ""}`;
+    promptBtn.className = `btn ${r.score < CLEAN || spans.length ? "btn-cta" : ""}`;
     statusEl.textContent = `Чистота ${r.score} из 100. ${verdict}.`;
     if (r.score < CLEAN) { siteLink.textContent = "Скилл для агентов: правка по тем же правилам"; siteLink.href = SITE + "#install"; }
     else { siteLink.textContent = "Сайт и скилл для агентов"; siteLink.href = SITE; }
 
     renderMarked(text, spans);
+    renderQueue(band, spans, r);
     renderCompare();
 
     const bans = r.effective_bans.reduce((n, h) => n + h.count, 0);
@@ -339,7 +407,6 @@
     "Верни только итоговый текст: без вступления, балла, списка правок и пояснений.",
   ];
   // Фрагмент для промпта: от начала слова, без пунктуации по краям.
-  const wordStart = (text, a) => { while (a > 0 && /[\p{L}\p{M}]/u.test(text[a - 1])) a--; return a; };
   const fragment = (text, a, b) => {
     while (a < b && /[\s.,;:!?]/.test(text[a])) a++;
     return text.slice(wordStart(text, a), wordEnd(text, b)).replace(/\s+/g, " ").replace(/[\s,;:]+$/, "");
@@ -448,29 +515,32 @@
     else if (fd.total) lockText = `${fd.kept} из ${num(fd.total, "факта исходника", "фактов исходника", "фактов исходника")} на месте, новых нет.`;
     else lockText = "Чисел, имён и ссылок в исходнике нет, сравнивать нечего.";
     const lockRows = [];
-    if (fd && fd.lost.length) lockRows.push(`<div class="cmp-block"><span class="label">Пропало</span>${chips(fd.lost.map((x) => [x, 1]), "lost")}</div>`);
-    if (fd && fd.added.length) lockRows.push(`<div class="cmp-block"><span class="label">Появилось</span>${chips(fd.added.map((x) => [x, 1]), "added")}</div>`);
-    if (fd && fd.claimsAdded.length) lockRows.push(`<div class="cmp-block"><span class="label">Новый квантор</span>${chips(fd.claimsAdded.map((x) => [x, 1]), "added")}</div>`);
+    if (fd && fd.lost.length) lockRows.push(`<div class="cmp-block"><span class="cap">Пропало</span>${chips(fd.lost.map((x) => [x, 1]), "lost")}</div>`);
+    if (fd && fd.added.length) lockRows.push(`<div class="cmp-block"><span class="cap">Появилось</span>${chips(fd.added.map((x) => [x, 1]), "added")}</div>`);
+    if (fd && fd.claimsAdded.length) lockRows.push(`<div class="cmp-block"><span class="cap">Новый квантор</span>${chips(fd.claimsAdded.map((x) => [x, 1]), "added")}</div>`);
     const bBand = bandOf(rBefore), aBand = bandOf(rAfter);
     const verdict = d > 0 ? "Правка сняла шаблонные обороты." : d < 0 ? "После правки оборотов стало больше." : "Балл не изменился.";
+    const wasHidden = cmpOut.hidden;
     cmpOut.hidden = false;
     cmpOut.innerHTML = `
       <div class="cmp-scores" role="group" aria-label="Балл до и после">
-        <span><span class="label">Было</span> <b class="z-${bBand}">${rBefore.score}</b></span>
-        <span class="cmp-arrow" aria-hidden="true">→</span>
-        <span><span class="label">Стало</span> <b class="z-${aBand}">${rAfter.score}</b></span>
-        <span class="cmp-delta ${d > 0 ? "up" : d < 0 ? "down" : ""}">${delta}</span>
+        <span class="cmp-score"><span class="cap">Было</span><b class="num z-${bBand}">${rBefore.score}</b></span>
+        <svg class="cmp-arrow" viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><path d="M4 10h11M11 5.5 15.5 10 11 14.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span class="cmp-score"><span class="cap">Стало</span><b class="num z-${aBand}">${rAfter.score}</b></span>
+        <span class="cmp-delta num ${d > 0 ? "up" : d < 0 ? "down" : ""}">${delta}</span>
       </div>
-      <p class="next">${esc(verdict)}</p>
-      ${gone.length ? `<div class="cmp-block"><span class="label">Ушли / ${sum(gone)}</span>${chips(gone, "gone")}</div>` : ""}
-      ${stayed.length ? `<div class="cmp-block"><span class="label">Остались / ${sum(stayed)}</span>${chips(stayed, "")}</div>` : ""}
-      ${fresh.length ? `<div class="cmp-block"><span class="label">Появились / ${sum(fresh)}</span>${chips(fresh, "added")}</div>` : ""}
+      <p class="cmp-verdict">${esc(verdict)}</p>
       <div class="lock ${risky || (fd && fd.lost.length) || !fd ? "warn" : ""}">
-        <span class="label">Факт-замок</span>
+        <span class="lock-title">Факт-замок</span>
         <p>${esc(lockText)}</p>
         ${lockRows.join("")}
       </div>
-      <div class="row actions"><button type="button" id="adopt" class="btn btn-ghost btn-sm">Сделать правку основным текстом</button></div>`;
+      ${gone.length ? `<div class="cmp-block"><span class="cap">Ушли: ${num(sum(gone), "совпадение", "совпадения", "совпадений")}</span>${chips(gone, "gone")}</div>` : ""}
+      ${stayed.length ? `<div class="cmp-block"><span class="cap">Остались: ${num(sum(stayed), "совпадение", "совпадения", "совпадений")}</span>${chips(stayed, "")}</div>` : ""}
+      ${fresh.length ? `<div class="cmp-block"><span class="cap">Появились: ${num(sum(fresh), "совпадение", "совпадения", "совпадений")}</span>${chips(fresh, "added")}</div>` : ""}
+      <div class="row"><button type="button" id="adopt" class="btn btn-sm">Сделать правку основным текстом</button></div>`;
+    // Балл и факт-замок должны попасть в экран попапа, а не остаться под сгибом.
+    if (wasHidden) cmpOut.querySelector(".lock").scrollIntoView({ block: "nearest" });
     lastCompareReport = [
       `правка: было ${rBefore.score}, стало ${rAfter.score} (${delta.replace("−", "-")})`,
       gone.length ? `  ушли: ${gone.map(([l, n]) => l + (n > 1 ? ` ×${n}` : "")).join(", ")}` : "",
@@ -509,7 +579,7 @@
     if (ev.key === "Enter" && (ev.ctrlKey || ev.metaKey)) { ev.preventDefault(); check({ focus: true }); }
   });
   runBtn.addEventListener("click", () => check({ focus: true }));
-  if (/Mac/i.test(navigator.platform || navigator.userAgent)) document.querySelector(".kbd-hint").textContent = "Cmd+Enter";
+  if (/Mac/i.test(navigator.platform || navigator.userAgent)) document.querySelector(".kbd-hint kbd").textContent = "Cmd";
   $("edit-btn").addEventListener("click", () => {
     openCompare(false);
     setMode("edit");
@@ -523,7 +593,8 @@
   // Сброс: пустое поле, прошлая проверка забыта. Из режима просмотра тоже:
   // кнопка «Новый текст» рядом с «Изменить текст».
   function resetText() {
-    textEl.value = ""; afterEl.value = ""; checked = null;
+    textEl.value = ""; afterEl.value = ""; checked = null; queue = [];
+    openCompare(false);
     store.remove("local", "last");
     setMode("edit");
     updateCount(); textEl.focus();
