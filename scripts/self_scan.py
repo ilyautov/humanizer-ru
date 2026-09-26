@@ -8,7 +8,7 @@ lint_skill.py проверяет только одобренные пример�
 витрина проверяется тем же движком HARD BANS, что и чужой текст.
 
 Что проверяется: README.md, страницы сайта в docs/, SKILL.md, каталог
-паттернов, команды.
+паттернов, команды, попап и README Chrome-расширения.
 
 Что вырезается перед проверкой (это цитаты, а не наша речь):
   * блоки кода, инлайн-код, HTML-теги, script/style;
@@ -45,6 +45,9 @@ TARGETS = [
     ROOT / "commands" / "humanize.md",
     ROOT / "commands" / "audit.md",
     *sorted((ROOT / "docs").glob("*.html")),
+    # Chrome-расширение: интерфейс и текст карточки Web Store.
+    ROOT / "extension" / "popup.html",
+    ROOT / "extension" / "README.md",
 ]
 
 ALLOW_MARK = "self-scan: ok"

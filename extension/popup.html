@@ -2,76 +2,177 @@
 <html lang="ru">
 <head>
   <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark light">
   <title>humanizer-ru</title>
+  <script src="theme-boot.js"></script>
   <link rel="stylesheet" href="popup.css">
 </head>
 <body>
+  <!--
+  THESIS: проверка это разбор находок по одной, как корректор идёт по тексту: одна находка в фокусе, оборот в своём предложении, правило и что сделать, «дальше». Отказ от шаблона «огромный балл + список причин + текст».
+  OWN-WORLD: семья aifrontier, мягче: чернильный фон с холодной зеленью, лайм #d6ff43 только на фокусе, активной находке и главной кнопке; сигнальный красный для запретов, янтарь для маркеров; углы 4-12px (карточка 12px); Onest для текста, IBM Plex Mono только для измерений (балл, счётчик).
+  STORY: вставил текст, видишь балл строкой прибора и первую находку крупно, листаешь стрелками, копируешь промпт для правки, сверяешь «было / стало».
+  FIRST VIEWPORT: шапка 52px (знак, имя, «Во вкладке»); строка «Балл чистоты» с числом 30px моно, полосой и числом замечаний, шкала по зонам с указателем; карточка «Замечание 3 из 17»: «лучше убрать» или «проверьте по смыслу», предложение с подсвеченным оборотом 16px, что сделать; «Следующее»; блок «Как исправить» с лаймовой «Скопировать задание для чат-бота» и «Проверить исправленный текст»; ниже ваш текст с подсветкой, текущее замечание обведено.
+  FORM: очередь находок, 6-я в моём списке из 7, seed e7801c2f.
+  FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance
+  -->
   <header class="top">
-    <div class="brand">humanizer<span>-ru</span></div>
-    <label class="genre" for="genre">
-      <span>жанр</span>
-      <select id="genre">
-        <option value="">маркетинг, блог</option>
-        <option value="news">новости</option>
-        <option value="academic">научный</option>
-        <option value="legal">юридический</option>
-        <option value="fiction">художественный</option>
-      </select>
-    </label>
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 20 20" width="20" height="20"><rect x="1" y="1" width="18" height="18" rx="5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M6.5 5v10M6.5 10.5c.8-1.6 2-2.4 3.4-2.4 1.9 0 3.1 1.2 3.1 3.4V15" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span>
+      <span class="brand-name">humanizer-ru</span>
+    </div>
+    <button type="button" id="to-tab" class="btn btn-quiet btn-sm" hidden title="Шире попапа и не закрывается от клика мимо">
+      Во вкладке<svg viewBox="0 0 20 20" width="15" height="15" aria-hidden="true"><path d="M11 3.5h5.5V9M16.2 3.8 9.5 10.5M14 12.5v3a1 1 0 0 1-1 1H4.5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
   </header>
-
-  <label class="visually-hidden" for="text">Текст для проверки</label>
-  <textarea id="text" spellcheck="false" placeholder="Вставьте русский текст"></textarea>
-  <div class="meta">
-    <span class="meta-left">
-      <span id="count">0 слов</span>
-      <span id="stale" hidden>прошлая проверка</span>
-      <button type="button" id="clear" class="linkish" hidden>очистить</button>
-    </span>
-    <span id="privacy">считается здесь, ничего не отправляется</span>
-  </div>
 
   <p id="status" class="visually-hidden" aria-live="polite"></p>
 
-  <section id="empty">
-    <p>Вставьте текст сюда или выделите его на любой странице и выберите в контекстном меню «Проверить на следы нейросети».</p>
-    <p class="scale" aria-label="Шкала балла"><span class="z-bad">0</span> рерайт <span class="z-warn">60</span> точечная правка <span class="z-good">85</span> чисто <span>100</span></p>
-    <button type="button" id="example" class="chip">Показать на примере</button>
+  <!-- Жанр: один элемент, JS переносит его в ввод или в шапку текста -->
+  <label class="genre" id="genre-box">
+    <span class="genre-cap">Жанр</span>
+    <span class="genre-sel">
+      <select id="genre" title="В новостях, науке, праве и прозе часть оборотов законна и не считается">
+        <option value="">Блог, маркетинг</option>
+        <option value="news">Новости</option>
+        <option value="academic">Научный</option>
+        <option value="legal">Юридический</option>
+        <option value="fiction">Художественный</option>
+      </select>
+    </span>
+  </label>
+
+  <!-- Ввод: виден до проверки и по кнопке «Редактировать» -->
+  <section id="edit">
+    <p class="lead">Найдёт шаблонные обороты в русском тексте и подскажет, что с каждым сделать.</p>
+    <label class="visually-hidden" for="text">Текст для проверки</label>
+    <textarea id="text" spellcheck="false" placeholder="Вставьте текст: пост, статью, письмо"></textarea>
+    <div class="meta" id="edit-meta">
+      <span id="count" class="num">0 слов</span>
+      <button type="button" id="clear" class="linkish" hidden>Очистить</button>
+    </div>
+    <div class="row">
+      <button type="button" id="run" class="btn btn-cta">Проверить текст</button>
+      <span class="kbd-hint" aria-hidden="true"><kbd>Ctrl</kbd><kbd>Enter</kbd></span>
+      <button type="button" id="example" class="linkish push">Посмотреть на примере</button>
+    </div>
+    <p class="hint-line" id="run-hint" hidden>Сначала вставьте текст в поле выше.</p>
+    <div id="empty" class="empty">
+      <p>Текст на сайте можно проверить без копирования: выделите его, нажмите правую кнопку мыши и выберите «Проверить на следы нейросети».</p>
+      <details class="why">
+        <summary>Что значит балл</summary>
+        <ol class="scale" aria-label="Зоны балла">
+          <li class="z-bad"><span class="num">0–59</span>много шаблонов</li>
+          <li class="z-warn"><span class="num">60–84</span>есть что поправить</li>
+          <li class="z-good"><span class="num">85–100</span>чисто</li>
+        </ol>
+        <p class="fine">Балл считают правила: шаблонные обороты, канцелярит, ровный ритм. Чем выше, тем меньше шаблонов. Это не вероятность того, что текст написала нейросеть.</p>
+      </details>
+    </div>
   </section>
 
+  <!-- Результат: балл, очередь замечаний, путь правки, текст -->
   <section id="result" hidden>
-    <div class="score-row">
-      <div class="score-num"><span id="score">0</span><small>/100</small></div>
-      <div class="score-meta">
-        <div class="score-band" id="band"></div>
-        <div class="score-facts" id="facts"></div>
+    <div class="readout" id="readout">
+      <div class="readout-row">
+        <span class="score-box">
+          <span class="score-cap">Балл чистоты</span>
+          <span class="score num"><b id="score">0</b><span class="of">/100</span></span>
+        </span>
+        <span class="verdict-wrap">
+          <span class="band" id="band"></span>
+          <span class="verdict" id="verdict" tabindex="-1"></span>
+        </span>
+      </div>
+      <div class="gauge" id="gauge" role="img" aria-label="">
+        <span class="gauge-fill" id="fill"></span><i class="pin" id="pin"></i>
+        <i class="tick t60"></i><i class="tick t85"></i>
+      </div>
+      <details class="why" id="why">
+        <summary><span id="why-sum">Как считается балл</span></summary>
+        <p class="note">Чем выше балл, тем меньше шаблонов. Это не детектор нейросети: балл говорит, насколько текст шаблонный, а не кто его написал.</p>
+        <ul class="pens" id="pens"></ul>
+        <p class="note" id="genre-note" hidden></p>
+        <p class="note" id="notes" hidden></p>
+        <p class="note" id="unmeasured" hidden></p>
+      </details>
+    </div>
+
+    <div class="lanes">
+    <div class="lane lane-card">
+    <!-- Очередь: одно замечание в фокусе -->
+    <article class="card" id="card" aria-live="polite">
+      <div class="card-head">
+        <span class="counter" id="counter"></span>
+        <span class="kind" id="kind"></span>
+      </div>
+      <p class="rule" id="rule" hidden></p>
+      <blockquote class="quote" id="quote"></blockquote>
+      <p class="todo" id="todo"></p>
+      <div class="card-nav">
+        <button type="button" id="prev" class="icon-btn" aria-label="Предыдущее замечание" title="Предыдущее (←)"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><path d="M12.5 4.5 7 10l5.5 5.5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        <button type="button" id="next-f" class="btn btn-step" title="Следующее (→)">Следующее<svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M7.5 4.5 13 10l-5.5 5.5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        <span class="keys" aria-hidden="true"><kbd>←</kbd><kbd>→</kbd></span>
+      </div>
+    </article>
+    <div class="card card-clean" id="card-clean" hidden>
+      <p class="rule" id="clean-title"></p>
+      <p class="todo" id="clean-text"></p>
+    </div>
+
+    <!-- Путь правки: сам или через чат-бот, потом проверка -->
+    <div class="fix">
+      <p class="fix-title">Как исправить</p>
+      <p class="fix-text">Поправьте сами по замечаниям или отдайте чат-боту: скопируйте задание, вставьте в любой чат-бот, а его ответ проверьте здесь.</p>
+      <button type="button" id="prompt" class="btn btn-cta btn-wide" title="Задание с правилами, замечаниями и вашим текстом">Скопировать задание для чат-бота</button>
+      <div class="row">
+        <button type="button" id="cmp-toggle" class="btn" aria-expanded="false" aria-controls="cmp">Проверить исправленный текст</button>
+        <button type="button" id="copy" class="btn btn-quiet" title="Балл и список замечаний текстом, например для автора">Скопировать отчёт</button>
       </div>
     </div>
-    <div class="score-bar" id="bar" role="img" aria-label=""><span class="score-fill" id="fill"></span><i class="tick t60"></i><i class="tick t85"></i></div>
-    <div class="score-labels" aria-hidden="true"><span class="l60">60</span><span class="l85">85</span></div>
-    <p class="next" id="next"></p>
-    <p class="genre-note" id="genre-note" hidden></p>
-    <ul class="penalties" id="penalties"></ul>
-    <p class="sterile" id="notes" hidden></p>
-    <p class="unmeasured" id="unmeasured" hidden></p>
-    <div class="actions"><button type="button" id="copy" class="chip">Скопировать отчёт</button></div>
-  </section>
+    <p class="toast" id="copied" hidden></p>
 
-  <section id="marked-wrap" hidden>
-    <h2>Найдено в тексте</h2>
-    <div class="legend"><mark class="ban">жёсткий запрет</mark><mark class="mk">маркер</mark><span>нажмите на оборот, чтобы увидеть правило</span></div>
-    <div id="marked"></div>
-    <p id="hint" hidden></p>
+    <!-- Проверка исправленного текста -->
+    <section id="cmp" class="cmp" hidden aria-label="Проверка исправленного текста">
+      <label class="cmp-label" for="after">Вставьте исправленный текст</label>
+      <textarea id="after" class="after" spellcheck="false" placeholder="Сравним с исходным: балл, что ушло, не появились ли новые числа и имена"></textarea>
+      <div id="cmp-out" hidden></div>
+    </section>
+    </div>
+
+    <div class="lane lane-text">
+    <div class="text-head">
+      <span class="text-meta" id="text-meta">Ваш текст</span>
+      <span class="text-tools">
+        <button type="button" id="edit-btn" class="linkish">Редактировать</button>
+        <button type="button" id="new-btn" class="linkish">Новый текст</button>
+      </span>
+    </div>
+    <div class="text-genre" id="text-genre"></div>
+    <div class="legend" id="legend"><mark class="ban">лучше убрать</mark><mark class="mk">проверьте по смыслу</mark><span>нажмите, чтобы открыть замечание</span></div>
+    <div id="marked" class="marked"></div>
+    </div>
+    </div>
   </section>
 
   <footer>
-    <a id="site-link" href="https://humanizer-ru.aifrontier.tech/" target="_blank" rel="noopener">Сайт и скилл для агентов</a>
-    <a href="https://github.com/ilyautov/humanizer-ru" target="_blank" rel="noopener">GitHub</a>
-    <span id="version"></span>
+    <span class="privacy">Считается в браузере, ничего не отправляется</span>
+    <span class="links">
+      <a id="site-link" href="https://humanizer-ru.aifrontier.tech/" target="_blank" rel="noopener">Сайт и скилл</a>
+      <a href="https://github.com/ilyautov/humanizer-ru" target="_blank" rel="noopener">GitHub</a>
+      <span id="version" class="num"></span>
+    </span>
+    <span class="theme" role="group" aria-label="Тема">
+      <button type="button" class="seg" data-theme-set="auto" aria-pressed="true">Авто</button>
+      <button type="button" class="seg" data-theme-set="light" aria-pressed="false">Светлая</button>
+      <button type="button" class="seg" data-theme-set="dark" aria-pressed="false">Тёмная</button>
+    </span>
   </footer>
 
   <script src="vendor/scan-rules.js"></script>
   <script src="vendor/scan.js"></script>
+  <script src="vendor/facts.js"></script>
   <script src="popup.js"></script>
 </body>
 </html>
