@@ -159,26 +159,31 @@ kbd {
 .brand { display: flex; align-items: center; gap: 8px; margin-right: auto; }
 .brand-mark { display: flex; color: var(--accent-ink); }
 .brand-name { font-weight: 600; font-size: 15px; letter-spacing: -0.01em; }
-.genre { position: relative; }
+/* Жанр с видимой подписью: под полем ввода или над текстом результата. */
+.genre { display: inline-flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--text-3); }
+.genre-sel { position: relative; display: inline-flex; }
 .genre select {
   appearance: none;
-  height: 32px;
-  padding: 0 28px 0 10px;
+  height: 28px;
+  padding: 0 26px 0 9px;
   border: 1px solid var(--line-2);
   border-radius: var(--r-sm);
   background: var(--surface);
   color: var(--text);
-  font: 13px var(--sans);
+  font: 12.5px var(--sans);
   cursor: pointer;
 }
 .genre select:hover { border-color: var(--text-3); }
-.genre::after {
-  content: ""; position: absolute; right: 11px; top: 11px;
+.genre-sel::after {
+  content: ""; position: absolute; right: 10px; top: 9px;
   width: 6px; height: 6px;
   border: solid var(--text-2); border-width: 0 1.5px 1.5px 0;
   transform: rotate(45deg);
   pointer-events: none;
 }
+#edit-meta .genre { margin-left: auto; }
+.text-genre { margin: 6px 0 10px; }
+.text-genre:empty { display: none; }
 
 /* --- Кнопки --- */
 .btn, .icon-btn {
@@ -207,7 +212,7 @@ kbd {
 .btn[aria-expanded="true"] { background: var(--surface-2); border-color: var(--text-3); }
 .btn-sm { height: 30px; padding: 0 10px; font-size: 12.5px; }
 .icon-btn { width: 36px; padding: 0; color: var(--text-2); }
-.top .icon-btn { width: 32px; height: 32px; border-color: transparent; }
+.top .btn-quiet svg { margin-right: -2px; }
 .linkish {
   padding: 2px 0; border: 0; background: none;
   color: var(--text-2); font: 13px var(--sans);
@@ -216,6 +221,10 @@ kbd {
 }
 .linkish:hover { color: var(--text); text-decoration-color: currentColor; }
 .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.push { margin-left: auto; }
+.btn-wide { width: 100%; height: 40px; font-size: 14px; }
+.lead { margin: 0 0 10px; font-size: 14px; color: var(--text-2); }
+.hint-line { margin: 8px 0 0; font-size: 13px; color: var(--mk); }
 
 /* --- Ввод --- */
 textarea {
@@ -233,9 +242,10 @@ textarea::placeholder { color: var(--text-3); }
 textarea:focus { outline: none; border-color: var(--ring); box-shadow: 0 0 0 1px var(--ring); }
 #text { height: 190px; }
 .meta { display: flex; align-items: center; gap: 12px; margin: 8px 0 12px; font-size: 12.5px; color: var(--text-3); }
-.kbd-hint { margin-left: auto; display: flex; gap: 3px; }
+.kbd-hint { display: flex; gap: 3px; }
 .empty { margin-top: 18px; color: var(--text-2); font-size: 13px; }
-.empty p { margin: 0 0 12px; }
+.empty > p { margin: 0 0 10px; }
+.empty .scale { margin-top: 10px; }
 .scale { list-style: none; margin: 0 0 12px; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; }
 .scale li { background: var(--surface); padding: 8px 10px; font-size: 12.5px; color: var(--text-2); }
 .scale .num { display: block; font-size: 13px; font-weight: 500; }
@@ -246,7 +256,9 @@ textarea:focus { outline: none; border-color: var(--ring); box-shadow: 0 0 0 1px
 
 /* --- Прибор: балл строкой --- */
 .readout { margin-bottom: 12px; }
-.readout-row { display: flex; align-items: baseline; gap: 12px; }
+.readout-row { display: flex; align-items: flex-end; gap: 14px; }
+.score-box { display: flex; flex-direction: column; gap: 4px; }
+.score-cap { font-size: 12px; color: var(--text-3); }
 .score { line-height: 1; white-space: nowrap; }
 .score b { font-size: 30px; font-weight: 500; letter-spacing: -0.02em; }
 .score .of { font-size: 13px; color: var(--text-3); margin-left: 2px; }
@@ -308,28 +320,32 @@ textarea:focus { outline: none; border-color: var(--ring); box-shadow: 0 0 0 1px
   box-shadow: var(--lift);
 }
 .card-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 12.5px; }
-.counter { color: var(--text-3); font-size: 12px; }
-.kind { display: inline-flex; align-items: center; gap: 6px; color: var(--text-2); }
+.counter { color: var(--text-3); font-size: 12.5px; }
+.kind { display: inline-flex; align-items: center; gap: 6px; color: var(--text); font-weight: 600; }
 .kind::before { content: ""; width: 8px; height: 8px; border-radius: 2px; }
 .kind.ban::before { background: var(--ban); }
 .kind.mk::before { background: transparent; border: 1.5px solid var(--mk); }
 .kind.struct::before { background: var(--text-3); height: 2px; }
 .rule { margin: 8px 0 10px; font-size: 16px; font-weight: 600; line-height: 1.35; letter-spacing: -0.01em; }
 .quote {
-  margin: 0 0 10px;
+  margin: 10px 0;
   font-size: 16px; line-height: 1.6;
   color: var(--text);
 }
 .card.step .rule, .card.step .quote, .card.step .todo { animation: step-in 0.18s ease-out; }
 @keyframes step-in { from { opacity: 0; transform: translateY(3px); } to { opacity: 1; transform: none; } }
-.todo { margin: 0; color: var(--text-2); font-size: 13.5px; }
+.todo { margin: 0; color: var(--text); font-size: 14px; }
 .card-nav { display: flex; align-items: center; gap: 8px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line); }
 .btn-step svg { margin-right: -4px; }
 .keys { margin-left: auto; display: none; gap: 3px; }
 .as-tab .keys { display: flex; }
 .card-clean .rule { margin-top: 0; }
 .good .card-clean .rule { color: var(--good); }
-.actions { margin: 12px 0 0; }
+/* Как исправить: путь правки словами, не набор загадочных кнопок */
+.fix { margin-top: 16px; }
+.fix-title { margin: 0 0 2px; font-size: 14px; font-weight: 600; }
+.fix-text { margin: 0 0 10px; font-size: 13px; color: var(--text-2); }
+.fix .row { margin-top: 8px; }
 .toast { margin: 8px 0 0; font-size: 12.5px; color: var(--text-2); }
 
 /* --- Подсветка оборотов: цвет плюс форма линии --- */
@@ -378,7 +394,7 @@ mark.mk { background: var(--mk-fill); text-decoration: underline dashed var(--mk
   font-size: 14.5px; line-height: 1.75;
   white-space: pre-wrap; overflow-wrap: anywhere;
 }
-.legend { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 8px; font-size: 12px; color: var(--text-3); }
+.legend { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 2px 0 8px; font-size: 12px; color: var(--text-3); }
 .legend mark { font-size: 12px; }
 
 /* --- Подвал --- */
