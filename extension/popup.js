@@ -520,11 +520,16 @@
     if (body.dataset.mode === "view") check();
   });
   $("example").addEventListener("click", () => { textEl.value = EXAMPLE; afterEl.value = ""; updateCount(); check({ focus: true }); });
-  clearBtn.addEventListener("click", () => {
+  // Сброс: пустое поле, прошлая проверка забыта. Из режима просмотра тоже:
+  // кнопка «Новый текст» рядом с «Изменить текст».
+  function resetText() {
     textEl.value = ""; afterEl.value = ""; checked = null;
     store.remove("local", "last");
+    setMode("edit");
     updateCount(); textEl.focus();
-  });
+  }
+  clearBtn.addEventListener("click", resetText);
+  $("new-btn").addEventListener("click", resetText);
 
   // --- Во вкладке ------------------------------------------------------------------------
   // Широкий режим для длинного текста: та же страница вкладкой (?tab=1).
