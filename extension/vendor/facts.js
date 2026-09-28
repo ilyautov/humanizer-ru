@@ -37,10 +37,15 @@
     const body = text.replace(CODE_RE, " ").replace(URL_RE, " ");
     for (const m of body.matchAll(MONTH_RE)) hard.set("месяц:" + m[1].toLowerCase(), m[0]);
     for (const m of body.matchAll(CLAIM_PHRASE_RE)) claims.set("утверждение:" + m[0].toLowerCase().replace(/ё/g, "е"), m[0]);
+    // Числа целиком, с единицами («1,5» не равно «15», проценты не равны
+    // процентным пунктам): humanizerNumericFacts из scan.js, как в facts.py.
+    const numeric = globalThis.humanizerNumericFacts;
+    if (numeric) for (const [key, value] of numeric(body)) hard.set(key, value);
     const starts = sentenceStarts(body);
     for (const m of body.matchAll(TOKEN_RE)) {
       const tok = m[0], at = m.index;
       if (/^\d/.test(tok)) {
+        if (numeric) continue;
         const n = tok.replace(/[.,:/-]+$/, "").replace(/,/g, ".");
         if (n) hard.set("число:" + n, tok.replace(/[.,:/-]+$/, ""));
         continue;

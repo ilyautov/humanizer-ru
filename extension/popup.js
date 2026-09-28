@@ -519,7 +519,7 @@
     if (!fd) lockText = "Проверка фактов не загрузилась: сверьте числа и имена глазами.";
     else if (risky) lockText = "В исправленном тексте есть числа, имена или обобщения, которых не было в исходном. Проверьте, не выдуманы ли они: выдуманная цифра хуже канцелярита.";
     else if (fd.lost.length) lockText = `Новых фактов нет, но часть исходных пропала: на месте ${fd.kept} из ${fd.total}. Проверьте, не ушёл ли смысл.`;
-    else if (fd.total) lockText = `Числа и имена исходного текста на месте (${fd.kept} из ${fd.total}), новых нет.`;
+    else if (fd.total) lockText = `Числа и имена исходного текста на месте (${fd.kept} из ${fd.total}), новых нет. Смысл сверьте глазами: совпадение чисел его не доказывает.`;
     else lockText = "В исходном тексте нет чисел, имён и ссылок, сверять нечего.";
     const lockRows = [];
     if (fd && fd.lost.length) lockRows.push(`<div class="cmp-block"><span class="cap">Пропало из исходного</span>${chips(fd.lost.map((x) => [x, 1]), "lost")}</div>`);
@@ -559,7 +559,7 @@
       fd && fd.lost.length ? `  факт-замок, пропало: ${fd.lost.join(", ")}` : "",
       fd && fd.added.length ? `  факт-замок, появилось: ${fd.added.join(", ")}` : "",
       fd && fd.claimsAdded.length ? `  факт-замок, новый квантор: ${fd.claimsAdded.join(", ")}` : "",
-      fd && !risky && !fd.lost.length && fd.total ? `  факт-замок: ${fd.kept}/${fd.total} на месте` : "",
+      fd && !risky && !fd.lost.length && fd.total ? `  проверка фактов: совпало ${fd.kept}/${fd.total}, смысл не проверен` : "",
     ].filter(Boolean).join("\n");
   }
   cmpToggle.addEventListener("click", () => {
