@@ -76,7 +76,7 @@ check("число:13" in r.stdout and "имя:стэнфорд" in r.stdout, "в
 check("было 100" in r.stdout or "было " in r.stdout, "печатается «было N, стало M»")
 r = run([str(_d / "kept.txt"), "--before", str(_d / "before.txt")])
 check(r.returncode == 0, f"факты сохранены: exit 0, получено {r.returncode}")
-check("факт-замок цел" in r.stdout, "сохранённые факты: вердикт «цел»")
+check("изменений в них не найдено" in r.stdout and "ручной сверки" in r.stdout, "совпадение элементов не гарантирует сохранение смысла")
 check("ссылка" not in r.stdout.split("Факт-замок")[-1], "https:// и www. не делают ссылку новым фактом")
 (_d / "claim_before.txt").write_text("Первый в России сервис, единственный с офлайн-режимом.\n", encoding="utf-8")
 (_d / "claim_cut.txt").write_text("Сервис с офлайн-режимом.\n", encoding="utf-8")

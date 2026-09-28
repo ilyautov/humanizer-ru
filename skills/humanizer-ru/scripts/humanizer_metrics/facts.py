@@ -6,7 +6,8 @@
 фактчек: только сохранность того, что уже было, и появление того, чего не было.
 
 Классы фактов:
-- число: любой токен с цифрой (проценты, годы, суммы), нормализован до цифр;
+- число: значение с сохранением знака, десятичного разделителя, диапазона и даты;
+- величина: число вместе с распознанной единицей (проценты, рубли, масштабы);
 - число словами: крупные числительные («сорок», «тысяча»), их не пересказывают;
 - месяц: названия месяцев как замена дате;
 - ссылка: URL и адреса вида domain.tld/path;
@@ -53,6 +54,39 @@ URL_RE = re.compile(r"https?://[^\s)>\]»]+|\b[a-z0-9-]+\.(?:ru|com|org|net|io|t
                     re.IGNORECASE)
 CODE_RE = re.compile(r"`([^`\n]+)`")
 TOKEN_RE = re.compile(r"[A-Za-z][A-Za-z\d\-]*|[А-Яа-яЁё][А-Яа-яЁё\-]*|\d[\d.,:/-]*")
+
+# Keep numeric structure. Dates/ranges are deliberately not evaluated as arithmetic.
+NUMBER_RE = re.compile(r"(?<![A-Za-z0-9_])[-+−]?(?:\d{1,3}(?:[ \u00a0\u202f]\d{3})+|\d+)(?:[.,:/-]\d+)*")
+UNIT_RE = re.compile(r"\s*(%|процентн[а-яё]*\s+пункт[а-яё]*|процент(?:а|ов|у|ом|е|ы|ам|ами|ах)?|₽|руб(?:\.|л[а-яё]*)?|млн\.?|миллион[а-яё]*|млрд\.?|миллиард[а-яё]*|тыс\.?|тысяч[а-яё]*)(?![а-яёa-z])", re.I)
+
+
+def numeric_facts(text: str) -> dict[str, str]:
+    result = {}
+    for match in NUMBER_RE.finditer(text):
+        value = re.sub(r"[ \u00a0\u202f]", "", match.group()).replace(",", ".").replace("−", "-").lstrip("+")
+        if re.fullmatch(r"-?\d+", value):
+            value = str(int(value))
+        result["число:" + value] = match.group()
+        end = match.end()
+        units = []
+        # Scale + currency, e.g. "5 млн рублей". One scale and one unit at most.
+        for _ in range(2):
+            unit_match = UNIT_RE.match(text, end)
+            if not unit_match:
+                break
+            raw = unit_match.group(1).lower()
+            unit = ("п.п." if raw.startswith("процентн") else "%" if raw == "%" or raw.startswith("процент") else
+                    "руб" if raw == "₽" or raw.startswith("руб") else
+                    "млн" if raw.startswith(("млн", "миллион")) else
+                    "млрд" if raw.startswith(("млрд", "миллиард")) else "тыс")
+            units.append(unit)
+            end = unit_match.end()
+            if unit in ("%", "п.п.", "руб"):
+                break
+        if units:
+            result["величина:" + value + " " + " ".join(units)] = text[match.start():end]
+    return result
+
 
 SOFT_QUANTITIES = {
     "один", "два", "две", "три", "оба", "обе", "пара",
@@ -115,7 +149,10 @@ class FactsDiff:
     def as_dict(self) -> dict:
         return {"ok": self.ok, "lost": self.lost, "added": self.added,
                 "kept": self.kept, "soft_added": self.soft_added,
-                "claims_added": self.claims_added}
+                "claims_added": self.claims_added,
+                "status": "review_required" if (self.lost or self.added or self.claims_added or self.soft_added) else "no_detected_changes",
+                "semantic_verified": False,
+                "scope": "Сопоставление извлечённых элементов; смысл и связь чисел с утверждениями не проверены."}
 
 
 def _norm(word: str) -> str:
@@ -173,13 +210,11 @@ def extract_facts(text: str) -> Facts:
         f.hedges.add("оговорка:" + ("может" if h in ("могут", "может") else "ожидается" if h.startswith("ожида") else h))
     for m in CLAIM_PHRASE_RE.finditer(body):
         f.claims.add("утверждение:" + m.group(0).lower().replace("ё", "е"))
+    f.hard.update(numeric_facts(body))
     starts = _sentence_starts(body)
     for m in TOKEN_RE.finditer(body):
         tok = m.group(0)
         if tok[0].isdigit():
-            digits = re.sub(r"\D", "", tok)
-            if digits:
-                f.hard.add("число:" + (digits.lstrip("0") or "0"))
             continue
         norm = _norm(tok)
         f.words.add(norm)
@@ -211,11 +246,11 @@ def diff_facts(before: str, after: str) -> FactsDiff:
 
 
 def facts_verdict(d: FactsDiff) -> str:
+    scope = "Смысл, единицы вне словаря и связь чисел с утверждениями требуют ручной сверки."
     if d.added:
-        return f"✗ новых фактов без источника: {len(d.added)} (выдумка хуже канцелярита)"
+        return f"⚠ появились элементы, которых нет в исходнике: {len(d.added)}. {scope}"
     if d.lost:
-        return f"⚠ факты исходника на месте, но {len(d.lost)} потеряно: проверьте, намеренно ли"
-    if d.claims_added:
-        return (f"⚠ факты целы, но появилось утверждений без источника: {len(d.claims_added)} "
-                "(«впервые», «единственный» это факт, а не украшение)")
-    return f"✓ факт-замок цел: {d.kept} фактов исходника перенесено, новых нет"
+        return f"⚠ потеряно элементов исходника: {len(d.lost)}. Проверьте, намеренно ли. {scope}"
+    if d.claims_added or d.soft_added:
+        return f"⚠ появились кванторы или количества; проверьте контекст. {scope}"
+    return f"Совпало извлечённых элементов: {d.kept}; изменений в них не найдено. {scope}"

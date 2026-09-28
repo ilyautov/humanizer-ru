@@ -581,6 +581,31 @@
     };
   }
 
+  // Bounded numeric comparison, also used by the before/after UI.
+  function numericFacts(text) {
+    const out = new Map();
+    const numbers = /(?<![A-Za-z0-9_])[-+−]?(?:\d{1,3}(?:[ \u00a0\u202f]\d{3})+|\d+)(?:[.,:/-]\d+)*/gu;
+    const unitPattern = /^\s*(%|процентн[а-яё]*\s+пункт[а-яё]*|процент(?:а|ов|у|ом|е|ы|ам|ами|ах)?|₽|руб(?:\.|л[а-яё]*)?|млн\.?|миллион[а-яё]*|млрд\.?|миллиард[а-яё]*|тыс\.?|тысяч[а-яё]*)(?![а-яёa-z])/iu;
+    for (const m of text.matchAll(numbers)) {
+      let value = m[0].replace(/[ \u00a0\u202f]/g, '').replace(/,/g, '.').replace(/−/g, '-').replace(/^\+/, '');
+      if (/^-?\d+$/.test(value)) { const negative = value.startsWith('-'); value = value.replace(/^-?0*/, '') || '0'; if (negative && value !== '0') value = '-' + value; }
+      out.set('число:' + value, m[0]);
+      let end = m.index + m[0].length;
+      const units = [];
+      for (let i=0;i<2;i++) {
+        const u = unitPattern.exec(text.slice(end));
+        if (!u) break;
+        const raw = u[1].toLowerCase();
+        const unit = raw.startsWith('процентн') ? 'п.п.' : raw === '%' || raw.startsWith('процент') ? '%' : raw === '₽' || raw.startsWith('руб') ? 'руб' : /^(млн|миллион)/.test(raw) ? 'млн' : /^(млрд|миллиард)/.test(raw) ? 'млрд' : 'тыс';
+        units.push(unit); end += u[0].length;
+        if (unit === '%' || unit === 'п.п.' || unit === 'руб') break;
+      }
+      if (units.length) out.set('величина:' + value + ' ' + units.join(' '), text.slice(m.index,end));
+    }
+    return out;
+  }
+  globalThis.humanizerNumericFacts = numericFacts;
+
   globalThis.humanizerScan = humanizerScan;
   globalThis.humanizerScanInternals = { maskForeign, stripForeign, sentences, countWords, lexicalTokens, mattr, repeatStats };
 })();
