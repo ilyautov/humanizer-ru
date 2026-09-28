@@ -4,23 +4,23 @@
    Тёмная по умолчанию, светлая по prefers-color-scheme или переключателем.
    Шрифты лежат в fonts/ (OFL), в сеть попап не ходит. */
 @font-face {
-  font-family: "IBM Plex Mono"; font-style: normal; font-weight: 400; font-display: swap;
-  src: url("fonts/IBMPlexMono-400-cyrillic.woff2") format("woff2");
+  font-family: "JetBrains Mono"; font-style: normal; font-weight: 400; font-display: swap;
+  src: url("fonts/JetBrainsMono-400-cyrillic.woff2") format("woff2");
   unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
 }
 @font-face {
-  font-family: "IBM Plex Mono"; font-style: normal; font-weight: 400; font-display: swap;
-  src: url("fonts/IBMPlexMono-400-latin.woff2") format("woff2");
+  font-family: "JetBrains Mono"; font-style: normal; font-weight: 400; font-display: swap;
+  src: url("fonts/JetBrainsMono-400-latin.woff2") format("woff2");
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 @font-face {
-  font-family: "IBM Plex Mono"; font-style: normal; font-weight: 500; font-display: swap;
-  src: url("fonts/IBMPlexMono-500-cyrillic.woff2") format("woff2");
+  font-family: "Alumni Sans"; font-style: normal; font-weight: 100 900; font-display: swap;
+  src: url("fonts/AlumniSans-cyrillic.woff2") format("woff2");
   unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
 }
 @font-face {
-  font-family: "IBM Plex Mono"; font-style: normal; font-weight: 500; font-display: swap;
-  src: url("fonts/IBMPlexMono-500-latin.woff2") format("woff2");
+  font-family: "Alumni Sans"; font-style: normal; font-weight: 100 900; font-display: swap;
+  src: url("fonts/AlumniSans-latin.woff2") format("woff2");
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 @font-face {
@@ -34,38 +34,48 @@
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
-/* Тёмная тема по умолчанию. Пары текст/фон держат WCAG AA:
-   --text-3 на --bg 5,6:1, --ban 6,9:1, --mk 11:1. */
+/* Язык «редакционной мастерской», как на сайте: чернильный цех, бумажный лист
+   под находкой, бордовый редакторский карандаш на главной кнопке, лайм AI
+   Frontier только сигналом (фокус, текущая находка). Пары держат WCAG AA:
+   --text-3 на --bg 5,5:1, --ban 6,9:1, --mk 9:1, #fff9ed на бордовом 5:1,
+   чернила на бумаге 13:1, --paper-ban на бумаге 6,4:1. */
 :root {
   color-scheme: dark;
-  --bg: #0b0f10;
-  --surface: #121819;
-  --surface-2: #192123;
-  --line: #222b2e;
-  --line-2: #33403f;
-  --text: #eceee9;
-  --text-2: #a8b0b2;
-  --text-3: #838c90;
-  --accent: #d6ff43;
-  --accent-ink: #d6ff43;
-  --on-accent: #0b0f10;
+  --bg: #191e1c;
+  --surface: #1f2522;
+  --surface-2: #262d29;
+  --line: rgba(255, 255, 255, 0.11);
+  --line-2: rgba(255, 255, 255, 0.2);
+  --text: #eee9db;
+  --text-2: #b6bab1;
+  --text-3: #8f958d;
+  --accent: #b64e3c;
+  --accent-ink: #e09b84;
+  --on-accent: #fff9ed;
   --cta-line: transparent;
   --ring: #d6ff43;
-  --ban: #ff6b4f;
-  --mk: #ffb547;
-  --good: #c4f03a;
-  --ban-fill: rgba(255, 107, 79, 0.17);
-  --mk-fill: rgba(255, 181, 71, 0.12);
-  --select: rgba(214, 255, 67, 0.3);
+  --ban: #ef8a73;
+  --mk: #e4b56c;
+  --good: #a7c78c;
+  --ban-fill: rgba(239, 138, 115, 0.17);
+  --mk-fill: rgba(228, 181, 108, 0.14);
+  --select: rgba(182, 78, 60, 0.45);
   --shadow: 0 1px 0 rgba(255, 255, 255, 0.03) inset;
-  --lift: 0 1px 0 rgba(255, 255, 255, 0.05) inset, 0 10px 28px rgba(0, 0, 0, 0.45);
-  --r: 8px;
-  --r-sm: 6px;
+  --lift: 0 1px 0 rgba(255, 255, 255, 0.45) inset, 0 16px 30px -12px rgba(0, 0, 0, 0.75);
+  --paper: #eee9db;
+  --paper-ink: #1c211e;
+  --paper-2: #5a5c55;
+  --paper-line: #d5cfbe;
+  --paper-ban: #953929;
+  --paper-mk: #85540f;
+  --paper-good: #3d6a2c;
+  --r: 4px;
+  --r-sm: 3px;
+  --display: "Alumni Sans", "Arial Narrow", sans-serif;
   --sans: "Onest", system-ui, -apple-system, "Segoe UI", sans-serif;
-  --mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
 }
-/* Светлая: нейтральный холодный серый, без кремового. Лайм остаётся заливкой
-   главной кнопки; текстом и линией его заменяет --accent-ink (6,4:1 на белом). */
+/* Светлая: нейтральный холодный серый без кремового, лист находки белый. */
 @media (prefers-color-scheme: light) {
   :root:not([data-theme="dark"]) {
     color-scheme: light;
@@ -77,18 +87,26 @@
     --text: #111416;
     --text-2: #464d53;
     --text-3: #5f676e;
-    --accent-ink: #4a6600;
-    --on-accent: #111416;
-    --cta-line: rgba(58, 80, 0, 0.35);
-    --ring: #4a6600;
+    --accent: #b64e3c;
+    --accent-ink: #953929;
+    --on-accent: #fff9ed;
+    --cta-line: transparent;
+    --ring: #953929;
     --ban: #b8321b;
     --mk: #9a5a00;
-    --good: #4a6600;
-    --ban-fill: rgba(214, 64, 36, 0.12);
+    --good: #3d6a2c;
+    --ban-fill: rgba(184, 50, 27, 0.11);
     --mk-fill: rgba(232, 150, 20, 0.16);
-    --select: rgba(170, 220, 20, 0.4);
+    --select: rgba(182, 78, 60, 0.22);
     --shadow: 0 1px 2px rgba(17, 20, 22, 0.05);
     --lift: 0 1px 2px rgba(17, 20, 22, 0.06), 0 10px 26px rgba(17, 20, 22, 0.09);
+    --paper: #ffffff;
+    --paper-ink: #111416;
+    --paper-2: #5f676e;
+    --paper-line: #dfe2e5;
+    --paper-ban: #b8321b;
+    --paper-mk: #9a5a00;
+    --paper-good: #3d6a2c;
   }
 }
 :root[data-theme="light"] {
@@ -101,18 +119,26 @@
   --text: #111416;
   --text-2: #464d53;
   --text-3: #5f676e;
-  --accent-ink: #4a6600;
-  --on-accent: #111416;
-  --cta-line: rgba(58, 80, 0, 0.35);
-  --ring: #4a6600;
+  --accent: #b64e3c;
+  --accent-ink: #953929;
+  --on-accent: #fff9ed;
+  --cta-line: transparent;
+  --ring: #953929;
   --ban: #b8321b;
   --mk: #9a5a00;
-  --good: #4a6600;
-  --ban-fill: rgba(214, 64, 36, 0.12);
+  --good: #3d6a2c;
+  --ban-fill: rgba(184, 50, 27, 0.11);
   --mk-fill: rgba(232, 150, 20, 0.16);
-  --select: rgba(170, 220, 20, 0.4);
+  --select: rgba(182, 78, 60, 0.22);
   --shadow: 0 1px 2px rgba(17, 20, 22, 0.05);
   --lift: 0 1px 2px rgba(17, 20, 22, 0.06), 0 10px 26px rgba(17, 20, 22, 0.09);
+  --paper: #ffffff;
+  --paper-ink: #111416;
+  --paper-2: #5f676e;
+  --paper-line: #dfe2e5;
+  --paper-ban: #b8321b;
+  --paper-mk: #9a5a00;
+  --paper-good: #3d6a2c;
 }
 
 * { box-sizing: border-box; }
@@ -157,8 +183,14 @@ kbd {
   border-bottom: 1px solid var(--line);
 }
 .brand { display: flex; align-items: center; gap: 8px; margin-right: auto; }
-.brand-mark { display: flex; color: var(--accent-ink); }
-.brand-name { font-weight: 600; font-size: 15px; letter-spacing: -0.01em; }
+.brand-mark {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 30px; height: 30px; border: 1px solid var(--line-2);
+  font: 600 22px/1 var(--display); color: var(--text);
+}
+.brand-mark i { font-style: normal; color: var(--ring); }
+.brand-name { font-weight: 700; font-size: 16px; letter-spacing: -0.03em; }
+.brand-name span { color: var(--accent-ink); }
 /* Жанр с видимой подписью: под полем ввода или над текстом результата. */
 .genre { display: inline-flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--text-3); }
 .genre-sel { position: relative; display: inline-flex; }
@@ -260,7 +292,7 @@ textarea:focus { outline: none; border-color: var(--ring); box-shadow: 0 0 0 1px
 .score-box { display: flex; flex-direction: column; gap: 4px; }
 .score-cap { font-size: 12px; color: var(--text-3); }
 .score { line-height: 1; white-space: nowrap; }
-.score b { font-size: 30px; font-weight: 500; letter-spacing: -0.02em; }
+.score b { font: 650 46px/0.9 var(--display); letter-spacing: -0.01em; }
 .score .of { font-size: 13px; color: var(--text-3); margin-left: 2px; }
 .verdict-wrap { display: flex; flex-direction: column; min-width: 0; }
 .band { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 600; }
@@ -314,18 +346,19 @@ textarea:focus { outline: none; border-color: var(--ring); box-shadow: 0 0 0 1px
 /* --- Карточка находки --- */
 .card {
   padding: 14px 16px 12px;
-  border: 1px solid var(--line-2);
-  border-radius: 12px;
-  background: var(--surface);
+  border: 0;
+  border-radius: 2px;
+  background: var(--paper);
+  color: var(--paper-ink);
   box-shadow: var(--lift);
 }
 .card-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 12.5px; }
-.counter { color: var(--text-3); font-size: 12.5px; }
-.kind { display: inline-flex; align-items: center; gap: 6px; color: var(--text); font-weight: 600; }
+.counter { color: var(--paper-2); font: 11.5px/1.4 var(--mono); letter-spacing: 0.02em; }
+.kind { display: inline-flex; align-items: center; gap: 6px; color: var(--paper-ink); font-weight: 600; }
 .kind::before { content: ""; width: 8px; height: 8px; border-radius: 2px; }
-.kind.ban::before { background: var(--ban); }
-.kind.mk::before { background: transparent; border: 1.5px solid var(--mk); }
-.kind.struct::before { background: var(--text-3); height: 2px; }
+.kind.ban::before { background: var(--paper-ban); }
+.kind.mk::before { background: transparent; border: 1.5px solid var(--paper-mk); }
+.kind.struct::before { background: var(--paper-2); height: 2px; }
 .rule { margin: 8px 0 10px; font-size: 16px; font-weight: 600; line-height: 1.35; letter-spacing: -0.01em; }
 .quote {
   margin: 10px 0;
@@ -334,13 +367,13 @@ textarea:focus { outline: none; border-color: var(--ring); box-shadow: 0 0 0 1px
 }
 .card.step .rule, .card.step .quote, .card.step .todo { animation: step-in 0.18s ease-out; }
 @keyframes step-in { from { opacity: 0; transform: translateY(3px); } to { opacity: 1; transform: none; } }
-.todo { margin: 0; color: var(--text); font-size: 14px; }
-.card-nav { display: flex; align-items: center; gap: 8px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line); }
+.todo { margin: 0; color: var(--paper-ink); font-size: 14px; }
+.card-nav { display: flex; align-items: center; gap: 8px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--paper-line); }
 .btn-step svg { margin-right: -4px; }
 .keys { margin-left: auto; display: none; gap: 3px; }
 .as-tab .keys { display: flex; }
 .card-clean .rule { margin-top: 0; }
-.good .card-clean .rule { color: var(--good); }
+.good .card-clean .rule { color: var(--paper-good); }
 /* Как исправить: путь правки словами, не набор загадочных кнопок */
 .fix { margin-top: 16px; }
 .fix-title { margin: 0 0 2px; font-size: 14px; font-weight: 600; }
@@ -357,13 +390,13 @@ mark.mk { background: var(--mk-fill); text-decoration: underline dashed var(--mk
 .marked mark.cur { outline: 2px solid var(--ring); outline-offset: 1px; }
 
 /* --- Было / стало --- */
-.cmp { margin-top: 12px; padding: 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
+.cmp { margin-top: 12px; padding: 12px; border: 1px solid var(--line); border-radius: var(--r); background: var(--surface); }
 .cmp-label { display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; }
 .after { height: 110px; background: var(--bg); }
 #cmp-out { margin-top: 12px; }
 .cmp-scores { display: flex; align-items: flex-end; gap: 12px; }
 .cmp-score { display: flex; flex-direction: column; gap: 2px; }
-.cmp-score b { font-size: 24px; font-weight: 500; line-height: 1; }
+.cmp-score b { font: 650 34px/0.9 var(--display); }
 .cap { font-size: 12px; color: var(--text-3); }
 .cmp-arrow { color: var(--text-3); margin-bottom: 3px; }
 .cmp-delta { margin-left: auto; font-size: 14px; color: var(--text-2); }
@@ -372,7 +405,7 @@ mark.mk { background: var(--mk-fill); text-decoration: underline dashed var(--mk
 .cmp-verdict { margin: 8px 0; font-size: 13.5px; }
 .cmp-block { margin-top: 8px; }
 .chips { list-style: none; margin: 4px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px; }
-.chips li { padding: 2px 8px; border: 1px solid var(--line-2); border-radius: 12px; font-size: 12px; color: var(--text-2); }
+.chips li { padding: 2px 8px; border: 1px solid var(--line-2); border-radius: 2px; font-size: 12px; color: var(--text-2); }
 .chips li.gone { text-decoration: line-through; text-decoration-color: var(--text-3); }
 .chips li.added, .chips li.lost { border-color: var(--ban); color: var(--ban); }
 .chips li.more { border-style: dashed; }
@@ -409,7 +442,7 @@ footer {
 footer a { color: var(--text-2); text-underline-offset: 3px; text-decoration-color: var(--line-2); }
 footer a:hover { color: var(--text); }
 .theme { display: inline-flex; padding: 2px; border: 1px solid var(--line); border-radius: var(--r-sm); }
-.seg { height: 24px; padding: 0 8px; border: 0; border-radius: 4px; background: none; color: var(--text-3); font: 12px var(--sans); cursor: pointer; }
+.seg { height: 24px; padding: 0 8px; border: 0; border-radius: 2px; background: none; color: var(--text-3); font: 12px var(--sans); cursor: pointer; }
 .seg:hover { color: var(--text); }
 .seg[aria-pressed="true"] { background: var(--surface-2); color: var(--text); }
 
@@ -430,3 +463,13 @@ body.as-tab { width: auto; max-width: 1120px; margin: 0 auto; padding: 0 32px 24
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; animation: none !important; scroll-behavior: auto !important; }
 }
+
+/* Лист находки: свои цвета подсветки и кнопок, лайм на бумаге не читается */
+.card .quote, .card .rule { color: var(--paper-ink); }
+.card mark.ban { background: rgba(149, 57, 41, 0.13); box-shadow: inset 0 -2px 0 var(--paper-ban); }
+.card mark.mk { background: rgba(133, 84, 15, 0.12); text-decoration-color: var(--paper-mk); }
+.card .btn, .card .icon-btn { color: var(--paper-ink); border-color: var(--paper-line); }
+.card .btn:hover, .card .icon-btn:hover { background: rgba(0, 0, 0, 0.05); border-color: var(--paper-2); }
+.card .btn:disabled, .card .icon-btn:disabled { background: transparent; border-color: var(--paper-line); }
+.card :focus-visible { outline-color: var(--paper-ban); }
+.card kbd { color: var(--paper-2); border-color: var(--paper-line); }

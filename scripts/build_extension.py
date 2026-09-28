@@ -66,7 +66,7 @@ def check_manifest() -> list[str]:
     for p in UI_TEXTS:
         if "—" in p.read_text(encoding="utf-8"):
             errors.append(f"длинное тире в {p.relative_to(ROOT)}")
-    for rel in ("fonts/OFL-IBMPlexMono.txt", "fonts/OFL-Onest.txt"):
+    for rel in ("fonts/OFL-AlumniSans.txt", "fonts/OFL-JetBrainsMono.txt", "fonts/OFL-Onest.txt"):
         if not (EXT / rel).exists():
             errors.append(f"нет {rel}: шрифты под OFL едут только вместе с лицензией")
     return errors
