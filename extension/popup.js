@@ -219,6 +219,8 @@
     // Шаг по очереди виден: содержимое карточки коротко проявляется заново.
     const card = $("card");
     card.classList.remove("step"); void card.offsetWidth; card.classList.add("step");
+    // Под листом видна стопка: сколько замечаний ещё впереди, до двух листов.
+    card.dataset.stack = String(Math.min(2, queue.length - 1 - cur));
     const one = queue.length < 2;
     $("prev").disabled = one; $("next-f").disabled = one;
     $("next-f").firstChild.textContent = cur === queue.length - 1 && !one ? "К первому" : "Следующее";

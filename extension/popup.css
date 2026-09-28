@@ -69,6 +69,11 @@
   --paper-ban: #953929;
   --paper-mk: #85540f;
   --paper-good: #3d6a2c;
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .3 0 0 0 0 .25 0 0 0 0 .18 0 0 0 .09 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  --sheet-1: 4px 5px 0 -1px #cdc6b3;
+  --sheet-2: 8px 10px 0 -2px #a7a191;
+  --cta-edge: #7a3326;
+  --key-edge: rgba(0, 0, 0, 0.45);
   --r: 4px;
   --r-sm: 3px;
   --display: "Alumni Sans", "Arial Narrow", sans-serif;
@@ -107,6 +112,11 @@
     --paper-ban: #b8321b;
     --paper-mk: #9a5a00;
     --paper-good: #3d6a2c;
+    --grain: none;
+    --sheet-1: 4px 5px 0 -1px #e4e7ea;
+    --sheet-2: 8px 10px 0 -2px #d2d6da;
+    --cta-edge: #7f2e21;
+    --key-edge: rgba(17, 20, 22, 0.14);
   }
 }
 :root[data-theme="light"] {
@@ -139,6 +149,11 @@
   --paper-ban: #b8321b;
   --paper-mk: #9a5a00;
   --paper-good: #3d6a2c;
+  --grain: none;
+  --sheet-1: 4px 5px 0 -1px #e4e7ea;
+  --sheet-2: 8px 10px 0 -2px #d2d6da;
+  --cta-edge: #7f2e21;
+  --key-edge: rgba(17, 20, 22, 0.14);
 }
 
 * { box-sizing: border-box; }
@@ -231,15 +246,21 @@ kbd {
   transition: background-color 0.15s, border-color 0.15s;
 }
 .btn:hover, .icon-btn:hover { background: var(--surface-2); border-color: var(--text-3); }
+/* Клавиши с ходом: нижняя грань, при нажатии кнопка садится на неё */
+.btn:not(.btn-quiet), .icon-btn { box-shadow: 0 2px 0 var(--key-edge); transition: background-color 0.15s, border-color 0.15s, transform 0.08s, box-shadow 0.08s; }
+.btn:not(.btn-quiet):active:not(:disabled), .icon-btn:active:not(:disabled) { transform: translateY(2px); box-shadow: 0 0 0 var(--key-edge); }
+.btn:disabled, .icon-btn:disabled { box-shadow: none; }
 .btn:disabled, .icon-btn:disabled { opacity: 0.45; cursor: default; background: transparent; border-color: var(--line-2); }
 .btn-cta {
+  box-shadow: 0 3px 0 var(--cta-edge) !important;
   background: var(--accent);
   border-color: var(--cta-line);
   color: var(--on-accent);
   font-weight: 600;
 }
 .btn-cta:hover { background: var(--accent); border-color: var(--cta-line); filter: brightness(1.06); }
-.btn-cta:disabled { background: var(--surface-2); color: var(--text-3); border-color: var(--line); filter: none; opacity: 1; }
+.btn-cta:active:not(:disabled) { transform: translateY(3px); box-shadow: 0 0 0 var(--cta-edge) !important; }
+.btn-cta:disabled { box-shadow: none !important; background: var(--surface-2); color: var(--text-3); border-color: var(--line); filter: none; opacity: 1; }
 .btn-quiet { border-color: transparent; color: var(--text-2); }
 .btn[aria-expanded="true"] { background: var(--surface-2); border-color: var(--text-3); }
 .btn-sm { height: 30px; padding: 0 10px; font-size: 12.5px; }
@@ -295,8 +316,15 @@ textarea:focus { outline: none; border-color: var(--ring); box-shadow: 0 0 0 1px
 .score b { font: 650 46px/0.9 var(--display); letter-spacing: -0.01em; }
 .score .of { font-size: 13px; color: var(--text-3); margin-left: 2px; }
 .verdict-wrap { display: flex; flex-direction: column; min-width: 0; }
-.band { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 600; }
-.band::before { content: ""; width: 8px; height: 8px; border-radius: 2px; background: currentColor; }
+/* Полоса балла штампом, как печать на сайте: ставится при каждой проверке */
+.band {
+  align-self: flex-start; margin-bottom: 5px; padding: 2px 7px;
+  border: 1.5px solid currentColor; border-radius: 2px;
+  font: 500 10.5px/1.4 var(--mono); letter-spacing: 0.06em; text-transform: uppercase;
+  transform: rotate(-2deg);
+  animation: stamp 0.26s cubic-bezier(0.3, 1.5, 0.6, 1);
+}
+@keyframes stamp { from { opacity: 0; transform: rotate(-6deg) scale(1.35); } to { opacity: 1; transform: rotate(-2deg) scale(1); } }
 .good .band { color: var(--good); }
 .warn .band { color: var(--mk); }
 .bad .band { color: var(--ban); }
@@ -348,10 +376,13 @@ textarea:focus { outline: none; border-color: var(--ring); box-shadow: 0 0 0 1px
   padding: 14px 16px 12px;
   border: 0;
   border-radius: 2px;
-  background: var(--paper);
+  background: var(--grain), var(--paper);
   color: var(--paper-ink);
   box-shadow: var(--lift);
+  margin: 0 8px 10px 0;
 }
+.card[data-stack="1"] { box-shadow: var(--sheet-1), var(--lift); }
+.card[data-stack="2"] { box-shadow: var(--sheet-1), var(--sheet-2), var(--lift); }
 .card-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 12.5px; }
 .counter { color: var(--paper-2); font: 11.5px/1.4 var(--mono); letter-spacing: 0.02em; }
 .kind { display: inline-flex; align-items: center; gap: 6px; color: var(--paper-ink); font-weight: 600; }
@@ -365,8 +396,11 @@ textarea:focus { outline: none; border-color: var(--ring); box-shadow: 0 0 0 1px
   font-size: 16px; line-height: 1.6;
   color: var(--text);
 }
-.card.step .rule, .card.step .quote, .card.step .todo { animation: step-in 0.18s ease-out; }
-@keyframes step-in { from { opacity: 0; transform: translateY(3px); } to { opacity: 1; transform: none; } }
+/* Шаг по очереди: следующий лист поднимается из стопки */
+.card.step { animation: sheet-in 0.24s cubic-bezier(0.2, 0.8, 0.3, 1); }
+.card.step .rule, .card.step .quote, .card.step .todo { animation: step-in 0.2s ease-out; }
+@keyframes sheet-in { from { transform: translate(5px, 6px) rotate(0.6deg); } to { transform: none; } }
+@keyframes step-in { from { opacity: 0; } to { opacity: 1; } }
 .todo { margin: 0; color: var(--paper-ink); font-size: 14px; }
 .card-nav { display: flex; align-items: center; gap: 8px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--paper-line); }
 .btn-step svg { margin-right: -4px; }
@@ -417,9 +451,10 @@ mark.mk { background: var(--mk-fill); text-decoration: underline dashed var(--mk
 
 /* --- Текст с подсветкой --- */
 .lane-text { margin-top: 22px; }
-.text-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
+.text-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
 .text-meta { font-size: 12.5px; color: var(--text-3); }
-.text-tools { display: flex; gap: 14px; }
+.text-tools { display: flex; gap: 6px; }
+.text-tools .btn svg { margin-left: -2px; }
 /* Текст в общем потоке страницы, как документ: без вложенной прокрутки и рамки. */
 .marked {
   padding-top: 10px;
@@ -468,7 +503,8 @@ body.as-tab { width: auto; max-width: 1120px; margin: 0 auto; padding: 0 32px 24
 .card .quote, .card .rule { color: var(--paper-ink); }
 .card mark.ban { background: rgba(149, 57, 41, 0.13); box-shadow: inset 0 -2px 0 var(--paper-ban); }
 .card mark.mk { background: rgba(133, 84, 15, 0.12); text-decoration-color: var(--paper-mk); }
-.card .btn, .card .icon-btn { color: var(--paper-ink); border-color: var(--paper-line); }
+.card .btn, .card .icon-btn { color: var(--paper-ink); border-color: var(--paper-line); background: rgba(255, 255, 255, 0.35); box-shadow: 0 2px 0 var(--paper-line); }
+.card .btn:active:not(:disabled), .card .icon-btn:active:not(:disabled) { box-shadow: 0 0 0 var(--paper-line); }
 .card .btn:hover, .card .icon-btn:hover { background: rgba(0, 0, 0, 0.05); border-color: var(--paper-2); }
 .card .btn:disabled, .card .icon-btn:disabled { background: transparent; border-color: var(--paper-line); }
 .card :focus-visible { outline-color: var(--paper-ban); }
