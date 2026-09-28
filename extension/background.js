@@ -8,7 +8,7 @@ const MENU_ID = "humanizer-ru-scan-selection";
 chrome.runtime.onInstalled.addListener(() => {
   chrome.contextMenus.create({
     id: MENU_ID,
-    title: "Проверить на следы нейросети",
+    title: "Проверить на шаблонные обороты",
     contexts: ["selection"],
   });
 });
