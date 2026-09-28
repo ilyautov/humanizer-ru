@@ -33,7 +33,9 @@ jobs:
         run: python scripts/test_score.py
 
       - name: Смоук-тесты CLI-сканера (test_scan)
-        run: python scripts/test_scan.py
+        run: |
+          python scripts/test_scan.py
+          python scripts/test_facts_numbers.py
 
       - name: Build release ZIP
         run: python scripts/build_release_zip.py --output dist/humanizer-ru.zip .

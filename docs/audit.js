@@ -340,12 +340,11 @@
     const body = text.replace(CODE_RE, " ").replace(URL_RE, " ");
     for (const m of body.matchAll(MONTH_RE)) hard.set("месяц:" + m[1].toLowerCase(), m[0]);
     for (const m of body.matchAll(CLAIM_PHRASE_RE)) claims.set("утверждение:" + m[0].toLowerCase().replace(/ё/g, "е"), m[0]);
+    for (const [key, value] of globalThis.humanizerNumericFacts(body)) hard.set(key, value);
     const starts = sentenceStarts(body);
     for (const m of body.matchAll(TOKEN_RE)) {
       const tok = m[0], at = m.index;
       if (/^\d/.test(tok)) {
-        const n = tok.replace(/[.,:/-]+$/, "").replace(/,/g, ".");
-        if (n) hard.set("число:" + n, tok.replace(/[.,:/-]+$/, ""));
         continue;
       }
       const low = tok.toLowerCase().replace(/ё/g, "е");
@@ -391,7 +390,7 @@
     const delta = d > 0 ? `+${d}` : String(d);
     const fd = factsDiff(before, after);
     const aBand = bandOf(rAfter), bBand = bandOf(rBefore);
-    const verdict = d > 0 ? "Правка сняла следы ИИ." : d < 0 ? "Правка добавила следов ИИ." : "Балл не изменился.";
+    const verdict = d > 0 ? "Правка уменьшила штраф по правилам сканера." : d < 0 ? "Правка увеличила штраф по правилам сканера." : "Балл не изменился.";
     const afterLine = factsLine(rAfter), beforeLine = factsLine(rBefore);
     const tally = afterLine === NO_FINDINGS
       ? `В правке следов не осталось. В исходнике было: ${beforeLine}.`
@@ -400,9 +399,10 @@
     if (fd.lost.length) factRows.push(`<li class="fact-lost"><b>Пропало</b> ${list(fd.lost, "lost")}</li>`);
     if (fd.added.length) factRows.push(`<li class="fact-added"><b>Появилось</b> ${list(fd.added, "added")}</li>`);
     if (fd.claimsAdded.length) factRows.push(`<li class="fact-claim"><b>Новый квантор</b> ${list(fd.claimsAdded, "added")}</li>`);
-    const factVerdict = !fd.added.length && !fd.claimsAdded.length
-      ? (fd.total ? `Факт-замок: ${fd.kept} из ${num(fd.total, "факта исходника", "фактов исходника", "фактов исходника")} на месте, новых нет.` : "Факт-замок: чисел, имён и ссылок в исходнике нет, сравнивать нечего.")
-      : "Факт-замок: в правке есть то, чего не было в исходнике. Выдуманная цифра хуже канцелярита: проверьте глазами.";
+    const factVerdict = (fd.added.length || fd.lost.length || fd.claimsAdded.length
+      ? "Состав извлечённых элементов изменился. Проверьте различия. "
+      : `Совпало извлечённых элементов: ${fd.kept}. `) +
+      "Смысл, единицы вне словаря и связь чисел с утверждениями требуют ручной сверки.";
     cmpOut.hidden = false;
     cmpOut.innerHTML = `
       <div class="cmp-scores">
@@ -412,14 +412,14 @@
         <span class="cmp-delta ${d > 0 ? "good" : d < 0 ? "bad" : ""}">${delta}</span>
       </div>
       <p class="cmp-verdict">${esc(verdict)} ${esc(tally)}</p>
-      <p class="cmp-facts ${fd.added.length || fd.claimsAdded.length ? "warn" : "good"}">${esc(factVerdict)}</p>
+      <p class="cmp-facts ${fd.added.length || fd.lost.length || fd.claimsAdded.length ? "warn" : "neutral"}">${esc(factVerdict)}</p>
       ${factRows.length ? `<ul class="fact-list">${factRows.join("")}</ul>` : ""}`;
     lastCompareReport = [
       `правка: было ${rBefore.score}, стало ${rAfter.score} (${delta})`,
       fd.lost.length ? `  пропало: ${fd.lost.join(", ")}` : "",
       fd.added.length ? `  появилось: ${fd.added.join(", ")}` : "",
       fd.claimsAdded.length ? `  новый квантор: ${fd.claimsAdded.join(", ")}` : "",
-      !fd.added.length && !fd.claimsAdded.length && fd.total ? `  факт-замок: ${fd.kept}/${fd.total} на месте` : "",
+      !fd.added.length && !fd.claimsAdded.length && fd.total ? `  совпало элементов: ${fd.kept}/${fd.total}; смысл не проверен` : "",
     ].filter(Boolean).join("\n");
   }
 

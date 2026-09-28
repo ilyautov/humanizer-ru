@@ -107,7 +107,7 @@ def main() -> int:
     genre = args.genre
     sc = cleanliness_score(rep, genre)
     before_text = _read(args.before) if args.before else None
-    before_sc = cleanliness_score(analyze(before_text), genre) if before_text else None
+    before_sc = cleanliness_score(analyze(before_text), genre) if before_text is not None else None
     fdiff = diff_facts(before_text, text) if before_text is not None else None
     # Частотные баны («Является» до порога 1/500 слов) не валят exit и не
     # показываются как ⛔ — они остаются в мягких маркерах.
