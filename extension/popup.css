@@ -463,7 +463,7 @@ mark.mk { background: var(--mk-fill); text-decoration: underline dashed var(--mk
 /* --- Было / стало --- */
 .cmp { margin-top: 12px; padding: 12px; border: 1px solid var(--line); border-radius: var(--r); background: var(--surface); }
 .cmp-label { display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; }
-.after { height: 110px; background: var(--bg); }
+.after { height: 110px; }
 #cmp-out { margin-top: 12px; }
 .cmp-scores { display: flex; align-items: flex-end; gap: 12px; }
 .cmp-score { display: flex; flex-direction: column; gap: 2px; }
