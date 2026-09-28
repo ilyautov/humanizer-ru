@@ -27,8 +27,7 @@ eyebrow), version бампается релизом, а тексты рядом 
 Что НЕ автоматизируется (печатается напоминанием при --apply): ZIP-ассет
 humanizer-ru.zip к GitHub Release (на него ведёт README, issue #45), About-поле
 GitHub (gh repo edit), локальная копия ~/.claude/skills, синк маркетплейса в
-Cowork, счётчик внутри assets/social-preview.png собирается
-скриптом scripts/make_social_preview.py (гейт --check в CI).
+Cowork, обложка assets/readme-banner.jpg в Social preview настроек репозитория.
 """
 
 from __future__ import annotations
