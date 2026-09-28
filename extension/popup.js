@@ -196,8 +196,24 @@
     return `${pre}${esc(text.slice(s, a))}<mark class="${kind}">${esc(text.slice(a, b))}</mark>${esc(text.slice(b, e).trimEnd())}${post}`;
   }
   const KIND_TITLE = { ban: "Лучше убрать", mk: "Проверьте по смыслу", struct: "Структура текста" };
+  const calm = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
+  // Прочитанный лист улетает со стопки: копия карточки поверх, живая уже с новым замечанием.
+  function flySheet(back) {
+    const card = $("card");
+    if (calm() || card.hidden) return;
+    const ghost = card.cloneNode(true);
+    ghost.removeAttribute("id"); ghost.removeAttribute("aria-live");
+    ghost.querySelectorAll("[id]").forEach((el) => el.removeAttribute("id"));
+    ghost.classList.remove("step");
+    ghost.classList.add("ghost", back ? "ghost-back" : "ghost-fwd");
+    ghost.setAttribute("aria-hidden", "true"); ghost.inert = true;
+    Object.assign(ghost.style, { top: `${card.offsetTop}px`, left: `${card.offsetLeft}px`, width: `${card.offsetWidth}px`, height: `${card.offsetHeight}px` });
+    card.parentNode.appendChild(ghost);
+    setTimeout(() => ghost.remove(), 420);
+  }
   function showCard(i, opts = {}) {
     if (!queue.length || !checked) return;
+    if (opts.announce && queue.length > 1) flySheet(i < cur);
     cur = (i + queue.length) % queue.length;
     const f = queue[cur];
     $("counter").textContent = `Замечание ${cur + 1} из ${queue.length}`;
@@ -344,13 +360,24 @@
   }
 
   let lastReport = "";
+  // Балл набегает от нуля. Таймер, а не requestAnimationFrame: во вкладке в фоне rAF стоит.
+  function countUp(el, to) {
+    clearInterval(el.tick);
+    if (calm() || to === 0) { el.textContent = to; return; }
+    const t0 = Date.now(), dur = 520;
+    el.tick = setInterval(() => {
+      const k = Math.min(1, (Date.now() - t0) / dur);
+      el.textContent = Math.round(to * (1 - Math.pow(1 - k, 3)));
+      if (k === 1) clearInterval(el.tick);
+    }, 16);
+  }
   function renderResult(text, r, stale) {
     const band = bandOf(r);
     const spans = collectSpans(text, r);
     checked = { text, r, spans };
 
     resultEl.className = band;
-    $("score").textContent = r.score;
+    countUp($("score"), r.score);
     $("band").textContent = TAG[band];
     $("gauge").setAttribute("aria-label", `Чистота ${r.score} из 100`);
     // setTimeout, а не requestAnimationFrame: в неактивной вкладке rAF не тикает.
@@ -469,6 +496,15 @@
     copiedEl.textContent = ok ? okMsg : "Не удалось скопировать: браузер не дал доступ к буферу обмена.";
     copiedEl.hidden = false;
     statusEl.textContent = copiedEl.textContent;
+    if (ok) {
+      // Кнопка сама говорит, что сработало, ширина при этом не прыгает.
+      btn.dataset.label ||= btn.textContent;
+      btn.style.minWidth = `${btn.offsetWidth}px`;
+      btn.classList.add("done");
+      btn.innerHTML = '<svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M4.5 10.5 8.5 14.5 15.5 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Скопировано';
+      clearTimeout(btn.back);
+      btn.back = setTimeout(() => { btn.textContent = btn.dataset.label; btn.classList.remove("done"); btn.style.minWidth = ""; }, 1600);
+    }
     clearTimeout(copyText.t);
     copyText.t = setTimeout(() => { copiedEl.hidden = true; }, 4000);
   }

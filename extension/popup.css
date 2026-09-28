@@ -73,6 +73,8 @@
   --sheet-1: 4px 5px 0 -1px #cdc6b3;
   --sheet-2: 8px 10px 0 -2px #a7a191;
   --cta-edge: #7a3326;
+  --clip: linear-gradient(#9b8970, #b9a890 35%, #5e5849 42%, #706b58);
+  --clip-edge: #282b23;
   --key-edge: rgba(0, 0, 0, 0.45);
   --r: 4px;
   --r-sm: 3px;
@@ -116,6 +118,8 @@
     --sheet-1: 4px 5px 0 -1px #e4e7ea;
     --sheet-2: 8px 10px 0 -2px #d2d6da;
     --cta-edge: #7f2e21;
+    --clip: linear-gradient(#aeb3b8, #d9dde1 35%, #7c8288 42%, #969ca2);
+    --clip-edge: #5f676e;
     --key-edge: rgba(17, 20, 22, 0.14);
   }
 }
@@ -153,6 +157,8 @@
   --sheet-1: 4px 5px 0 -1px #e4e7ea;
   --sheet-2: 8px 10px 0 -2px #d2d6da;
   --cta-edge: #7f2e21;
+  --clip: linear-gradient(#aeb3b8, #d9dde1 35%, #7c8288 42%, #969ca2);
+  --clip-edge: #5f676e;
   --key-edge: rgba(17, 20, 22, 0.14);
 }
 
@@ -294,6 +300,24 @@ textarea {
 textarea::placeholder { color: var(--text-3); }
 textarea:focus { outline: none; border-color: var(--ring); box-shadow: 0 0 0 1px var(--ring); }
 #text { height: 190px; }
+/* Поле ввода: лист на планшете, сверху зажим, как в мастерской на сайте */
+.sheet { position: relative; margin-top: 16px; }
+.sheet::before {
+  content: ""; position: absolute; z-index: 1; top: -8px; left: calc(50% - 30px);
+  width: 60px; height: 15px; border-radius: 3px;
+  background: var(--clip); border: 1px solid var(--clip-edge);
+  box-shadow: 0 2px 3px rgba(0, 0, 0, 0.35);
+  pointer-events: none;
+}
+#text, .after {
+  border: 0; border-radius: 2px;
+  background: var(--grain), var(--paper);
+  color: var(--paper-ink);
+  box-shadow: var(--sheet-1), var(--lift);
+}
+#text { padding-top: 18px; }
+#text::placeholder, .after::placeholder { color: var(--paper-2); }
+#text:focus, .after:focus { box-shadow: var(--sheet-1), 0 0 0 2px var(--bg), 0 0 0 4px var(--ring); }
 .meta { display: flex; align-items: center; gap: 12px; margin: 8px 0 12px; font-size: 12.5px; color: var(--text-3); }
 .kbd-hint { display: flex; gap: 3px; }
 .empty { margin-top: 18px; color: var(--text-2); font-size: 13px; }
@@ -401,6 +425,17 @@ textarea:focus { outline: none; border-color: var(--ring); box-shadow: 0 0 0 1px
 .card.step .rule, .card.step .quote, .card.step .todo { animation: step-in 0.2s ease-out; }
 @keyframes sheet-in { from { transform: translate(5px, 6px) rotate(0.6deg); } to { transform: none; } }
 @keyframes step-in { from { opacity: 0; } to { opacity: 1; } }
+.lane-card { position: relative; }
+.card.ghost { position: absolute; z-index: 2; margin: 0; pointer-events: none; box-shadow: var(--lift); }
+.card.ghost-fwd { animation: fly-off 0.36s cubic-bezier(0.5, 0, 0.75, 0) forwards; }
+.card.ghost-back { animation: sink 0.3s ease-in forwards; }
+@keyframes fly-off { 65% { opacity: 1; } to { transform: translate(-46%, -14px) rotate(-7deg); opacity: 0; } }
+@keyframes sink { 50% { opacity: 1; } to { transform: translate(8px, 10px) rotate(0.8deg); opacity: 0; } }
+mark.cur { animation: ring-in 0.4s ease-out; }
+@keyframes ring-in { from { outline-offset: 7px; outline-color: transparent; } }
+.btn.done { animation: key-ok 0.3s ease-out; }
+.btn.done svg { margin-left: -2px; }
+@keyframes key-ok { 40% { transform: translateY(2px); } }
 .todo { margin: 0; color: var(--paper-ink); font-size: 14px; }
 .card-nav { display: flex; align-items: center; gap: 8px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--paper-line); }
 .btn-step svg { margin-right: -4px; }
@@ -412,7 +447,9 @@ textarea:focus { outline: none; border-color: var(--ring); box-shadow: 0 0 0 1px
 .fix { margin-top: 16px; }
 .fix-title { margin: 0 0 2px; font-size: 14px; font-weight: 600; }
 .fix-text { margin: 0 0 10px; font-size: 13px; color: var(--text-2); }
-.fix .row { margin-top: 8px; }
+.fix .row { margin-top: 8px; flex-wrap: nowrap; }
+.fix .row .btn:first-child { flex: 1 1 auto; min-width: 0; }
+.fix .row .btn-quiet { padding: 0 10px; flex: none; }
 .toast { margin: 8px 0 0; font-size: 12.5px; color: var(--text-2); }
 
 /* --- Подсветка оборотов: цвет плюс форма линии --- */
@@ -451,9 +488,10 @@ mark.mk { background: var(--mk-fill); text-decoration: underline dashed var(--mk
 
 /* --- Текст с подсветкой --- */
 .lane-text { margin-top: 22px; }
-.text-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
+.text-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
 .text-meta { font-size: 12.5px; color: var(--text-3); }
-.text-tools { display: flex; gap: 6px; }
+.text-meta { flex: 1 1 150px; }
+.text-tools { display: flex; gap: 6px; white-space: nowrap; }
 .text-tools .btn svg { margin-left: -2px; }
 /* Текст в общем потоке страницы, как документ: без вложенной прокрутки и рамки. */
 .marked {
