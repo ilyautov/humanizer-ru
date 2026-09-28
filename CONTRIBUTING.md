@@ -24,7 +24,6 @@ python3 -m venv .venv
 .venv/bin/python scripts/self_scan.py        # витрина против собственных HARD BANS
 .venv/bin/python scripts/test_gates.py       # тесты самих гейтов
 .venv/bin/python scripts/test_modern_slop.py # сканер видит текст свежих моделей
-.venv/bin/python scripts/make_social_preview.py --check  # счётчик в растре превью
 .venv/bin/python scripts/test_mining.py      # шахта паттернов на синтетическом корпусе
 ```
 
