@@ -1,358 +1,46 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ru">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="google-site-verification" content="_qISh546lYmuJdeWkXoEK0rgItLa30PUuxRw6tK7L4I">
-<meta name="yandex-verification" content="d5488a184cbab7f7">
-  <meta name="yandex-verification" content="ae5976153fbdd141">
-<title>Очеловечить текст онлайн бесплатно: AI-текст на русском</title>
-<meta name="description" content="Очеловечить текст онлайн и бесплатно, без регистрации: humanizer-ru убирает следы нейросети из русского текста и показывает, где они. Балл чистоты 0-100, скилл для агентов, расширение Chrome. Open source.">
-<meta name="keywords" content="очеловечить текст, очеловечить текст онлайн, очеловечить текст бесплатно, очеловечить текст ии, очеловечить текст написанный ии, очеловечить текст нейросети, очеловечить текст на русском, гуманизатор текста, убрать следы нейросети, сделать текст человечным">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>humanizer-ru · Хуманизатор русского текста для AI-агентов</title>
+<meta name="description" content="humanizer-ru: редакторский скилл для AI-агентов. Убирает канцелярит и шаблонные обороты из русского текста, помогает сверить правку с исходником. На сайте есть бесплатный сканер.">
 <link rel="canonical" href="https://humanizer-ru.aifrontier.tech/">
-<meta property="og:type" content="website">
-<meta property="og:title" content="Очеловечить текст онлайн бесплатно: AI-текст на русском">
-<meta property="og:description" content="Убирает следы нейросети из русского текста и показывает, где они. Балл чистоты 0-100, скилл для агентов, расширение Chrome. Бесплатно, open source.">
-<meta property="og:url" content="https://humanizer-ru.aifrontier.tech/">
-<meta property="og:locale" content="ru_RU">
-<meta property="og:image" content="https://humanizer-ru.aifrontier.tech/social-preview.jpg">
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Очеловечить текст онлайн бесплатно: AI-текст на русском">
-<meta name="twitter:description" content="Убирает следы нейросети из русского текста и показывает, где они. Балл чистоты 0-100, скилл для агентов, расширение Chrome.">
-<meta name="twitter:image" content="https://humanizer-ru.aifrontier.tech/social-preview.jpg">
-<link rel="icon" type="image/png" href="icon-128.png">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="preload" as="image" href="hero-paper.jpg">
-<link rel="stylesheet" href="style.css">
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "WebSite",
-  "name": "humanizer-ru",
-  "url": "https://humanizer-ru.aifrontier.tech/",
-  "description": "Бесплатный open-source инструмент, который убирает следы нейросети из русского текста и измеряет правку: скилл для агентов, расширение Chrome, сканер на сайте.",
-  "inLanguage": "ru"
-}
-</script>
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "FAQPage",
-  "mainEntity": [
-    {
-      "@type": "Question",
-      "name": "Как очеловечить текст, написанный нейросетью?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Уберите маркеры машинной генерации: канцелярит («является», «данный»), длинные тире, кальки с английского, ровный ритм предложений. Верните живой голос: частицы «же», «ведь», «вот», разную длину фраз, конкретику вместо абстракций. Скилл humanizer-ru делает это в агенте (Claude Code, Cursor, Codex) по 67 признакам AI-текста, а сканер на сайте и в расширении Chrome показывает, что именно выдаёт текст."
-      }
-    },
-    {
-      "@type": "Question",
-      "name": "humanizer-ru работает бесплатно?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Да. humanizer-ru это open-source проект с лицензией MIT. Сканер на сайте и в расширении бесплатный и считает в браузере. Скилл тоже бесплатный, вы платите только за работу модели в своём агенте по своему тарифу. Отдельных подписок и лимитов нет."
-      }
-    },
-    {
-      "@type": "Question",
-      "name": "Нужен ли GPTZero, чтобы проверить результат?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Нет. GPTZero и другие детекторы на русском языке ненадёжны и часто ошибаются в обе стороны. Гнаться за «нулём по детектору» бессмысленно: лучше оптимизировать качество и читаемость текста. Подробнее в статье про AI-детекторы на русском."
-      }
-    },
-    {
-      "@type": "Question",
-      "name": "Чем humanizer-ru отличается от англоязычного humanizer?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "У русского AI-текста своя физика: канцелярит, кальки с английского синтаксиса, отсутствие частиц. Англоязычные правила сюда не переносятся. humanizer-ru заточен под русский и ловит то, чего нет в английских инструментах: псевдо-терапию, рваную медитативность, эмодзи-декор моделей 2025-2026."
-      }
-    }
-  ]
-}
-</script>
+<meta property="og:title" content="humanizer-ru · Хуманизатор для AI-агентов"><meta property="og:description" content="Редакторский скилл для русского текста: агент убирает штампы и сверяет правку с исходником. На сайте есть бесплатный сканер."><meta property="og:type" content="website"><meta property="og:url" content="https://humanizer-ru.aifrontier.tech/"><meta property="og:image" content="https://humanizer-ru.aifrontier.tech/assets/social-preview.jpg"><meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="icon-128.png"><link rel="stylesheet" href="workshop.css">
+<script src="scan-rules.js" defer></script><script src="scan.js" defer></script>
+<script src="facts.js" defer></script><script src="workshop.js" defer></script>
 </head>
 <body>
+<a class="skip" href="#main">К содержимому</a>
+<header class="header"><a class="brand" href="#"><span class="brand-mark" aria-hidden="true">h<span>/</span></span><span>humanizer<span class="brand-ru">-ru</span><small>AI FRONTIER · EDITORIAL TOOLS</small></span></a><nav aria-label="Главная навигация"><a href="#story">Как правит</a><a href="#audit">Проверить текст</a><a class="nav-install" href="#install">Установить <span aria-hidden="true">↗</span></a></nav></header>
+<main id="main">
+<section class="hero" aria-labelledby="hero-title">
+ <div class="hero-image"><img src="assets/editorial-workshop.webp" alt="Goro редактирует рукопись красным карандашом в мастерской, робот держит исходник" fetchpriority="high" width="1672" height="941"></div><div class="hero-shade"></div>
+ <div class="hero-copy wrap"><p class="eyebrow"><span class="status-light"></span> РЕДАКТОРСКИЙ СКИЛЛ · РУССКИЙ ТЕКСТ</p><h1 id="hero-title">Хуманизатор<br>для AI-агентов.<br><em>На русском.</em></h1><p class="hero-lead">Скилл для Claude Code, Codex, Cursor и других агентов.<br>Агент убирает канцелярит и шаблонные обороты<br>из русского текста, затем сверяет правку с исходником.</p><div class="hero-actions"><a class="button red" href="#install">Установить скилл <span aria-hidden="true">↗</span></a><a class="text-link" href="#audit">Проверить текст здесь <span aria-hidden="true">↓</span></a></div><p class="hero-note">На сайте работает сканер. Редактуру выполняет ваш агент со скиллом.</p></div>
+ <div class="hero-caption"><span class="mono">01 / РЕДАКТОРСКАЯ СМЕНА</span><p>Убрать оболочку.<br>Сберечь мысль.</p></div>
+ <div class="hero-bottom wrap"><span>РУССКИЙ ЯЗЫК</span><span>67 ПРИЗНАКОВ В КАТАЛОГЕ</span><span>MIT / OPEN SOURCE</span><a href="https://github.com/ilyautov/humanizer-ru">Исходный код ↗</a></div>
+</section>
 
-<header class="site-header">
-  <div class="wrap">
-    <a class="brand" href="index.html">humanizer<span>-ru</span></a>
-    <nav class="site-nav" aria-label="Основное меню">
-      <a href="index.html" aria-current="page">Главная</a>
-      <a href="proverit-tekst-na-neyroset.html">Проверить текст</a>
-      <a href="kak-ubrat-sledy-neyroseti.html">Убрать ИИ из текста</a>
-      <a href="kancelyarit.html">Канцелярит</a>
-      <a href="52-priznaka-ai-teksta.html">67 признаков</a>
-      <a href="ai-detektory-na-russkom.html">AI-детекторы</a>
-      <a href="antiplagiat-i-neyroset.html">Антиплагиат и ИИ</a>
-    </nav>
-    <div class="head-icons">
-      <a href="https://github.com/ilyautov/humanizer-ru" aria-label="GitHub-репозиторий humanizer-ru">
-        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.55 0-.27-.01-1.17-.02-2.12-3.2.7-3.87-1.36-3.87-1.36-.52-1.33-1.28-1.68-1.28-1.68-1.04-.71.08-.7.08-.7 1.15.08 1.76 1.19 1.76 1.19 1.03 1.76 2.69 1.25 3.35.96.1-.75.4-1.25.73-1.54-2.55-.29-5.23-1.28-5.23-5.68 0-1.26.45-2.28 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.78 0c2.2-1.49 3.16-1.18 3.16-1.18.63 1.59.24 2.76.12 3.05.74.81 1.18 1.83 1.18 3.09 0 4.41-2.69 5.38-5.25 5.67.41.35.78 1.05.78 2.12 0 1.53-.01 2.76-.01 3.14 0 .3.2.66.8.55A11.5 11.5 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5Z"/></svg>
-      </a>
-      <a href="https://t.me/gorilla_under_hood" aria-label="Telegram-канал автора Under the Hood">
-        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21.94 3.27a1.5 1.5 0 0 0-1.62-.22L2.9 10.66c-1.22.54-1.16 2.3.1 2.74l4.4 1.54 1.7 5.32c.36 1.12 1.78 1.4 2.54.51l2.4-2.8 4.43 3.25c.9.66 2.18.17 2.4-.92l2.52-15.4a1.5 1.5 0 0 0-.45-1.63ZM9.5 14.4l8.4-7.6c.27-.24-.06-.65-.37-.46L7.4 12.6l-3.9-1.36 16.7-7.13-2.3 14.1-4.7-3.46-1.96 2.28-.74-2.63Z"/></svg>
-      </a>
-    </div>
-  </div>
-</header>
-
-<main>
-<div class="wrap">
-
-  <section class="hero" id="audit" aria-labelledby="hero-title">
-    <div class="hero-top">
-      <div class="hero-copy">
-        <h1 id="hero-title">Очеловечить текст онлайн и бесплатно. С разбором, что именно выдавало нейросеть.</h1>
-        <p class="lede">Вставьте текст и получите балл чистоты от 0 до 100 с подчёркнутыми оборотами, которые выдают генерацию. Без регистрации, без лимитов, текст не уходит из браузера. Правьте сами, в <a href="https://chromewebstore.google.com/detail/iaelpnagdohdahkcahippeadohpgobad">расширении Chrome</a> или отдайте агенту со скиллом.</p>
-        <p class="hero-proof">Правила откалиброваны на 55 тысячах размеченных русских текстов. <a href="https://github.com/ilyautov/humanizer-ru/tree/main/eval">Отчёты и команды воспроизведения открыты</a>.</p>
-      </div>
-      <figure class="hero-paper">
-        <img src="hero-paper.jpg" width="720" height="504" alt="Лист с напечатанным текстом, исчерченный красным карандашом редактора">
-      </figure>
-    </div>
-
-        <div class="audit-examples" role="group" aria-label="Готовые примеры">
-          <span>Примеры</span>
-          <button type="button" data-example="ai">Нейрочерновик</button>
-          <button type="button" data-example="human">Статья из Википедии</button>
-          <button type="button" data-example="tech">Пост с кодом и цитатой</button>
-        </div>
-        <label class="sr-only" for="audit-text">Текст для проверки</label>
-        <textarea id="audit-text" rows="9" spellcheck="false" placeholder="Вставьте русский текст: от абзаца до статьи"></textarea>
-        <div class="audit-controls">
-          <label class="audit-genre">Жанр
-            <select id="audit-genre">
-              <option value="">маркетинг, блог</option>
-              <option value="news">новости, энциклопедия</option>
-              <option value="academic">научный</option>
-              <option value="legal">юридический</option>
-              <option value="fiction">художественный</option>
-            </select>
-          </label>
-          <output class="audit-count" id="audit-count" for="audit-text">0 слов</output>
-          <button type="button" class="audit-clear" id="audit-clear">Очистить</button>
-          <button type="button" class="cta audit-run" id="audit-run">Проверить</button>
-        </div>
-        <p class="audit-source" id="audit-source" hidden></p>
-        <p class="audit-privacy">Считается в браузере, текст никуда не отправляется. Черновик остаётся в памяти этого браузера до кнопки «Очистить».</p>
-        <div class="audit-compare-row">
-          <button type="button" class="audit-compare-toggle" id="audit-compare-toggle" aria-expanded="false" aria-controls="audit-compare">Сравнить с правкой</button>
-          <span class="audit-compare-hint">Вставьте отредактированную версию: балл «было и стало» и факт-замок покажут, что снято и не появилось ли лишнего.</span>
-        </div>
-        <div class="audit-compare" id="audit-compare" hidden>
-          <label class="sr-only" for="audit-after">Отредактированный текст</label>
-          <textarea id="audit-after" rows="6" spellcheck="false" placeholder="Сюда правку: свою, редактора или агента со скиллом"></textarea>
-          <div class="audit-compare-result" id="audit-compare-result" aria-live="polite" hidden></div>
-        </div>
-        <p class="audit-scale audit-scale-line" id="audit-scale-line" aria-label="Шкала балла"><span class="z-bad">0</span> рерайт <span class="z-warn">60</span> точечная правка <span class="z-good">85</span> чисто <span>100</span></p>
-        <div class="audit-result" id="audit-result" aria-live="polite" hidden></div>
-
-    <div class="audit-marked" id="audit-marked" hidden>
-      <div class="audit-legend">
-        <span><mark class="ban">жёсткий запрет</mark></span>
-        <span><mark class="mk">мягкий маркер</mark></span>
-        <span class="legend-note">нажмите на оборот: правило и что с ним делать; код и цитаты не считаются</span>
-      </div>
-      <div class="audit-text-marked" id="audit-text-marked"></div>
-      <p class="audit-hint" id="audit-hint" hidden></p>
-    </div>
-
-    <div class="audit-next" id="audit-next" hidden>
-      <h2 class="h-small">Что дальше</h2>
-      <div class="next-grid">
-        <div>
-          <h3>Править самому</h3>
-          <p>Начните с красного: уберите оборот или скажите то же конкретно. Потом жёлтое. Список замен по каждому признаку в статье <a href="kak-ubrat-sledy-neyroseti.html">Как убрать ИИ из текста</a>.</p>
-        </div>
-        <div>
-          <h3>Проверять в браузере</h3>
-          <p>Расширение Chrome с тем же сканером: выделили текст на любой странице, получили балл и подсказки. <a href="https://chromewebstore.google.com/detail/iaelpnagdohdahkcahippeadohpgobad">Установить из Chrome Web Store</a>, код открыт в папке <a href="https://github.com/ilyautov/humanizer-ru/tree/main/extension">extension/</a>.</p>
-        </div>
-        <div>
-          <h3>Отдать агенту</h3>
-          <p>Скилл переписывает текст в Claude Code, Cursor, Codex и других агентах, сохраняя числа и имена, и показывает «было N, стало M». <a href="#install">Одна команда установки</a>.</p>
-        </div>
-      </div>
-      <p class="audit-note">В браузере считаются запреты, маркеры, ритм и структура. Номинальность (сущ./глаг.) добавляет только scan.py в комплекте скилла, поэтому его балл бывает ниже на несколько пунктов. Балл это повод для правки, а не вердикт об авторстве.</p>
-    </div>
-  </section>
-
-  <section class="install" id="install" aria-labelledby="install-title">
-    <h2 id="install-title">Поставить скилл в агент</h2>
-    <p class="section-lede">Одна команда для Claude Code, Cursor, Codex, Copilot, Cline и других агентов, читающих SKILL.md. Дальше скилл включается сам на «очеловечь», «убери канцелярит», «проверь на следы нейросети».</p>
-    <div class="env-cmd-wrap">
-      <pre class="env-cmd"><code id="env-cmd-main">npx skills add ilyautov/humanizer-ru</code></pre>
-      <button type="button" class="env-copy" id="env-copy-main" aria-label="Скопировать команду">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-        <span>Скопировать</span>
-      </button>
-    </div>
-    <details class="env-more">
-      <summary>Другие способы: плагин Claude Code, Claude.ai, Codex CLI, DeepSeek Harness</summary>
-      <div class="env-tabs" role="tablist" aria-label="Среда установки"></div>
-      <div class="env-panel" role="tabpanel">
-        <div class="env-cmd-wrap">
-          <pre class="env-cmd"><code id="env-cmd"></code></pre>
-          <button type="button" class="env-copy" id="env-copy" aria-label="Скопировать команду">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-            <span>Скопировать</span>
-          </button>
-        </div>
-        <p class="env-note" id="env-note"></p>
-      </div>
-    </details>
-  </section>
-
-  <h2>Почему русский AI-текст выдаёт себя иначе</h2>
-  <p>Текст из ChatGPT, GigaChat или другой нейросети читается одинаково: гладко и никак, будто музак в лифте. Но приметы у русской генерации свои: «является» через предложение, канцелярит («осуществление внедрения»), кальки с английского синтаксиса («стоит отметить, что»), пропавшие частицы «же», «ведь», «вот», ровный ритм без сбоев. Английские списки маркеров этого не видят, и <a href="https://github.com/blader/humanizer">английский humanizer</a> на русском тексте не работает.</p>
-  <p>Каталог humanizer-ru написан как редакторские правила: 67 признаков в 16 категориях и 21 жёсткий запрет, включая слой моделей 2025-2026: псевдо-сократические вопросы, псевдо-терапевтический тон, эмодзи-декор. Каждое правило проверено на размеченных корпусах AINL-Eval, M4 и LLMTrace. Без жанровой поправки часть правил ловила учёных чаще, чем нейросети, поэтому у сканера есть режимы для научного, юридического, художественного текста и новостей.</p>
-
-  <h2>Было и стало</h2>
-  <div class="ba">
-    <div class="col before">
-      <div class="tag">Было (нейросеть)</div>
-      <p>«В современном мире искусственный интеллект играет всё более важную роль и является мощным инструментом, который открывает новые возможности для решения широкого спектра задач в самых разных областях человеческой деятельности.»</p>
-    </div>
-    <div class="col after">
-      <div class="tag">Стало (живой текст)</div>
-      <p>«ИИ уже не диковинка, а рабочий инструмент. Им пишут письма, разбирают данные, проектируют интерфейсы. Вопрос давно не в том, можно ли, а в том, где он реально экономит время, а где только мешает.»</p>
-    </div>
-  </div>
-  <p class="muted small">Ни одного длинного тире, ни «является», ни «в современном мире». Предложения разной длины, есть конкретика и позиция автора.</p>
-
-  <h2>Для кого</h2>
-  <div class="who">
-    <div>
-      <h3>Маркетологам и копирайтерам</h3>
-      <p>Черновик из GPT или GigaChat: балл и подчёркнутые обороты прямо здесь или в расширении. Правка руками за десять минут вместо вычитки каждого «является».</p>
-    </div>
-    <div>
-      <h3>Редакторам и руководителям</h3>
-      <p>Текст от автора или подрядчика: выделили на странице, увидели балл, решили, возвращать ли на доработку. Отчёт со списком оборотов копируется одной кнопкой.</p>
-    </div>
-    <div>
-      <h3>Разработчикам с агентом</h3>
-      <p>Скилл для Claude Code, Cursor, Codex: правит доки, посты и письма по тем же правилам, держит факт-замок на числах и именах, показывает «было N, стало M».</p>
-    </div>
-  </div>
-
-  <h2 id="kak-rabotaet">Как работает скилл: четыре режима</h2>
-  <ol>
-    <li><strong>Полное редактирование.</strong> Режим по умолчанию: проходит по всем 67 признакам, калибрует текст под голос автора, выравнивает ритм, снимает канцелярит и кальки.</li>
-    <li><strong>Точечная правка.</strong> Только указанная категория: например, убрать канцелярит или вычистить 21 жёсткий запрет («является», «в современном мире», длинное тире). Остальное не трогается.</li>
-    <li><strong>Аудит без правки.</strong> Скилл показывает, какие маркеры нейросети есть в тексте и где, не переписывая. Тот же сканер, что на этой странице, плюс морфология.</li>
-    <li><strong>Свой черновик, молча.</strong> Пока скилл установлен, агент прогоняет по 21 жёсткому запрету то, что пишет по-русски сам, до того как вы это увидите: без отчёта и без просьбы. Ваш текст, файл, цитата и чужой код так не правятся никогда, для них есть три режима выше, и правка там видна.</li>
-  </ol>
-
-  <h2>Читать дальше</h2>
-  <ul class="reading">
-    <li><a href="proverit-tekst-na-neyroset.html">Проверить текст на нейросеть</a><span>Сканер отдельной страницей: балл чистоты, подчёркнутые обороты, выбор жанра.</span></li>
-    <li><a href="kak-ubrat-sledy-neyroseti.html">Как убрать ИИ из текста</a><span>Практическое руководство с до/после: канцелярит, тире, ритм, частицы.</span></li>
-    <li><a href="kancelyarit.html">Канцелярит: признаки и примеры</a><span>Откуда термин, список канцеляризмов, пары «было и стало», где он законен.</span></li>
-    <li><a href="gumanizator-teksta.html">Гуманизатор текста: как выбрать</a><span>Почему перефразирование ломает факты и что проверять вместо балла детектора.</span></li>
-    <li><a href="52-priznaka-ai-teksta.html">67 признаков AI-текста</a><span>Полный справочник маркеров на русском по 16 категориям.</span></li>
-    <li><a href="ai-detektory-na-russkom.html">Работают ли AI-детекторы на русском</a><span>Разбор с данными из наших калибровок: почему детекторы на русском ошибаются.</span></li>
-    <li><a href="antiplagiat-i-neyroset.html">Антиплагиат и нейросеть</a><span>Чем антиплагиат отличается от AI-детектора и почему это разные вещи.</span></li>
-  </ul>
-
-  <h2 id="faq">Частые вопросы</h2>
-  <div class="faq">
-    <details>
-      <summary>Как очеловечить текст, написанный нейросетью?</summary>
-      <p>Уберите маркеры машинной генерации: канцелярит («является», «данный»), длинные тире, кальки с английского, ровный ритм предложений. Верните живой голос: частицы «же», «ведь», «вот», разную длину фраз, конкретику вместо абстракций. Скилл humanizer-ru делает это в агенте (Claude Code, Cursor, Codex) по 67 признакам AI-текста, а сканер на сайте и в расширении Chrome показывает, что именно выдаёт текст.</p>
-    </details>
-    <details>
-      <summary>humanizer-ru работает бесплатно?</summary>
-      <p>Да. Это open-source проект с лицензией MIT. Сканер на сайте и в расширении бесплатный и считает в браузере. Скилл тоже бесплатный, вы платите только за работу модели в своём агенте по своему тарифу. Отдельных подписок и лимитов нет.</p>
-    </details>
-    <details>
-      <summary>Нужен ли GPTZero, чтобы проверить результат?</summary>
-      <p>Нет. GPTZero и другие детекторы на русском языке ненадёжны и ошибаются в обе стороны. Гнаться за «нулём по детектору» бессмысленно: лучше оптимизировать качество и читаемость. Подробнее в статье <a href="ai-detektory-na-russkom.html">про AI-детекторы на русском</a>.</p>
-    </details>
-    <details>
-      <summary>Чем humanizer-ru отличается от англоязычного humanizer?</summary>
-      <p>У русского AI-текста своя физика: канцелярит, кальки с английского, отсутствие частиц. Англоязычные правила сюда не переносятся. humanizer-ru заточен под русский и ловит то, чего нет в английских инструментах: псевдо-терапию, рваную медитативность, эмодзи-декор моделей 2025-2026.</p>
-    </details>
-  </div>
-
-  <section class="tg-banner">
-    <div class="tg-card">
-      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21.94 3.27a1.5 1.5 0 0 0-1.62-.22L2.9 10.66c-1.22.54-1.16 2.3.1 2.74l4.4 1.54 1.7 5.32c.36 1.12 1.78 1.4 2.54.51l2.4-2.8 4.43 3.25c.9.66 2.18.17 2.4-.92l2.52-15.4a1.5 1.5 0 0 0-.45-1.63ZM9.5 14.4l8.4-7.6c.27-.24-.06-.65-.37-.46L7.4 12.6l-3.9-1.36 16.7-7.13-2.3 14.1-4.7-3.46-1.96 2.28-.74-2.63Z"/></svg>
-      <div class="tg-text">
-        <strong>Telegram-канал автора: Under the Hood</strong>
-        <p>Про AI, безопасность и то, как всё устроено под капотом. Разборы вроде этого выходят там первыми.</p>
-      </div>
-      <a class="cta cta-tg" href="https://t.me/gorilla_under_hood">Подписаться</a>
-    </div>
-  </section>
-
-</div>
+<div class="route wrap"><span><b>01</b> Найти лишнее</span><i aria-hidden="true">→</i><span><b>02</b> Сказать яснее</span><i aria-hidden="true">→</i><span><b>03</b> Сверить смысл</span></div>
+<section class="story wrap" id="story" aria-labelledby="story-title">
+ <div class="section-top"><div><p class="eyebrow">01 / ПОСМОТРИТЕ НА ПРАВКУ</p><h2 id="story-title">Ваш текст.<br>Без лишнего слоя.</h2></div><p class="section-intro">Никаких выдуманных цифр и шуток ради «живости». Правка касается конкретного места, которое мешает читать.</p></div>
+ <div class="story-grid"><div class="story-controls"><div class="case-buttons" role="group" aria-label="Учебные примеры"><button data-case="0" aria-pressed="true"><span>01</span><strong>Пост для блога<small>Снять пустую подводку</small></strong><b aria-hidden="true">↗</b></button><button data-case="1" aria-pressed="false"><span>02</span><strong>Письмо клиенту<small>Упростить канцелярит</small></strong><b aria-hidden="true">↗</b></button><button data-case="2" aria-pressed="false"><span>03</span><strong>Описание продукта<small>Сохранить ограничения</small></strong><b aria-hidden="true">↗</b></button></div><div class="stage-explainer" aria-live="polite"><p class="eyebrow" id="stage-label">01 / ДИАГНОСТИКА</p><h3 id="stage-title">Сначала найдём лишнее.</h3><p id="stage-note">Сканер отмечает обороты. Решение о правке зависит от смысла и жанра.</p></div><p class="micro">Учебные примеры с заранее подготовленной правкой. Баллы считает сканер при открытии страницы.</p></div>
+ <div class="console-wrap"><div class="console" id="console"><i class="screw tl" aria-hidden="true"></i><i class="screw tr" aria-hidden="true"></i><div class="console-label"><b>HUMANIZER</b><span>РЕДАКТОРСКИЙ ПУЛЬТ / RU</span><span class="lamp" aria-hidden="true"></span></div><div class="console-screen"><div class="screen-top"><span id="case-label">ПОСТ / ЧЕРНОВИК</span><span id="page-label">ЛИСТ 01</span></div><div class="screen-head"><h3 id="screen-title">Где текст буксует</h3><div class="score-stamp"><b id="story-score">··</b><span>ЧИСТОТА / 100</span></div></div><p class="manuscript" id="story-text"></p><div class="editor-note"><span class="pencil-icon" aria-hidden="true">↳</span><p id="editor-note"></p></div><div class="screen-foot"><span id="screen-status">ПОМЕТКИ РЕДАКТОРА</span><span>humanizer-ru</span></div></div><div class="console-keys" role="group" aria-label="Этапы правки"><button data-step="0" aria-pressed="true"><span>01</span>Найти</button><button data-step="1" aria-pressed="false"><span>02</span>Править</button><button data-step="2" aria-pressed="false"><span>03</span>Сверить</button></div><div class="console-bottom"><span>РУЧНОЕ УПРАВЛЕНИЕ</span><span>● ● ●</span></div></div><p class="console-help">Выберите пример и пройдите три этапа кнопками пульта.</p></div></div>
+</section>
+<section class="audit wrap" id="audit" aria-labelledby="audit-title">
+ <div class="section-top"><div><p class="eyebrow">02 / ВАША ОЧЕРЕДЬ</p><h2 id="audit-title">Что мешает<br>вашему тексту?</h2></div><p class="section-intro">Вставьте черновик. Получите балл и конкретные обороты для вычитки. Текст обрабатывается в вашем браузере.</p></div>
+ <div class="bench-rail" aria-hidden="true"><span>H / РАБОЧЕЕ МЕСТО РЕДАКТОРА</span><span>РУКОПИСЬ → ПОМЕТКИ</span><i></i></div><div class="audit-workbench"><div class="input-side"><div class="input-top"><label for="audit-input">01 / ИСХОДНИК</label><button id="load-example" class="plain-button">Вставить пример ↙</button></div><textarea id="audit-input" placeholder="Вставьте русский текст: пост, письмо или описание продукта…" maxlength="30000" spellcheck="true"></textarea><div class="input-bottom"><label for="genre">Жанр <select id="genre"><option value="marketing">Маркетинг, блог</option><option value="news">Новости</option><option value="academic">Научный</option><option value="legal">Юридический</option><option value="fiction">Художественный</option></select></label><span class="micro" id="char-count">0 / 30 000</span></div><div class="audit-actions"><button id="scan-button" class="button red">Проверить текст <span aria-hidden="true">↗</span></button><button id="clear-button" class="plain-button">Очистить</button></div><p class="micro">Без регистрации и отправки текста на сервер. Черновик не сохраняется после закрытия страницы.</p></div>
+ <div class="result-side" id="scan-result" aria-live="polite"><span class="sheet-label" aria-hidden="true">02 / РЕДАКТОРСКИЙ ЛИСТ</span><div class="empty-result" id="empty-result"><span class="empty-glyph" aria-hidden="true">¶</span><h3>Место для<br>редакторских пометок.</h3><p>Балл показывает совпадения с правилами.<br>Авторство текста он не определяет.</p></div><div id="result-content" hidden><div class="result-top"><div><span class="eyebrow">БАЛЛ ЧИСТОТЫ</span><div class="big-score"><b id="scan-score">0</b><span>/ 100</span></div></div><span id="score-band" class="band"></span></div><p id="scan-summary"></p><div class="highlighted-text" id="highlighted-text"></div><ul id="findings" class="findings"></ul><p class="result-limit">Балл не доказывает авторство и сохранение смысла. В браузере нет морфологического разбора: оценка может быть до 8 баллов выше Python-сканера.</p><button class="plain-button" id="copy-report">Скопировать отчёт ↗</button></div></div></div>
+ <details class="compare-details"><summary>Сравнить исходник с вашей правкой <span aria-hidden="true">+</span></summary><div class="compare-body"><label for="after-input">Отредактированный текст</label><textarea id="after-input" maxlength="30000" placeholder="Вставьте свою правку. Сравним баллы и распознанные числа с единицами."></textarea><button class="button dark" id="compare-button">Сравнить версии <span aria-hidden="true">↗</span></button><div id="compare-result" role="status"></div><p class="micro">Здесь сверяются числа, знаки, разделители, проценты и рубли с масштабами. Имена, оговорки и связи между утверждениями требуют отдельной вычитки. Более широкий разбор доступен в CLI с --before.</p></div></details>
+</section>
+<section class="principles wrap" id="principles"><div class="principle-lead"><p class="eyebrow">03 / ЧТО ОСТАЁТСЯ ВАШИМ</p><h2>Меньше правок.<br><em>Больше внимания.</em></h2><p>Хорошая редактура заканчивается там,<br>где следующая замена уже не помогает читателю.</p><a class="text-link" href="https://github.com/ilyautov/humanizer-ru/blob/main/skills/humanizer-ru/SKILL.md">Прочитать инструкцию скилла ↗</a><div class="proof-slip"><span class="mono">НА ПОЛЯХ / ОГОВОРКИ</span><p>«Может помочь»<br><span>≠</span> «поможет»</p><small>Одно слово меняет обещание.</small><i aria-hidden="true"></i></div></div><div class="principle-list"><article><span>01</span><div><h3>Смысл и оговорки</h3><p>«Может помочь» остаётся возможностью. «Примерно» остаётся при числе. Новые факты не добавляются.</p></div></article><article><span>02</span><div><h3>Ваш голос</h3><p>Личная история, юмор и резкость сохраняются. Нейтральному письму не нужны чужие шутки.</p></div></article><article><span>03</span><div><h3>Жанр и задача</h3><p>Пост, научная статья и договор требуют разной правки. Цитаты, код и ссылки защищены от стилистических замен.</p></div></article></div></section>
+<section class="evidence wrap" id="evidence"><div class="archive-caption" aria-hidden="true"><span>АРХИВ МАСТЕРСКОЙ / 04</span><p>У каждой правки<br>есть исходник.</p></div><div class="evidence-content"><div><p class="eyebrow">04 / ПРОВЕРКИ В ОТКРЫТОМ ДОСТУПЕ</p><h2>Балл можно поднять. Смысл нужно сверить.</h2><p class="evidence-copy">В репозитории есть корпуса, тесты и сравнения правки. В отчётах отмечены и ошибки: потерянные оговорки, пропуски сканера, расхождения оценщиков. Высокий балл не заменяет чтение.</p></div><div class="evidence-links"><a href="https://github.com/ilyautov/humanizer-ru/blob/main/eval/MODERN-SKILL-CHECK.md"><span class="mono">01 / РЕДАКТУРА</span><strong>Что изменилось после правки</strong><span aria-hidden="true">↗</span></a><a href="https://github.com/ilyautov/humanizer-ru/blob/main/eval/MODERN-SLOP.md"><span class="mono">02 / СКАНЕР</span><strong>Проверка на текстах моделей</strong><span aria-hidden="true">↗</span></a><a href="https://github.com/ilyautov/humanizer-ru/tree/main/scripts"><span class="mono">03 / ВОСПРОИЗВОДИМОСТЬ</span><strong>Тесты и исходный код</strong><span aria-hidden="true">↗</span></a></div></div></section>
+<section class="install wrap" id="install"><div class="section-top"><div><p class="eyebrow">05 / ПОРУЧИТЕ ПРАВКУ АГЕНТУ</p><h2>Редактор<br>в вашей среде.</h2></div><p class="section-intro">Сайт помогает найти лишнее. Скилл даёт агенту порядок редактуры и сверки с исходником.</p></div><div class="install-grid"><div class="install-tabs" role="group" aria-label="Способ установки"><button data-install="skill" aria-pressed="true"><b>Скилл для агента</b><small>Claude Code, Cursor, Codex и другие</small><span>↗</span></button><button data-install="claude" aria-pressed="false"><b>Плагин Claude Code</b><small>Установка через marketplace</small><span>↗</span></button><button data-install="cli" aria-pressed="false"><b>CLI и MCP</b><small>Сканер в терминале и инструменты агента</small><span>↗</span></button><button data-install="browser" aria-pressed="false"><b>Расширение Chrome</b><small>Проверка выделенного текста</small><span>↗</span></button></div><div class="install-panel"><div class="terminal-name" aria-hidden="true"><span>HUMANIZER / RU</span><span class="lamp"></span><span>ГОТОВ К УСТАНОВКЕ</span></div><div class="terminal-screen"><p class="eyebrow" id="install-label">ОДНА КОМАНДА</p><h3 id="install-title">Добавьте скилл своему агенту.</h3><p id="install-description">Установщик предложит доступные агенты и место установки. Нужен Node.js с npx.</p><div class="command-box" id="command-box"><pre><code id="install-command">npx skills add ilyautov/humanizer-ru</code></pre><button id="copy-command">Копировать</button></div><a id="install-external" class="button red" href="https://chromewebstore.google.com/detail/iaelpnagdohdahkcahippeadohpgobad" hidden>Открыть Chrome Web Store ↗</a><div class="first-task"><span class="mono">ПОПРОБУЙТЕ ТАК</span><p id="first-task">«Отредактируй этот текст. Убери канцелярит, сохрани факты, оговорки и мой тон».</p></div><a class="text-link" href="https://github.com/ilyautov/humanizer-ru#установка">Все способы установки ↗</a></div><div class="terminal-base" aria-hidden="true"><span>МАСТЕРСКАЯ → ВАША СРЕДА</span><i></i></div></div></div></section>
+<section class="faq wrap" id="faq"><div class="faq-heading"><p class="eyebrow">ЕЩЁ НЕСКОЛЬКО ВОПРОСОВ</p><h2>По делу.</h2><div class="faq-index" aria-hidden="true"><b>?</b><span>СПРАВОЧНИК<br>РЕДАКТОРА / RU</span></div></div><div class="faq-book"><span class="book-label" aria-hidden="true">H / НАСТОЛЬНАЯ КНИГА</span><details><summary>Сайт переписывает текст?<span>+</span></summary><p>На сайте работает бесплатный сканер. Он находит обороты и считает балл. Для редактуры установите скилл в своего AI-агента или исправьте найденные места вручную.</p></details><details><summary>100 баллов означает, что текст хороший?<span>+</span></summary><p>Это означает только отсутствие штрафов по измеряемым правилам. Текст может остаться пустым, неточным или неуместным. Его смысл и пользу нужно оценивать отдельно.</p></details><details><summary>Можно доказать, что текст написал ИИ?<span>+</span></summary><p>По этому баллу нельзя. Штампы встречаются у людей, а машинный текст может не содержать найденных маркеров. Подробнее в <a href="ai-detektory-na-russkom.html">разборе AI-детекторов</a>.</p></details><details><summary>Что проверяет «факт-замок»?<span>+</span></summary><p>В CLI он сопоставляет извлечённые числа, часть единиц, имена, ссылки и оговорки. Это дополнительная проверка, которая может пропустить смысловой сдвиг. Кто что сделал, к чему относится число и не стало ли обещание сильнее, нужно сверить по исходнику.</p></details><details><summary>Это бесплатно?<span>+</span></summary><p>Сканер и скилл открыты под MIT. Проверка на сайте бесплатна. Для редактуры через агента действуют условия выбранного вами AI-сервиса.</p></details></div></section>
+<section class="closing wrap"><p class="eyebrow">HUMANIZER-RU / AI FRONTIER</p><h2>Пусть слышно<br>будет <em>вас.</em></h2><a href="#audit" class="button red">Начать со своего текста <span>↗</span></a><div class="closing-colophon" aria-hidden="true"><span>КОНЕЦ СМЕНЫ / НАЧАЛО ТЕКСТА</span><p>Всё готово.<br>Осталось ваше слово.</p></div></section>
 </main>
-
-<footer class="site-footer">
-  <div class="wrap">
-    <div class="foot-grid">
-      <div>
-        <a class="brand" href="index.html">humanizer<span>-ru</span></a>
-        <p>Open-source инструмент, который убирает следы нейросети из русского текста и измеряет правку: скилл для агентов, расширение Chrome, сканер на этой странице. Лицензия MIT.</p>
-      </div>
-      <div>
-        <h3>Материалы</h3>
-        <ul>
-          <li><a href="proverit-tekst-na-neyroset.html">Проверить текст на нейросеть</a></li>
-          <li><a href="kak-ubrat-sledy-neyroseti.html">Убрать ИИ из текста</a></li>
-          <li><a href="kancelyarit.html">Канцелярит: признаки и примеры</a></li>
-          <li><a href="gumanizator-teksta.html">Гуманизатор текста: как выбрать</a></li>
-          <li><a href="52-priznaka-ai-teksta.html">67 признаков AI-текста</a></li>
-          <li><a href="ai-detektory-na-russkom.html">AI-детекторы на русском</a></li>
-          <li><a href="antiplagiat-i-neyroset.html">Антиплагиат и нейросеть</a></li>
-        </ul>
-      </div>
-      <div>
-        <h3>Проект</h3>
-        <ul>
-          <li><a href="https://github.com/ilyautov/humanizer-ru">GitHub: репозиторий и установка</a></li>
-          <li><a href="https://chromewebstore.google.com/detail/iaelpnagdohdahkcahippeadohpgobad">Расширение Chrome</a></li>
-          <li><a href="privacy.html">Приватность расширения</a></li>
-          <li><a href="https://t.me/gorilla_under_hood">Telegram: Under the Hood</a></li>
-          <li><a href="https://aifrontier.tech/sistemy/humanizer-ru/">AI Frontier: лаборатория, которая это делает</a></li>
-          <li><a href="https://ilyautov.github.io/">Все проекты: 21 открытый инструмент</a></li>
-        </ul>
-      </div>
-    </div>
-    <div class="foot-bottom">
-      <ul class="foot-meta"><li>humanizer-ru</li><li>v3.30</li><li>MIT</li></ul>
-      <a class="foot-cta" href="https://github.com/ilyautov/humanizer-ru">Поставить звезду на GitHub →</a>
-    </div>
-  </div>
-</footer>
-
-
-<script type="text/plain" id="ex-ai">В современном мире успешный бизнес — это не просто продукт, а целая экосистема ценностей. Наша компания является надёжным партнёром, который играет ключевую роль в развитии вашего дела. Мы предлагаем комплексный подход, способный вывести ваш бренд на новый уровень и раскрыть его потенциал по-настоящему. Стоит отметить, что в условиях растущей конкуренции важно понимать: связь с аудиторией и доверительные отношения становятся главным активом. Именно поэтому мы выстраиваем индивидуальный подход к каждому клиенту. Наше инновационное решение открывает новые горизонты для роста — от привлечения первых пользователей до масштабирования на международные рынки. Таким образом, выбирая нас, вы выбираете не только сервис, но и команду, которая разделяет ваши амбиции. Можно с уверенностью сказать: вместе мы расширим границы возможного и достигнем результата, который превзойдёт ожидания.</script>
-<script type="text/plain" id="ex-human">Байкал (бур. Байгал далай) — озеро тектонического происхождения в южной части Восточной Сибири площадью 31 722 км². Самое глубокое озеро на планете, крупнейший природный резервуар пресной воды и самое большое по площади пресноводное озеро Евразии.
-
-Озеро и прибрежные территории являются уникальным биогеоценозом, бо́льшая часть видов животных которых эндемична. Озеро имеет сток — реку Ангара.</script>
-<script type="text/plain" id="ex-tech">Переписал вчера парсер логов: старый падал на строках с пустым полем длительности. Причина оказалась в одной строке.
-
-```python
-def parse(line):
-    # В современном мире данный код является примером
-    return line.split("|")[3] or None
-```
-
-Коллега в ревью написал:
-
-> Стоит отметить, что данный подход открывает новые горизонты и играет ключевую роль в оптимизации.
-
-Я не понял ни слова, но тест зелёный. Оставил как есть, только переименовал функцию и добавил кейс на пустую строку. Три минуты работы, неделя тишины в алертах.</script>
-<script src="scan-rules.js" defer></script>
-<script src="scan.js" defer></script>
-<script src="facts.js" defer></script>
-<script src="audit.js" defer></script>
-</body>
-</html>
+<aside class="origin-band wrap" aria-label="Лаборатория и автор проекта"><span class="origin-symbol" aria-hidden="true">A<span>.</span></span><div class="origin-lab"><span>ПРОЕКТ ЛАБОРАТОРИИ ПРИКЛАДНОГО ИИ</span><a href="https://aifrontier.tech/">AI Frontier <span aria-hidden="true">↗</span></a></div><div class="origin-author"><span>АВТОР HUMANIZER-RU</span><a href="https://aifrontier.tech/avtory/ilya-utov/">Илья Утов <span aria-hidden="true">↗</span></a></div><a class="origin-channel" href="https://t.me/gorilla_under_hood"><span>ТЕЛЕГРАМ-КАНАЛ АВТОРА</span><strong>Under the Hood <span aria-hidden="true">↗</span></strong></a></aside>
+<footer class="footer wrap"><div class="footer-top"><a class="brand" href="#">humanizer<span class="brand-ru">-ru</span></a><p>Инструменты для внимательной редактуры.<br>Русский язык. Открытый код.</p><div><a href="https://github.com/ilyautov/humanizer-ru">GitHub ↗</a></div></div><div class="footer-reading"><a href="52-priznaka-ai-teksta.html">Каталог признаков</a><a href="kancelyarit.html">Канцелярит</a><a href="kak-ubrat-sledy-neyroseti.html">Как редактировать AI-текст</a><a href="antiplagiat-i-neyroset.html">Антиплагиат и ИИ</a><a href="gumanizator-teksta.html">Как выбрать гуманизатор</a><a href="privacy.html">Приватность</a></div><div class="footer-bottom"><span>HUMANIZER-RU / MIT</span><ul class="foot-meta"><li>v3.30</li></ul><span>2026</span></div></footer>
+<div id="toast" class="toast" role="status" hidden></div>
+<noscript><div class="noscript">Для сканера нужен JavaScript. Инструкции установки и материалы доступны без него: <a href="https://github.com/ilyautov/humanizer-ru">открыть README</a>.</div></noscript>
+</body></html>

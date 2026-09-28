@@ -1,0 +1,1 @@
+{"name":"humanizer-editorial-landing","version":"1.0.0","private":true,"type":"module","scripts":{"typecheck":"tsc --noEmit","build":"tsc","preview":"python3 -m http.server 4192 --bind 127.0.0.1"},"devDependencies":{"typescript":"^5.9.3"}}
