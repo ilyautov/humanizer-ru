@@ -1,6 +1,6 @@
 """Реестр детекторов AI-текста.
 
-Все детекторы опциональны и деградируют до available=False, если нет ключа,
+Все детекторы локальные и опциональны: деградируют до available=False, если нет
 пакета, модели или живого демона Ollama. available_detectors() инстанцирует все
 известные адаптеры и возвращает только те, что реально могут работать сейчас.
 
@@ -12,18 +12,14 @@ ollama_ppl (perplexity по семплу) намеренно НЕ входит �
 from __future__ import annotations
 
 from .base import Detector
-from .gptzero import GPTZeroDetector
 from .ollama_llm import OllamaLLMDetector
 from .ollama_ppl import OllamaPPLDetector
-from .originality import OriginalityDetector
 from .ru_roberta import RuRobertaDetector
 
 __all__ = [
     "Detector",
-    "GPTZeroDetector",
     "OllamaLLMDetector",
     "OllamaPPLDetector",
-    "OriginalityDetector",
     "RuRobertaDetector",
     "all_detectors",
     "available_detectors",
@@ -37,8 +33,6 @@ def all_detectors() -> list[Detector]:
     ollama_ppl сюда НЕ входит — он дорогой и подключается отдельным флагом.
     """
     return [
-        GPTZeroDetector(),
-        OriginalityDetector(),
         RuRobertaDetector(),
         OllamaLLMDetector(),
     ]

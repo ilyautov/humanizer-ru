@@ -11,8 +11,7 @@
 # embedding-модель: `ollama pull nomic-embed-text`. Рекомендуемая чат-модель —
 # gemma3:4b (`ollama pull gemma3:4b`); для --perplexity — gemma3:1b.
 
-# HTTP-клиент: нужен и для локальной Ollama (детекторы/судья/faithfulness),
-# и для облачных детекторов GPTZero/Originality (если используешь их ключи).
+# HTTP-клиент для локальной Ollama (детекторы/судья/faithfulness).
 requests>=2.34.2
 
 # LLM-судья опционально может ходить в Anthropic API (ANTHROPIC_API_KEY).

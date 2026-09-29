@@ -31,8 +31,6 @@
 2. **Реальные детекторы** (опционально, флаг `--detectors`) — модели,
    возвращающие вероятность «текст написан AI» 0..1:
    - **ollama_llm** — ЛОКАЛЬНАЯ Ollama (по умолчанию), без ключей и сети наружу;
-   - **GPTZero** (облако, ключ `GPTZERO_API_KEY`);
-   - **Originality.ai** (облако, ключ `ORIGINALITY_API_KEY`);
    - **ru_roberta** (локальная HF-модель, transformers + torch);
    - **ollama_ppl** — приближённый perplexity-детектор (флаг `--perplexity`, см. ниже).
 
@@ -137,8 +135,6 @@ pip install -r eval/requirements-eval.txt
 | `OLLAMA_EMBED` | embedding-модель Ollama (faithfulness cosine) | `nomic-embed-text` |
 | `OLLAMA_PPL_MODEL` | модель для perplexity-детектора `ollama_ppl` | `gemma3:1b` |
 | `JUDGE_BACKEND` | бэкенд судьи: `auto` / `ollama` / `anthropic` | `auto` |
-| `GPTZERO_API_KEY` | облачный детектор GPTZero (опц.) | — |
-| `ORIGINALITY_API_KEY` | облачный детектор Originality.ai (опц.) | — |
 | `ANTHROPIC_API_KEY` | LLM-судья через Anthropic (опц., НЕ обязателен) | — |
 | `JUDGE_MODEL` | модель Anthropic-судьи (если выбран этот бэкенд) | `claude-sonnet-4-6` |
 | `RU_DETECTOR_MODEL` | HF-имя локального детектора `ru_roberta` | — |
@@ -261,8 +257,6 @@ eval/
 │   └── human/*.txt        — человеческие тексты (контроль)
 ├── detectors/
 │   ├── base.py            — ABC Detector + контракт
-│   ├── gptzero.py         — адаптер GPTZero (облако)
-│   ├── originality.py     — адаптер Originality.ai (облако)
 │   ├── ru_roberta.py      — локальный HF-детектор
 │   ├── ollama_llm.py      — локальный LLM-детектор (Ollama)
 │   ├── ollama_ppl.py      — приближённый perplexity-детектор (Ollama, --perplexity)
