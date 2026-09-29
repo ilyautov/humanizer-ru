@@ -2,7 +2,7 @@
 
 > [Русская версия: основная](README.md) · [中文](README.zh.md)
 
-Claude Code / Cowork plugin. Kills AI smell in Russian text. The English [humanizer](https://github.com/blader/humanizer) won't help here. Russian AI markers are their own beast: bureaucratic noun-chains (канцелярит), English-syntax calques, missing particles like "же" and "ведь" that make Russian sound alive.
+Claude Code / Cowork plugin. Cleans bureaucratese and AI-style clichés out of Russian text without touching facts or the author's voice. The English [humanizer](https://github.com/blader/humanizer) won't help here. Russian AI markers are their own beast: bureaucratic noun-chains (канцелярит), English-syntax calques, missing particles like "же" and "ведь" that make Russian sound alive.
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Version](https://img.shields.io/badge/version-3.31.2-blueviolet)](https://github.com/ilyautov/humanizer-ru/blob/main/CHANGELOG.md)
