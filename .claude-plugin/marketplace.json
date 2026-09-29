@@ -1,6 +1,6 @@
 {
   "name": "ilyautov-plugins",
-  "description": "Plugins by Ilya Utov: humanizer-ru kills AI smell in Russian text | Плагины Ильи Утова: humanizer-ru убирает следы нейросети из русского текста",
+  "description": "Plugins by Ilya Utov: humanizer-ru, a Russian text quality editor | Плагины Ильи Утова: humanizer-ru, редактура русского текста",
   "owner": {
     "name": "Ilya Utov",
     "email": "ilyautov@gmail.com"
@@ -10,7 +10,7 @@
       "name": "humanizer-ru",
       "displayName": "Humanizer RU",
       "source": "./",
-      "description": "Kills AI smell in Russian text. 67 patterns across 16 categories, 21 hard bans, 3 modes (rewrite / audit / targeted fix), voice calibration, quad-pass audit, 2025-2026 stylistic fingerprints. | Убивает запах нейросети в русском тексте. 67 паттернов в 16 категориях, 21 жёстких банов, 3 режима, калибровка голоса, quad-pass аудит, стилистические фингерпринты 2025-2026.",
+      "description": "Russian text quality editor: removes bureaucratese, calques and AI-style clichés without changing facts or the author's voice. 67 patterns, 21 hard bans, 3 modes (edit / audit / targeted fix), deterministic scanner with a 0-100 cleanliness score and a fact-lock. | Редактура русского текста: убирает канцелярит, кальки и нейросетевые штампы, не меняя факты и голос автора. 67 паттернов, 21 жёсткий запрет, 3 режима, сканер с баллом чистоты 0-100 и факт-замок.",
       "version": "3.31.2",
       "author": {
         "name": "Ilya Utov",
@@ -23,9 +23,12 @@
         "humanizer",
         "russian",
         "writing",
-        "ai-detection",
+        "editing",
+        "proofreading",
+        "text-quality",
+        "ai-slop",
         "русский",
-        "очеловечивание"
+        "редактура"
       ],
       "category": "writing"
     }

@@ -2,11 +2,21 @@
   "name": "humanizer-ru",
   "displayName": "Humanizer RU",
   "version": "3.31.2",
-  "description": "Kills AI smell in Russian text. 67 patterns, 21 hard bans, voice calibration, quad-pass audit. Auto-activates on Russian text humanization requests.",
+  "description": "Russian text quality editor: removes bureaucratese, calques and AI-style clichés without changing facts or the author's voice. 67 patterns, 21 hard bans, 3 modes (edit / audit / targeted fix), deterministic scanner with a 0-100 cleanliness score and a fact-lock.",
   "author": {
     "name": "Ilya Utov",
     "email": "ilyautov@gmail.com"
   },
   "license": "MIT",
-  "keywords": ["humanizer", "russian", "writing", "ai-detection", "text", "русский", "очеловечивание"]
+  "keywords": [
+    "humanizer",
+    "russian",
+    "writing",
+    "editing",
+    "proofreading",
+    "text-quality",
+    "ai-slop",
+    "русский",
+    "редактура"
+  ]
 }

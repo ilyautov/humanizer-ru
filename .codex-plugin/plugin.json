@@ -1,7 +1,7 @@
 {
   "name": "humanizer-ru",
   "version": "3.31.2",
-  "description": "Kills AI smell in Russian text. 67 patterns across 16 categories, 21 hard bans, 3 modes (rewrite / audit / targeted fix), deterministic scanner included. | Убивает запах нейросети в русском тексте: 67 паттернов, 21 жёстких банов, детерминированный сканер в комплекте.",
+  "description": "Russian text quality editor: removes bureaucratese, calques and AI-style clichés without changing facts or the author's voice. 67 patterns, 21 hard bans, 3 modes (edit / audit / targeted fix), deterministic scanner with a 0-100 cleanliness score and a fact-lock. | Редактура русского текста: убирает канцелярит, кальки и нейросетевые штампы, не меняя факты и голос автора. 67 паттернов, 21 жёсткий запрет, 3 режима, сканер с баллом чистоты 0-100 и факт-замок.",
   "author": {
     "name": "Ilya Utov",
     "email": "ilyautov@gmail.com",
@@ -10,19 +10,34 @@
   "homepage": "https://humanizer-ru.aifrontier.tech/",
   "repository": "https://github.com/ilyautov/humanizer-ru",
   "license": "MIT",
-  "keywords": ["humanizer", "russian", "writing", "ai-detection", "text", "русский", "очеловечивание"],
+  "keywords": [
+    "humanizer",
+    "russian",
+    "writing",
+    "editing",
+    "proofreading",
+    "text-quality",
+    "ai-slop",
+    "русский",
+    "редактура"
+  ],
   "skills": "./skills/",
   "interface": {
     "displayName": "Humanizer RU",
-    "shortDescription": "Очеловечивает русский AI-текст",
-    "longDescription": "Берёт стерильный текст нейросети и возвращает в него живую русскую речь: убирает канцелярит, кальки и длинные тире, выравнивает ритм, калибрует голос автора. 67 признаков AI-текста в 16 категориях, 21 жёстких запретов, режим аудита с детерминированным офлайн-сканером.",
+    "shortDescription": "Редактура русского текста без штампов",
+    "longDescription": "Убирает из русского текста канцелярит, кальки и нейросетевые штампы и не трогает факты и голос автора. 67 паттернов каталога, 21 жёсткий запрет, режим аудита без переписывания и детерминированный офлайн-сканер с баллом чистоты 0-100 и факт-замком.",
     "developerName": "Ilya Utov",
     "category": "Writing",
-    "capabilities": ["Read", "Write"],
+    "capabilities": [
+      "Read",
+      "Write"
+    ],
     "websiteURL": "https://humanizer-ru.aifrontier.tech/",
     "privacyPolicyURL": "https://github.com/ilyautov/humanizer-ru/blob/main/PRIVACY_POLICY.md",
     "termsOfServiceURL": "https://github.com/ilyautov/humanizer-ru/blob/main/TERMS.md",
-    "defaultPrompt": ["Очеловечь этот текст: ..."],
+    "defaultPrompt": [
+      "Убери канцелярит и штампы из этого текста, факты не трогай: ..."
+    ],
     "brandColor": "#7AA7FF",
     "composerIcon": "./assets/icon-512.png",
     "logo": "./assets/icon-512.png"
