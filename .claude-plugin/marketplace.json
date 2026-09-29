@@ -11,7 +11,7 @@
       "displayName": "Humanizer RU",
       "source": "./",
       "description": "Russian text quality editor: removes bureaucratese, calques and AI-style clichés without changing facts or the author's voice. 67 patterns, 21 hard bans, 3 modes (edit / audit / targeted fix), deterministic scanner with a 0-100 cleanliness score and a fact-lock. | Редактура русского текста: убирает канцелярит, кальки и нейросетевые штампы, не меняя факты и голос автора. 67 паттернов, 21 жёсткий запрет, 3 режима, сканер с баллом чистоты 0-100 и факт-замок.",
-      "version": "3.31.2",
+      "version": "3.31.3",
       "author": {
         "name": "Ilya Utov",
         "email": "ilyautov@gmail.com"
