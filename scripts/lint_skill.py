@@ -9,6 +9,8 @@
      тире в «хорошем» выводе.
   4. Каждый одобренный пример скилла («Стало:»/«После:») сам проходит сканер:
      ноль HARD BANS. Скилл, нарушающий свои баны в примерах, не пройдёт CI.
+  5. Скилл проходит статические сканеры установки (Hermes skills-guard):
+     ни echo | python, ни невидимых символов литералом, ни голого pip install.
 
 Запуск:  python scripts/lint_skill.py
 Exit code 1 при любой ошибке — гейт для CI/pre-commit.
@@ -222,6 +224,43 @@ def check_ascii_filenames() -> None:
         notes.append("✓ все имена файлов внутри скилла ASCII")
 
 
+# Правила статических сканеров скиллов, на которых установка блокируется.
+# Взяты из Hermes Agent skills-guard (tools/skills_guard.py, v10): у community-
+# скилла DANGEROUS не снимается даже --force, а любое срабатывание требует --force.
+# Issue #160. Паттерны поведенческие: скилл безопасен, но текст выглядит как атака.
+_GUARD_PATTERNS = [
+    (re.compile(r"echo\s+[^\n]*\|\s*(?:ba|z|da|k)?sh\b|echo\s+[^\n]*\|\s*(?:python|perl|ruby|node)"),
+     "echo | интерпретатор (echo_pipe_exec, CRITICAL)"),
+    (re.compile(r"!`[^`\s][^`\n]*`"), "«!`…`» (inline_shell_exec, HIGH)"),
+    (re.compile(r"pip\s+install\s+(?!-r\s)(?!.*==)"), "pip install без версии (unpinned_pip_install)"),
+    (re.compile(r"\\u[0-9a-fA-F]{4}.*\\u[0-9a-fA-F]{4}.*\\u[0-9a-fA-F]{4}"),
+     "три \\uXXXX в строке (unicode_escape_chain), пишите \\N{NAME}"),
+]
+_GUARD_INVISIBLE = re.compile("[​-‍⁠⁢-⁤﻿‪-‮⁦-⁩]")
+_GUARD_MAX_FILES = 50
+
+
+def check_install_scanners() -> None:
+    """Скилл проходит сканеры установки без единого срабатывания (issue #160)."""
+    files = [p for p in sorted(SKILL_DIR.rglob("*"))
+             if p.is_file() and "__pycache__" not in p.parts and p.suffix != ".pyc"]
+    if len(files) > _GUARD_MAX_FILES:
+        errors.append(f"в скилле {len(files)} файлов > {_GUARD_MAX_FILES}: сканер установки ругается")
+    hits = 0
+    for p in files:
+        loc = p.relative_to(SKILL_DIR)
+        for i, line in enumerate(p.read_text(encoding="utf-8").split("\n"), start=1):
+            if _GUARD_INVISIBLE.search(line):
+                errors.append(f"невидимый символ литералом, пишите \\N{{NAME}}: {loc}:{i}")
+                hits += 1
+            for rx, why in _GUARD_PATTERNS:
+                if rx.search(line):
+                    errors.append(f"сканер установки заблокирует: {why}: {loc}:{i}")
+                    hits += 1
+    if not hits:
+        notes.append(f"✓ сканеры установки: 0 срабатываний в {len(files)} файлах")
+
+
 def main() -> int:
     for f in (CANON, CATALOG):
         if not f.exists():
@@ -237,6 +276,7 @@ def main() -> int:
     check_frontmatter(skill_text)
     check_scanner_ships_with_skill()
     check_ascii_filenames()
+    check_install_scanners()
     check_em_dash_in_examples(both)
     check_em_dash_in_prose()
     check_examples_pass_scanner(both)
