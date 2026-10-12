@@ -3,7 +3,7 @@
 
 Использование (из корня репо; у установленного скилла путь: <папка скилла>/scripts/scan.py):
     python skills/humanizer-ru/scripts/scan.py path/to/text.txt
-    echo "ваш текст" | python skills/humanizer-ru/scripts/scan.py -
+    python skills/humanizer-ru/scripts/scan.py - <<'EOF'   (текст на stdin)
     python skills/humanizer-ru/scripts/scan.py text.txt --json
 
 Это машинная половина режима «Аудит». Для полного очеловечивания (семантика,
@@ -37,9 +37,8 @@ except ImportError as exc:
           "Поставьте один раз любым способом:\n"
           "  uvx ru-humanizer файл.txt        (без установки, нужен uv)\n"
           "  pipx install ru-humanizer        (даёт команду ru-humanizer)\n"
-          "  python3 -m venv ~/.humanizer-ru && ~/.humanizer-ru/bin/pip install razdel pymorphy3\n"
-          "    и запускайте ~/.humanizer-ru/bin/python scan.py файл.txt\n"
-          "Голый pip install на macOS с Homebrew и на Debian/Ubuntu падает с\n"
+          "  отдельный venv с razdel и pymorphy3 (команды в README, раздел про зависимости)\n"
+          "Системный pip на macOS с Homebrew и на Debian/Ubuntu падает с\n"
           "externally-managed-environment (PEP 668): системный Python закрыт для pip.",
           file=sys.stderr)
     raise SystemExit(2)

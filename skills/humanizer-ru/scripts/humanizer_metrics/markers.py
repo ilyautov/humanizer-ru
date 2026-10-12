@@ -201,8 +201,12 @@ SCANNER: dict[str, list[str | tuple[str, str]]] = {
         # LLMTrace 0 из 6 392 человеческих текстов. Обычный U+00A0 сюда
         # НЕ входит: у людей он в 10 раз чаще (вёрстка, редактура).
         ("невидимые символы (zero-width, bidi)",
-         "[​‌‍﻿⁠᠎‎‏"
-         "‪-‮⁦-⁩؜ ]"),
+         "[\N{ZERO WIDTH SPACE}\N{ZERO WIDTH NON-JOINER}\N{ZERO WIDTH JOINER}"
+         "\N{ZERO WIDTH NO-BREAK SPACE}\N{WORD JOINER}\N{MONGOLIAN VOWEL SEPARATOR}"
+         "\N{LEFT-TO-RIGHT MARK}\N{RIGHT-TO-LEFT MARK}"
+         "\N{LEFT-TO-RIGHT EMBEDDING}-\N{RIGHT-TO-LEFT OVERRIDE}"
+         "\N{LEFT-TO-RIGHT ISOLATE}-\N{POP DIRECTIONAL ISOLATE}"
+         "\N{ARABIC LETTER MARK}\N{NARROW NO-BREAK SPACE}]"),
     ],
     # Паттерн #55: подлежащее-предмет при глаголе намерения. Английские
     # источники описывают то же самое как смену AI-словаря на emphasizing /
