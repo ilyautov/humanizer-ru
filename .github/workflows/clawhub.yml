@@ -30,7 +30,7 @@ jobs:
     permissions:
       contents: read
       id-token: write
-    uses: openclaw/clawhub/.github/workflows/skill-publish.yml@v0.23.3
+    uses: openclaw/clawhub/.github/workflows/skill-publish.yml@v0.24.0
     with:
       root: skills
       owner: ${{ inputs.owner }}
