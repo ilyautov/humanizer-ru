@@ -3,7 +3,7 @@
 
 Версия бампается в 17 файлах репо, но пользователь ставит скилл не из репо, а
 из npm, из GitHub Release, с сайта и из карточки skills.sh. Эти поверхности
-живут своей жизнью: npm publish делается руками, Pages деплоится с задержкой,
+живут своей жизнью: npm публикует CI по тегу и может упасть, Pages деплоится с задержкой,
 сторонние индексаторы кэшируют SKILL.md. Скрипт спрашивает каждую поверхность
 и сравнивает с версией в `.claude-plugin/plugin.json`.
 
@@ -94,7 +94,7 @@ def check_npm(version: str) -> Check:
     try:
         _, body = fetch(NPM_LATEST)
         return compare("npm humanizer-ru", version, json.loads(body)["version"], hard=True,
-                       note="публикуется руками из терминала: npm publish")
+                       note="публикует publish-npm.yml по тегу v*, смотрите его запуск")
     except Exception as e:  # noqa: BLE001
         return unavailable("npm humanizer-ru", version, True, e)
 

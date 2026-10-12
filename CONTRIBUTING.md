@@ -42,11 +42,11 @@ CI гоняет то же самое на каждый PR.
 GitHub Release. После публикации ссылка
 `releases/latest/download/humanizer-ru.zip` должна отдавать тот же архив.
 
-После публикации Release и `npm publish` сверьте живые поверхности одной
+После публикации Release (npm CI публикует сам по тегу) сверьте живые поверхности одной
 командой: `.venv/bin/python scripts/check_live_distribution.py`. Она
 спрашивает npm, GitHub Release, ссылку на ZIP, сайт и карточку skills.sh и
 сравнивает с версией в `.claude-plugin/plugin.json`. Тот же скрипт крутится в
-CI раз в сутки (`live-distribution.yml`), чтобы забытый `npm publish` или
+CI раз в сутки (`live-distribution.yml`), чтобы упавшая публикация в npm или
 отставший деплой сайта не висели незамеченными.
 
 ## Правила проекта
