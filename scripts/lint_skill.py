@@ -236,7 +236,7 @@ _GUARD_PATTERNS = [
     (re.compile(r"\\u[0-9a-fA-F]{4}.*\\u[0-9a-fA-F]{4}.*\\u[0-9a-fA-F]{4}"),
      "три \\uXXXX в строке (unicode_escape_chain), пишите \\N{NAME}"),
 ]
-_GUARD_INVISIBLE = re.compile("[​-‍⁠⁢-⁤﻿‪-‮⁦-⁩]")
+_GUARD_INVISIBLE = re.compile("[\u200b-\u200d\u2060\u2062-\u2064\ufeff\u202a-\u202e\u2066-\u2069]")
 _GUARD_MAX_FILES = 50
 
 
