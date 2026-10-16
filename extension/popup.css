@@ -284,6 +284,7 @@ kbd {
 .btn-wide { width: 100%; height: 40px; font-size: 14px; }
 .lead { margin: 0 0 10px; font-size: 14px; color: var(--text-2); }
 .hint-line { margin: 8px 0 0; font-size: 13px; color: var(--mk); }
+.lang-warn { margin: 10px 0 0; font-size: 13px; line-height: 1.5; color: var(--mk); }
 
 /* --- Ввод --- */
 textarea {
@@ -344,7 +345,7 @@ textarea:focus { outline: none; border-color: var(--ring); box-shadow: 0 0 0 1px
 .band {
   align-self: flex-start; margin-bottom: 5px; padding: 2px 7px;
   border: 1.5px solid currentColor; border-radius: 2px;
-  font: 500 10.5px/1.4 var(--mono); letter-spacing: 0.06em; text-transform: uppercase;
+  font: 500 11px/1.4 var(--mono); letter-spacing: 0.06em; text-transform: uppercase;
   transform: rotate(-2deg);
   animation: stamp 0.26s cubic-bezier(0.3, 1.5, 0.6, 1);
 }

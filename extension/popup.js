@@ -1,6 +1,6 @@
 // humanizer-ru: попап и вкладка. Только DOM: движок в
-// vendor/scan.js, правила в vendor/scan-rules.js, факт-замок в vendor/facts.js
-// (копии из docs/, их кладёт scripts/build_extension.py). Режим задаёт класс на
+// vendor/scan.js, правила в vendor/scan-rules.js, факт-замок в vendor/facts.js,
+// подсказки в vendor/hints.js (копии из docs/, их кладёт scripts/build_extension.py). Режим задаёт класс на
 // body: as-tab (?tab=1, широкий режим для длинного текста), без класса попап.
 // Работает и вне контекста расширения (открыт как файл): chrome.* обёрнуты.
 (function () {
@@ -17,14 +17,16 @@
   const copyBtn = $("copy"), promptBtn = $("prompt"), copiedEl = $("copied");
   const cmpToggle = $("cmp-toggle"), cmpEl = $("cmp"), afterEl = $("after"), cmpOut = $("cmp-out");
   const SITE = "https://humanizer-ru.aifrontier.tech/";
-  if (typeof globalThis.humanizerScan !== "function") {
-    emptyEl.innerHTML = "<p>Сканер не загрузился: нет vendor/scan.js. Соберите расширение скриптом scripts/build_extension.py.</p>";
+  if (typeof globalThis.humanizerScan !== "function" || !globalThis.humanizerHints) {
+    emptyEl.innerHTML = "<p>Сканер не загрузился: нет vendor/scan.js или vendor/hints.js. Соберите расширение скриптом scripts/build_extension.py.</p>";
     return;
   }
   const RULES = globalThis.HUMANIZER_RULES || {};
   const CLEAN = (RULES.score && RULES.score.band_clean) || 85;
   const DASH_NAME = (RULES.score && RULES.score.em_dash_name) || "Длинное тире";
   const facts = globalThis.humanizerFacts || null;
+  // Подсказки, причины штрафов, жанровая строка: общий модуль с сайтом.
+  const H = globalThis.humanizerHints;
 
   // --- chrome.* с запасным вариантом вне расширения ---------------------------
   const hasChrome = typeof chrome !== "undefined" && !!chrome.storage;
@@ -46,18 +48,10 @@
 
   // --- Утилиты ------------------------------------------------------------------
   const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
-  const plural = (n, one, few, many) => {
-    const m10 = n % 10, m100 = n % 100;
-    if (m10 === 1 && m100 !== 11) return one;
-    if (m10 >= 2 && m10 <= 4 && (m100 < 10 || m100 >= 20)) return few;
-    return many;
-  };
-  const num = (n, one, few, many) => `${n} ${plural(n, one, few, many)}`;
+  const num = H.num;
   const wordsOf = (t) => t.split(/\s+/).filter((w) => /[\p{L}\p{N}]/u.test(w)).length;
   const genreLabel = () => genreEl.options[genreEl.selectedIndex].textContent;
-  // Имена правил иногда содержат длинное тире («X [тире] это Y»). В интерфейсе
-  // его нет: показываем словом, как в SKILL.md.
-  const ruleName = (s) => String(s).replace(/\s*\u2014\s*/g, " [тире] ");
+  const ruleName = H.ruleName;
   const updateCount = () => {
     countEl.textContent = num(wordsOf(textEl.value), "слово", "слова", "слов");
     clearBtn.hidden = !textEl.value;
@@ -68,77 +62,7 @@
   // Пример с сайта (нейрочерновик для eval-корпуса). Данные, не текст интерфейса.
   const EXAMPLE = "В современном мире успешный бизнес \u2014 это не просто продукт, а целая экосистема ценностей. Наша компания является надёжным партнёром, который играет ключевую роль в развитии вашего дела. Мы предлагаем комплексный подход, способный вывести ваш бренд на новый уровень и раскрыть его потенциал по-настоящему. Стоит отметить, что в условиях растущей конкуренции важно понимать: связь с аудиторией и доверительные отношения становятся главным активом. Именно поэтому мы выстраиваем индивидуальный подход к каждому клиенту. Наше инновационное решение открывает новые горизонты для роста \u2014 от привлечения первых пользователей до масштабирования на международные рынки. Таким образом, выбирая нас, вы выбираете не только сервис, но и команду, которая разделяет ваши амбиции. Можно с уверенностью сказать: вместе мы расширим границы возможного и достигнем результата, который превзойдёт ожидания.";
 
-  // --- Язык результата: строки сканера в слова читателя ----------------------
-  // Сырой reason остаётся в title строки, чтобы разработчик видел числа.
-  const HUMAN_REASONS = [
-    [/^хард-баны \(фразы\): (\d+)/, (m) => num(+m[1], "запрещённый оборот", "запрещённых оборота", "запрещённых оборотов")],
-    [/^артефакты копипасты: (\d+)/, (m) => `${num(+m[1], "след", "следа", "следов")} копирования из чата`],
-    [/^почерк модели: (\d+)/, (m) => `${num(+m[1], "оборот", "оборота", "оборотов")} из почерка свежих моделей`],
-    [/^обвязка чата: (\d+)/, (m) => `${num(+m[1], "след", "следа", "следов")} ответа чат-бота: разметка, «Вариант 1», оферта доработать`],
-    [/^маркеры: (\d+) \(([\d.]+)\/100 слов\)/, (m) => `${num(+m[1], "маркер", "маркера", "маркеров")}, ${m[2].replace(".", ",")} на 100 слов`],
-    [/^тире: (\d+) \(([\d.]+)\/100 слов\)/, (m) => `длинное тире ${num(+m[1], "раз", "раза", "раз")}, ${m[2].replace(".", ",")} на 100 слов`],
-    [/^ровный ритм/, () => "предложения одной длины"],
-    [/^ровные абзацы/, () => "абзацы одной длины"],
-    [/^лексическое разнообразие/, () => "слова почти не повторяются: синоним там, где человек повторил бы слово"],
-    [/^листикл \((\d+) пунктов, (\d+)% строк\)/, (m) => `список вместо текста: ${num(+m[1], "пункт", "пункта", "пунктов")}, ${m[2]}% строк`],
-  ];
-  const humanReason = (reason) => {
-    for (const [re, fn] of HUMAN_REASONS) { const m = reason.match(re); if (m) return fn(m); }
-    return reason;
-  };
-  // Что делать со штрафом за структуру: у него нет подсвеченного оборота.
-  const STRUCT_HINTS = [
-    [/^ровный ритм/, "Разбейте длинное предложение или склейте два коротких."],
-    [/^ровные абзацы/, "Пусть один абзац будет вдвое короче соседнего."],
-    [/^лексическое разнообразие/, "Где подобран синоним, верните то же слово или «он», «это»."],
-    [/^листикл/, "Часть пунктов перескажите абзацем."],
-  ];
-  const structHint = (reason) => { const h = STRUCT_HINTS.find(([re]) => re.test(reason)); return h ? h[1] : ""; };
-
-  // Что делать с находкой: одна фраза на категорию, по каталогу скилла.
-  const HINTS = {
-    "Канцелярит": "Отглагольное существительное. Верните глагол: не «осуществление проверки», а «проверить».",
-    "Кальки": "Калька с английского. Уберите связку или замените глаголом по смыслу, двоеточием, точкой.",
-    "Раздувание": "Слово-усилитель. Уберите его: если смысл не изменился, это была вода.",
-    "Формула-выводы": "Вывод по формуле. Скажите сам вывод, без «таким образом» и «подводя итог».",
-    "Чатбот": "Реплика ассистента, а не текст. Удалите целиком.",
-    "Параллелизмы": "«Не просто X, а Y». Оставьте Y: про X читатель и так не думал.",
-    "Вводные-открытия": "Пустое открытие. Начните с первого предложения по делу.",
-    "Модальные хеджи": "Хедж. Решите, так это или нет, и напишите утверждение.",
-    "Мотивационные клише": "Клише из мотивационных постов. Замените конкретным действием или результатом.",
-    "Контекстуализаторы": "Обстоятельство ни о чём: «в условиях», «в рамках». Уберите или назовите условие точно.",
-    "Маркетинговые штампы": "Штамп. Скажите, что именно получит читатель: числом, сроком, примером.",
-    "Псевдо-сократические": "Вопрос самому себе и ответ. Оставьте ответ.",
-    "Авторитетные трюизмы": "Анонс вывода вместо вывода. Уберите анонс, оставьте тезис.",
-    "Псевдо-терапевтические": "Интонация психолога из чата. Уберите, если текст не о чувствах.",
-    "Самомаркировка честности": "Честность не объявляют. Уберите «честно говоря» и «без прикрас».",
-    "Эмодзи-декор": "Эмодзи как маркер списка или украшение. Уберите.",
-    "Технические маркеры": "Артефакт генерации: латиница внутри русского слова или лишний символ. Исправьте.",
-    "Неодушевлённый субъект": "Предмет не «подчёркивает» и не «демонстрирует». Кто это делает? Назовите человека.",
-    "Триада-отрицание": "«Без X. Без Y. Только Z.» Скажите одним предложением, что есть.",
-    "Финальная мораль": "Мораль в финале. Читатель решит сам: закончите фактом или действием.",
-    "Почерк модели": "Оборот из почерка свежих моделей. Один бывает и у человека, два-три в тексте выдают генерацию. Скажите то же проще или конкретнее.",
-    "Обвязка чата": "Кусок ответа чат-бота, а не текста: разметка, «Вариант 1», плейсхолдер, предложение доработать. Удалите или впишите свои данные.",
-    "Артефакты копипасты": "След копирования из чата: служебная разметка или ссылка-цитата. Удалите.",
-  };
-  const BAN_HINTS = [
-    [/тире/i, "Тире через предложение выдаёт генерацию. Замените точкой, запятой или двоеточием."],
-    [/^данн/i, "«Данный» замените на «этот» или уберите совсем."],
-    [/^явля/i, "«Является» уберите: «X это Y», «X стал Y» или глагол по смыслу."],
-    [/не просто/i, "Оставьте вторую часть: про первую читатель и так не думал."],
-    [/не только/i, "Перечислите обе вещи через запятую или оставьте одну, главную."],
-    [/важно/i, "Если это важно, скажите само утверждение. Анонс важности уберите."],
-    [/стоит отметить|следует отметить/i, "Уберите анонс и оставьте то, что хотели отметить."],
-    [/современном мире/i, "Пустое открытие. Начните с первого предложения по делу."],
-    [/горизонт/i, "Штамп. Скажите, что именно откроется: рынок, число, срок."],
-    [/погруз|окунит/i, "Штамп приглашения. Скажите, что читатель увидит или сделает."],
-  ];
-  const GENERIC_BAN = "Оборот, по которому нейросеть узнают с первого абзаца. Уберите или скажите то же конкретно.";
-  const GENERIC_MK = "Маркер: по одному не приговор, но их плотность выдаёт генерацию. Замените менее ожидаемым словом.";
-  const hintFor = (kind, cat, name) => {
-    if (kind === "ban") { const h = BAN_HINTS.find(([re]) => re.test(name)); return h ? h[1] : GENERIC_BAN; }
-    return HINTS[cat] || GENERIC_MK;
-  };
+  const humanReason = H.humanReason, structHint = H.structHint, hintFor = H.hintFor;
 
   // --- Находки в тексте --------------------------------------------------------
   // Края подсветки тянем до границы слова только для показа: «ключев|ым» режет
@@ -154,7 +78,7 @@
     for (const s of spans) { if (s.a < pos) continue; out.push(s); pos = s.b; }
     return out;
   }
-  const kindLabel = (kind) => (kind === "ban" ? "жёсткий запрет" : "маркер");
+  const kindLabel = H.kindLabel;
   const spanTitle = (s) => ruleName(s.kind === "ban" ? s.name : `${s.cat}: ${s.name}`);
 
   function renderMarked(text, spans) {
@@ -258,7 +182,7 @@
     $("card-clean").hidden = !!queue.length;
     if (!queue.length) {
       $("clean-title").textContent = verdictOf(band, r, spans);
-      $("clean-text").textContent = nextLine(band, spans, r);
+      $("clean-text").textContent = H.nextLine(band, spans.length > 0, r);
       return;
     }
     showCard(0);
@@ -287,25 +211,12 @@
   });
 
   // --- Вердикт словами ------------------------------------------------------------
-  const bandOf = (r) => (r.band === "чисто" ? "good" : r.band === "правка" ? "warn" : "bad");
+  const bandOf = H.bandOf;
   const TAG = { good: "чисто", warn: "есть что поправить", bad: "много шаблонов" };
   function verdictOf(band, r, spans) {
     if (band === "good") return r.words < 100 && !spans.length ? "Чисто, но текста пока мало" : "Текст чистый";
     if (band === "warn") return "Нужна точечная правка";
     return "Много шаблонных оборотов";
-  }
-  function nextLine(band, spans, r) {
-    if (!spans.length) {
-      if (!r.penalties.length) {
-        return r.words < 100
-          ? `На ${num(r.words, "слове", "словах", "словах")} балл мало что значит: проверьте текст целиком.`
-          : "Шаблонных оборотов не найдено.";
-      }
-      return "Обороты не найдены, штраф только за структуру.";
-    }
-    if (band === "bad") return "Начните с замечаний «лучше убрать».";
-    if (band === "warn") return "Пройдитесь по подчёркнутому, структуру не трогайте.";
-    return "Подчёркнутое можно поправить, но это уже вкус.";
   }
 
   // Подробность к причине: какие именно обороты или что делать со структурой.
@@ -326,26 +237,9 @@
     return `<li title="${esc(p.reason)}"><span class="txt">${esc(humanReason(p.reason))}${detail ? `<span class="sub">${esc(detail)}</span>` : ""}</span><span class="pts num">${esc(String(p.points).replace("-", "−"))}</span></li>`;
   };
 
-  function genreNote() {
-    const g = genreEl.value;
-    if (!g) return "";
-    const cats = ((RULES.genre_muted_categories || {})[g] || []).map((c) => c.toLowerCase());
-    if (((RULES.score || {}).lex_muted_genres || []).includes(g)) cats.push("лексическое разнообразие");
-    const bans = ((RULES.genre_muted_bans || {})[g] || []).map((b) => (typeof b === "string" ? b : b.name)).filter(Boolean);
-    const parts = [];
-    if (cats.length) parts.push(cats.join(", "));
-    if (bans.length) parts.push(`${num(bans.length, "запрет", "запрета", "запретов")} вроде ${bans.slice(0, 2).map((b) => `«${ruleName(b.split(" / ")[0])}»`).join(" и ")}`);
-    return parts.length ? `Жанр «${genreLabel()}»: не считаются ${parts.join(" и ")}.` : `Жанр «${genreLabel()}»: часть маркеров не считается.`;
-  }
+  const genreNote = () => H.genreNote(genreEl.value, genreLabel(), RULES);
 
-  // Чего расширение посчитать не может: без морфологического разбора нет штрафа
-  // за номинальность. Разница всегда в пользу текста, поэтому о ней говорим вслух.
-  function unmeasuredLine(r) {
-    const gaps = r.unmeasured || [];
-    if (!gaps.length) return "";
-    const names = gaps.map((g) => `${g.name}, до ${g.max_points} баллов`).join("; ");
-    return `Не измерено в браузере: ${names}. Счёт в скилле для агентов может быть ниже на эту величину.`;
-  }
+  const unmeasuredLine = H.unmeasuredLine;
 
   // --- Режимы: ввод и результат -------------------------------------------------
   let checked = null; // { text, r, spans }
@@ -422,9 +316,18 @@
     ].filter(Boolean).join("\n");
   }
 
+  // Подсказка под кнопкой: пустое поле или текст не на русском. Балла во
+  // втором случае нет совсем: английский абзац иначе получил бы 100 «чисто».
+  const RUN_HINT = $("run-hint").textContent;
+  const showRunHint = (msg) => { $("run-hint").textContent = msg; $("run-hint").hidden = false; statusEl.textContent = msg; };
   function check(opts = {}) {
     const text = textEl.value;
-    if (!text.trim()) { setMode("edit"); if (opts.focus) { $("run-hint").hidden = false; textEl.focus(); } return false; }
+    if (!text.trim()) { setMode("edit"); if (opts.focus) { showRunHint(RUN_HINT); textEl.focus(); } return false; }
+    if (!globalThis.humanizerIsRussian(text)) {
+      checked = null; setMode("edit"); showRunHint(H.NOT_RUSSIAN);
+      if (opts.focus) textEl.focus();
+      return false;
+    }
     renderResult(text, globalThis.humanizerScan(text, genreEl.value || null), !!opts.stale);
     setMode("view");
     if (!opts.stale) store.set("local", "last", { text, after: afterEl.value });
@@ -536,6 +439,7 @@
     if (cmpEl.hidden || !checked) return;
     const after = afterEl.value;
     if (!after.trim()) { cmpOut.hidden = true; cmpOut.innerHTML = ""; return; }
+    if (!globalThis.humanizerIsRussian(after)) { cmpOut.hidden = false; cmpOut.innerHTML = `<p class="lang-warn">${esc(H.NOT_RUSSIAN)}</p>`; return; }
     const rBefore = checked.r, rAfter = globalThis.humanizerScan(after, genreEl.value || null);
     const d = rAfter.score - rBefore.score;
     const delta = d > 0 ? `+${d}` : d < 0 ? `−${-d}` : "0";

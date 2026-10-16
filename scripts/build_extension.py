@@ -2,8 +2,9 @@
 """Сборка Chrome-расширения из extension/ и браузерного сканера сайта.
 
 Расширение не держит своей копии правил: движок docs/scan.js, правила
-docs/scan-rules.js (экспорт из Python, гейт export_web_rules.py --check) и
-браузерный факт-замок docs/facts.js копируются в extension/vendor/. Копии закоммичены, чтобы папку можно было
+docs/scan-rules.js (экспорт из Python, гейт export_web_rules.py --check),
+браузерный факт-замок docs/facts.js и подсказки к находкам docs/hints.js
+копируются в extension/vendor/. Копии закоммичены, чтобы папку можно было
 загрузить в Chrome как есть, а этот скрипт с --check следит, что они не
 отстали от docs/: третий расходящийся сканер нам не нужен.
 
@@ -22,15 +23,25 @@ import zipfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "scripts"))
+from self_scan import js_string_dashes  # noqa: E402
 EXT = ROOT / "extension"
 VENDOR = EXT / "vendor"
 SOURCES = {
     "scan.js": ROOT / "docs" / "scan.js",
     "scan-rules.js": ROOT / "docs" / "scan-rules.js",
     "facts.js": ROOT / "docs" / "facts.js",
+    "hints.js": ROOT / "docs" / "hints.js",
 }
 # Тексты интерфейса и карточки Web Store: длинное тире под запретом проекта.
 UI_TEXTS = [EXT / "popup.html", EXT / "README.md"]
+# Скрипты расширения: тире ищется в строковых литералах (то, что видит
+# пользователь), комментарии не в счёт. Лексер общий с self_scan.py.
+UI_SCRIPTS = [EXT / "popup.js", EXT / "background.js"]
+BACKGROUND = EXT / "background.js"
+# Название пункта контекстного меню повторяется в попапе и в политике
+# приватности: человек ищет в меню ровно эти слова.
+MENU_TITLE_MENTIONS = [EXT / "popup.html", ROOT / "docs" / "privacy.html"]
 PACKAGE = ROOT / "package.json"
 MANIFEST = EXT / "manifest.json"
 # Что едет в архив для Web Store: всё из extension/, кроме служебного.
@@ -66,6 +77,16 @@ def check_manifest() -> list[str]:
     for p in UI_TEXTS:
         if "—" in p.read_text(encoding="utf-8"):
             errors.append(f"длинное тире в {p.relative_to(ROOT)}")
+    for p in UI_SCRIPTS:
+        for ln in js_string_dashes(p.read_text(encoding="utf-8")):
+            errors.append(f"длинное тире в строке {p.relative_to(ROOT)}:{ln}")
+    m_title = re.search(r'title:\s*"([^"]+)"', BACKGROUND.read_text(encoding="utf-8"))
+    if not m_title:
+        errors.append("не найден title пункта меню в background.js")
+    else:
+        for p in MENU_TITLE_MENTIONS:
+            if f"«{m_title.group(1)}»" not in p.read_text(encoding="utf-8"):
+                errors.append(f"{p.relative_to(ROOT)} не называет пункт меню «{m_title.group(1)}» как background.js")
     for rel in ("fonts/OFL-AlumniSans.txt", "fonts/OFL-JetBrainsMono.txt", "fonts/OFL-Onest.txt"):
         if not (EXT / rel).exists():
             errors.append(f"нет {rel}: шрифты под OFL едут только вместе с лицензией")
