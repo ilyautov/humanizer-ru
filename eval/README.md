@@ -174,7 +174,7 @@ HARD BANS > 0 или маркеров > 5. Так мы ловим переусе
 python eval/run_eval.py --save-baseline
 
 # проверить, что метрики не просели (для CI/pre-push):
-python eval/run_eval.py --baseline eval/out/baseline.json
+python eval/run_eval.py --baseline eval/baseline.json
 ```
 
 Гейт сравнивает «после»-метрики (или raw, если humanized нет) с эталоном по id и
@@ -222,47 +222,85 @@ python eval/run_triggers.py --strict   # пропуск триггера тож�
 
 ## Структура
 
+Любой прогон `run_eval.py` перезаписывает `RESULTS.md` (даже с `--baseline`).
+Если вы гоняли харнес ради проверки, а не ради нового отчёта, верните файл:
+`git checkout -- eval/RESULTS.md`. Правка `RESULTS.md` руками не нужна, это
+автогенерируемый отчёт.
+
 ```
 eval/
-├── README.md              — этот файл
-├── RESULTS.md             — публичный отчёт качества (run_eval.py)
-├── AINL-CALIBRATION.md    — калибровка каталога на внешнем размеченном корпусе (правится руками)
-├── MINING.md              — добыча кандидатов в маркеры из корпуса, результаты и границы (правится руками)
-├── M4-CALIBRATION.md      — второй домен (M4, парный корпус): что держится при смене регистра (правится руками)
-├── LLMTRACE-CALIBRATION.md — третий домен (LLMTrace): 30 генераторов, GigaChat и YandexGPT, тире по доменам (правится руками)
-├── TRIGGERS.md            — публичный отчёт границы активации (run_triggers.py)
-├── run_eval.py            — оркестратор качества (главный вход)
-├── run_triggers.py        — trigger-eval: граница активации (детерминированный, без LLM)
-├── ainl_calibration.py    — ложные срабатывания на AINL-Eval 2025 (внешний корпус, вне CI)
-├── mine_patterns.py       — шахта: ищет кандидатов в маркеры по размеченному корпусу (вне CI, тест в scripts/test_mining.py)
-├── m4_calibration.py      — калибровка на парном корпусе M4, русская часть (внешний корпус, вне CI)
-├── llmtrace_calibration.py — калибровка на LLMTrace: 8 доменов, 30 генераторов, парное сравнение по topic_id (внешний корпус, вне CI)
-├── cross_domain.py        — проверка кандидатов из шахты на втором домене: что переживает смену регистра
-├── matrix.py              — матрица генераторов: оси размер / семейство / поколение / дообучение / промпт, парно на одних постах
-├── build_blog_pairs.py    — парный корпус целевого домена: живые посты Пикабу и их переписывание моделями
-├── humanize_pass.py       — отпечаток самого скилла: маркеры до и после прогона через хуманайзер
-├── remote_backend.py      — удалённые генераторы для матрицы (бесплатные тарифы, OpenAI-совместимый протокол)
-├── author_profiles.py     — есть ли у автора почерк, отличимый от его же шума (проверка посылки калибровки)
-├── channel_profile.py     — профиль одного живого канала по экспорту Telegram (данные приватные, вне репо)
-├── channel_eras.py        — тот же канал по эпохам: куда двигался гибридный автор
-├── channel_patterns.py    — n-граммы канала против человеческого корпуса
-├── triggers.json          — корпус trigger-кейсов (should-trigger + near-miss)
-├── llm_backend.py         — клиент локальной Ollama (generate/json/embed/logprobs)
-├── judge.py               — LLM-судья (Ollama по умолчанию, Anthropic опц.)
-├── faithfulness.py        — защита смысла (cosine + meaning через Ollama)
-├── requirements-eval.txt  — опц. зависимости (requests + опц. anthropic/transformers)
-├── corpus/
-│   ├── meta.json          — манифест корпуса
-│   ├── raw/*.txt          — AI-тексты
-│   └── human/*.txt        — человеческие тексты (контроль)
-├── detectors/
-│   ├── base.py            — ABC Detector + контракт
-│   ├── ru_roberta.py      — локальный HF-детектор
-│   ├── ollama_llm.py      — локальный LLM-детектор (Ollama)
-│   ├── ollama_ppl.py      — приближённый perplexity-детектор (Ollama, --perplexity)
-│   └── __init__.py        — registry: available_detectors() / perplexity_detectors()
-└── out/                   — results.json, baseline.json, triggers.json (gitignored)
+├── README.md                    этот файл
+├── baseline.json                эталон regression-гейта; его использует CI (--baseline eval/baseline.json)
+├── triggers.json                корпус trigger-кейсов (should-trigger + near-miss)
+├── run_eval.py                  оркестратор качества (главный вход)
+├── run_triggers.py              trigger-eval: граница активации (детерминированный, без LLM)
+├── ainl_calibration.py          ложные срабатывания на AINL-Eval 2025 (внешний корпус, вне CI)
+├── m4_calibration.py            калибровка на парном корпусе M4, русская часть (вне CI)
+├── llmtrace_calibration.py      калибровка на LLMTrace: 8 доменов, 30 генераторов (вне CI)
+├── mine_patterns.py             шахта: кандидаты в маркеры по размеченному корпусу (вне CI, тест в scripts/test_mining.py)
+├── cross_domain.py              проверка кандидатов из шахты на втором домене
+├── matrix.py                    матрица генераторов: размер, семейство, поколение, дообучение, промпт
+├── build_blog_pairs.py          парный корпус целевого домена: живые посты и их переписывание моделями
+├── humanize_pass.py             отпечаток самого скилла: маркеры до и после прогона
+├── remote_backend.py            удалённые генераторы для матрицы (бесплатные тарифы, OpenAI-совместимый протокол)
+├── author_profiles.py           есть ли у автора почерк, отличимый от его же шума
+├── channel_profile.py           профиль одного живого канала по экспорту Telegram (данные приватные, вне репозитория)
+├── channel_eras.py              тот же канал по эпохам
+├── channel_patterns.py          n-граммы канала против человеческого корпуса
+├── gen_modern_slop.py           генерация текстов свежих моделей для проверки сканера
+├── modern_slop_eval.py          прогон сканера по современному слопу
+├── run_literary_guard.py        граница пункта #53 на художественной прозе: тест на обналичивание там не применяется
+├── probe_installed_skill.py     парные прогоны инструкции через `claude -p` с чистым контекстом
+├── probe_agentic_skill.py       скилл как в живой сессии: модель сама читает SKILL.md и запускает сканер
+├── probe_scanner.py             балл сканера по условиям парного прогона probe_installed_skill.py
+├── skill_prompts.py             загрузка маршрута редактуры по умолчанию для офлайн-прогонов
+├── llm_backend.py               клиент локальной Ollama (generate/json/embed/logprobs)
+├── judge.py                     LLM-судья (Ollama по умолчанию, Anthropic опционально)
+├── faithfulness.py              защита смысла (cosine + meaning через Ollama)
+├── requirements-eval.txt        опциональные зависимости (requests, опционально anthropic/transformers)
+├── corpus/                      meta.json, raw/ (AI-тексты), human/ (человеческий контроль), humanized/, literary/, modern/ (фикстура современных моделей), ATTRIBUTION.md
+├── detectors/                   ABC Detector, локальный HF-детектор, детекторы на Ollama, perplexity
+├── candidates/                  кандидаты правок инструкции для парных прогонов (local-edit, local-edit-scope)
+└── out/                         results.json, отчёты прогонов (gitignored)
 ```
+
+Отчёты `eval/*.md`. Автогенерируемые помечены (авто), остальные правятся руками.
+
+| Файл | Для чего |
+|---|---|
+| `RESULTS.md` (авто) | метрики харнеса на корпусе: баны, маркеры, ритм, контроль переусердствования |
+| `TRIGGERS.md` (авто) | граница активации скилла: срабатывает ли на нужных запросах и молчит ли на near-miss |
+| `AINL-CALIBRATION.md` | калибровка каталога на AINL-Eval 2025 (35 158 научных аннотаций), ложные срабатывания на людях |
+| `M4-CALIBRATION.md` | второй домен: парный корпус M4, что держится при смене регистра |
+| `LLMTRACE-CALIBRATION.md` | третий домен: 30 генераторов, GigaChat и YandexGPT, тире по доменам |
+| `MINING.md` | добыча кандидатов в маркеры из корпуса, результаты и границы |
+| `MODERN-SLOP.md` | почему сканер молчал на текстах свежих моделей и что изменилось |
+| `MODERN-SKILL-CHECK.md` | что скилл снимает на современном слопе и где ломает смысл |
+| `LOCAL_EDIT_CHECK.md` | слепое сравнение локальной редактуры с прежней инструкцией (195 оценок) |
+| `LOCAL_EDIT_INTEGRATION.md` | границы встраивания локальной редактуры в действующие точки входа |
+| `INTEGRATION_CHECK.md` | протокол проверки интеграции локальной редактуры |
+| `MERGED_EDIT_CHECK.md` | объединённый скилл: локальная редактура плюс запреты, снимает ли маркеры |
+| `REVIEW_CHECK.md` | правки «независимая сверка и соединительная ткань»: не стало ли хуже по смыслу |
+| `SCOPE_CHECK.md` | проверка границ утверждения: правка не достраивает факты |
+| `INSTALLED_SKILL_TEST.md` | 50 вызовов установленной копии скилла, поведение редактора |
+| `SKILL_DEBUG.md` | диагностика почерка скилла на парном прогоне |
+| `SKILL_PATCH_CHECK.md` | проверка патча инструкции (кандидат не принят, дифф в `skill_patch_candidate.diff`) |
+| `PROBE_RUBRIC.md` | рубрика слепой оценки правок, зафиксированная до чтения ответов |
+| `OVERCORRECTION_CHECK.md` | проверка сигнала «сверхкоррекция» |
+| `NEW_CASES_CHECK.md` | двенадцать новых кейсов: тире, служебный хвост, оговорки, разметка |
+| `COMPETITOR_SKILLS_REVIEW.md` | статический разбор сторонних инструкций: какие приёмы проверить у нас |
+
+### Где взять корпуса
+
+Внешние корпуса в репозиторий не кладутся (у части выгрузок нет файла лицензии). Скрипты качают их во временную папку, в `eval/out/` пишутся только агрегаты. Нужна сеть при первом запуске; в CI эти прогоны не входят.
+
+| Корпус | Источник | Скрипт | Размер |
+|---|---|---|---|
+| AINL-Eval 2025 | [репозиторий организаторов](https://github.com/iis-research-team/AINL-Eval-2025) | `python eval/ainl_calibration.py` (`--csv путь.csv` для готового файла) | 35 158 научных аннотаций, около 48 МБ |
+| M4 (русская часть) | [M4](https://github.com/mbzuai-nlp/M4) | `python eval/m4_calibration.py` | 5 759 пар после языкового фильтра, около 135 МБ |
+| LLMTrace | [набор на Hugging Face](https://huggingface.co/datasets/iitolstykh/LLMTrace_classification), arXiv:2509.21269, Apache 2.0 | `python eval/llmtrace_calibration.py` | 14 763 текста в используемой выборке (первые 80 МБ test-сплита из 318 МБ) |
+
+Итого 35 158 + 5 759 + 14 763 = 55 680 текстов. Методику, оговорки и результаты смотрите в соответствующих `*-CALIBRATION.md`; список проверенных первоисточников в [SOURCES.md](../SOURCES.md).
 
 ## Парные прогоны инструкции скилла (сентябрь 2026)
 
