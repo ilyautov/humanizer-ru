@@ -13,9 +13,11 @@ structure.py, lexical.py и repeats.py и печатает их в один JS-�
 - `\\w` в Python это буквы/цифры/подчёркивание любого алфавита, в JS ASCII.
   Заменяется на класс `[\\p{L}\\p{N}_]`; внутри `[...]` не встречается, скрипт
   это проверяет.
-- Локальные флаги `(?-i:...)` в Node 22 нет: единственный такой паттерн
-  («от X до Y») переписан руками в JS_OVERRIDES, паритет проверяет
-  scripts/test_web_parity.py на корпусе.
+- Локальных флагов `(?-i:...)` нет в части браузеров. Паттерн с ними уходит
+  с флагами `gu` (регистрозависимо): группа `(?-i:X)` становится `(?:X)`, а
+  буквы вне таких групп раскрываются в пары `[аА]`. Классы `[...]` вне
+  `(?-i:...)` в таком паттерне скрипт не переводит и падает. Паритет
+  проверяет scripts/test_web_parity.py на корпусе.
 Литеральные фразы уходят как есть, экранирует их уже JS.
 
 Использование:
@@ -44,30 +46,59 @@ OUT = ROOT / "docs" / "scan-rules.js"
 JS_BOUNDARY = r"(?:(?<=[\p{L}\p{N}_])(?![\p{L}\p{N}_])|(?<![\p{L}\p{N}_])(?=[\p{L}\p{N}_]))"
 JS_WORD = r"[\p{L}\p{N}_]"
 
-# Паттерны, которые нельзя перевести механически. Ключ: исходная Python-регулярка.
-# Значение: (JS-паттерн, флаги). По умолчанию все правила идут с флагами "giu".
-JS_OVERRIDES: dict[str, tuple[str, str]] = {
-    # (?-i:...) держит X и Y строчными, чтобы имена собственные («от Москвы до
-    # Питера») не считались ложным диапазоном; сами «от/до» регистронезависимы.
-    # В JS правило целиком регистрозависимое, а регистр «от/до» перечислен явно.
-    r"\bот\s+(?-i:([а-яё]+))\s+до\s+(?-i:(?!\1\b)[а-яё]+)\b": (
-        JS_BOUNDARY + r"[оО][тТ]\s+([а-яё]+)\s+[дД][оО]\s+(?!\1" + JS_BOUNDARY + r")[а-яё]+" + JS_BOUNDARY,
-        "gu",
-    ),
-}
-
 
 def js_rule(pattern: str) -> dict:
     """{"re": ..., "flags": ...} для одной Python-регулярки."""
-    if pattern in JS_OVERRIDES:
-        js, flags = JS_OVERRIDES[pattern]
-        return {"re": js, "flags": flags}
+    if "(?-i:" in pattern:
+        return {"re": py_to_js(case_sensitive_js(pattern)), "flags": "gu"}
     return {"re": py_to_js(pattern)}
+
+
+def case_sensitive_js(pattern: str) -> str:
+    """Python-регулярка с локальными `(?-i:...)` под флагом IGNORECASE как
+    регистрозависимая JS-регулярка: внутри групп `(?-i:...)` всё как есть, вне
+    их каждая буква раскрыта в `[аА]`. Нумерация захватов не меняется."""
+    out: list[str] = []
+    i, strict = 0, []  # strict: глубины скобок, на которых открыта (?-i:
+    depth = 0
+    while i < len(pattern):
+        c = pattern[i]
+        if c == "\\":
+            out.append(pattern[i:i + 2])
+            i += 2
+            continue
+        if pattern.startswith("(?-i:", i):
+            depth += 1
+            strict.append(depth)
+            out.append("(?:")
+            i += 5
+            continue
+        if c == "[":
+            end = i + 1
+            while pattern[end] != "]":
+                end += 2 if pattern[end] == "\\" else 1
+            if not strict:
+                raise SystemExit(f"[export] класс [...] вне (?-i:...): {pattern!r}")
+            out.append(pattern[i:end + 1])
+            i = end + 1
+            continue
+        if c == "(":
+            depth += 1
+        elif c == ")":
+            if strict and strict[-1] == depth:
+                strict.pop()
+            depth -= 1
+        if not strict and c.lower() != c.upper():
+            out.append(f"[{c.lower()}{c.upper()}]")
+        else:
+            out.append(c)
+        i += 1
+    return "".join(out)
 
 
 def py_to_js(pattern: str) -> str:
     if "(?-i" in pattern or "(?i" in pattern:
-        raise SystemExit(f"[export] локальные флаги без override: {pattern!r}")
+        raise SystemExit(f"[export] локальные флаги без перевода: {pattern!r}")
     # \w внутри класса символов менять нельзя (получится вложенный класс).
     depth = 0
     i = 0
