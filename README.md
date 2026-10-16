@@ -176,6 +176,22 @@ cp -r humanizer-ru/skills/humanizer-ru ~/.codex/skills/
 вызов: `$humanizer-ru` или автоматически по триггер-фразам («очеловечь»,
 «убери канцелярит»). Проектная установка: та же папка в `.codex/skills/` внутри репозитория.
 
+### 5. Gemini CLI и Cursor
+
+**Gemini CLI.** В корне репозитория лежит манифест расширения `gemini-extension.json`, а скилл в папке `skills/`, так что расширение ставится прямо из репозитория:
+
+```bash
+gemini extensions install https://github.com/ilyautov/humanizer-ru
+```
+
+**Cursor.** Манифест плагина описан в `.cursor-plugin/plugin.json`. Универсальный путь, который сам находит Cursor среди установленных агентов и кладёт скилл куда нужно:
+
+```bash
+npx skills add ilyautov/humanizer-ru
+```
+
+Если расширение или плагин поставить не удалось, скопируйте папку `skills/humanizer-ru` в каталог скиллов агента, как в разделе «Другие агенты».
+
 ### Проверка установочного пакета
 
 Перед релизом соберите ZIP тем же скриптом, который использует CI, затем
@@ -196,7 +212,7 @@ RESULT: PASS build-release-zip
 RESULT: PASS install-smoke
 ```
 
-### 5. Другие агенты (общий стандарт SKILL.md)
+### 6. Другие агенты (общий стандарт SKILL.md)
 
 Формат Agent Skills стал кросс-платформенным, поэтому humanizer-ru работает и за пределами упакованных стеков. Официально упакованы и проверены: Claude Code, Codex CLI, Cursor, Gemini CLI, DeepSeek Harness. Остальные агенты читают тот же `SKILL.md`, отдельная версия не нужна.
 
@@ -210,7 +226,7 @@ RESULT: PASS install-smoke
 
 > У части этих агентов (OpenClaw, Kimi, Hermes) есть публичные каналы дистрибуции скиллов (реестр ClawHub, tap-репозитории). Листинг там даёт охват без отдельного кода: формат общий.
 
-### 6. DeepSeek Harness (dsh)
+### 7. DeepSeek Harness (dsh)
 
 DeepSeek Harness читает тот же формат Agent Skills, и скилл ставится двумя способами.
 
@@ -232,15 +248,17 @@ cp -r humanizer-ru/skills/humanizer-ru ~/.agents/skills/
 
 dsh сканирует `~/.agents/skills` и `~/.dsh/skills` сам, перезапуск не нужен. Ключ `allowed-tools` из фронтматтера dsh не читает, а `references/` разрешает относительно папки скилла, так что каталог и журнал правок открываются как в Claude Code.
 
-### 7. Сканер отдельно: pip, MCP-сервер и GitHub Action
+### 8. Сканер отдельно: pip, MCP-сервер и GitHub Action
 
 Сканер живёт и без скилла, пакетом [`ru-humanizer`](https://pypi.org/project/ru-humanizer/) на PyPI (имя `humanizer-ru` на PyPI занято). Это тот же `scan.py`, только командой:
 
 ```bash
-pip install ru-humanizer
+pipx install ru-humanizer   # или без установки: uvx ru-humanizer статья.md
 ru-humanizer статья.md --genre academic
 ru-humanizer чистовик.md --before исходник.md
 ```
+
+Голый `pip install ru-humanizer` на macOS с Homebrew и на Debian/Ubuntu падает с `externally-managed-environment` (PEP 668): берите `uvx`, `pipx` или виртуальное окружение (`python3 -m venv .venv && .venv/bin/pip install ru-humanizer`).
 
 Тот же пакет поднимает MCP-сервер с двумя инструментами: `scan_text` даёт балл, штрафы, запреты и маркеры с позициями, `compare_texts` считает «было и стало» и факт-замок между исходником и правкой. Подключается к Claude Desktop, Cursor и любому клиенту MCP; в Claude Code одной командой:
 
@@ -286,7 +304,7 @@ claude mcp add humanizer-ru -- uvx ru-humanizer mcp
 При установке плагином в Claude Code доступны slash-команды:
 
 ```
-/humanize <текст или путь к файлу>   # полный рерайт
+/humanize <текст или путь к файлу>   # локальная редактура
 /audit <текст или путь к файлу>      # аудит без правки (сканер + разбор)
 ```
 

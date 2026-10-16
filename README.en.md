@@ -97,9 +97,23 @@ cp -r /tmp/humanizer-ru/skills/humanizer-ru ~/.claude/skills/
 ```
 
 Copy the whole folder, not just SKILL.md: the skill ships with a deterministic
-scanner, `scripts/scan.py` (the machine half of Audit mode; needs
-`pip install razdel pymorphy3`, and the skill gracefully falls back to a manual
-audit without them).
+scanner, `scripts/scan.py` (the machine half of Audit mode). It needs `razdel`
+and `pymorphy3`. Without them the skill falls back to a manual audit and must
+say so; you will not see the "Чистота: N/100" score.
+
+How to install the dependencies. On macOS with Homebrew Python and on
+Debian/Ubuntu a bare `pip install` fails with `externally-managed-environment`
+(PEP 668), so use any of three ways:
+
+```bash
+uvx ru-humanizer file.txt                       # no install, needs uv
+pipx install ru-humanizer                       # the ru-humanizer command in PATH
+python3 -m venv ~/.humanizer-ru && ~/.humanizer-ru/bin/pip install razdel pymorphy3
+~/.humanizer-ru/bin/python ~/.claude/skills/humanizer-ru/scripts/scan.py file.txt
+```
+
+Check that the scanner is alive: `python3 ~/.claude/skills/humanizer-ru/scripts/scan.py --help`
+prints no `[ошибка]` line.
 
 ### Package install smoke
 
@@ -136,7 +150,23 @@ Or from inside Codex via `skill-installer` with the path
 invoke with `$humanizer-ru` or let it auto-trigger. For a per-project install,
 put the same folder under `.codex/skills/` in your repository.
 
-### 5. Other agents (shared SKILL.md standard)
+### 5. Gemini CLI and Cursor
+
+**Gemini CLI.** The repository root holds the extension manifest `gemini-extension.json` and the skill lives in `skills/`, so the extension installs straight from the repository:
+
+```bash
+gemini extensions install https://github.com/ilyautov/humanizer-ru
+```
+
+**Cursor.** The plugin manifest is `.cursor-plugin/plugin.json`. The universal path detects Cursor among your installed agents and puts the skill where it belongs:
+
+```bash
+npx skills add ilyautov/humanizer-ru
+```
+
+If the extension or plugin does not install, copy `skills/humanizer-ru` into the agent's skills directory, as in "Other agents".
+
+### 6. Other agents (shared SKILL.md standard)
 
 The Agent Skills format is now cross-platform, so humanizer-ru runs beyond the packaged stacks. Officially packaged and verified: Claude Code, Codex CLI, Cursor, Gemini CLI, DeepSeek Harness. Other agents read the same `SKILL.md`, no separate build needed.
 
@@ -150,7 +180,7 @@ Generic path for native readers: drop the skill folder into the directory the ag
 
 > Several of these agents (OpenClaw, Kimi, Hermes) have public skill registries (ClawHub and similar). Listing there adds reach with no extra code: the format is shared.
 
-### 6. DeepSeek Harness (dsh)
+### 7. DeepSeek Harness (dsh)
 
 DeepSeek Harness reads the same Agent Skills format. Two ways to install.
 
@@ -172,15 +202,17 @@ cp -r humanizer-ru/skills/humanizer-ru ~/.agents/skills/
 
 dsh scans `~/.agents/skills` and `~/.dsh/skills` on its own, no restart needed. It ignores the `allowed-tools` frontmatter key and resolves `references/` relative to the skill folder, so the catalog and the edit log open the same way as in Claude Code.
 
-### 7. Scanner on its own: pip, MCP server, GitHub Action
+### 8. Scanner on its own: pip, MCP server, GitHub Action
 
 The scanner also ships without the skill, as the [`ru-humanizer`](https://pypi.org/project/ru-humanizer/) package on PyPI (the `humanizer-ru` name on PyPI is taken). Same `scan.py`, as a command:
 
 ```bash
-pip install ru-humanizer
+pipx install ru-humanizer   # or with no install: uvx ru-humanizer article.md
 ru-humanizer article.md --genre academic
 ru-humanizer edited.md --before original.md
 ```
+
+A bare `pip install ru-humanizer` fails with `externally-managed-environment` (PEP 668) on macOS with Homebrew and on Debian/Ubuntu: use `uvx`, `pipx` or a virtual environment (`python3 -m venv .venv && .venv/bin/pip install ru-humanizer`).
 
 The same package runs an MCP server with two tools: `scan_text` returns the score, penalties, hard bans and markers with positions; `compare_texts` reports "was N, now M" plus the fact lock between source and edit. Works with Claude Desktop, Cursor and any MCP client; in Claude Code it is one command:
 
@@ -209,14 +241,42 @@ One-time publishing setup for PyPI and the MCP registry lives in `PUBLISHING.md`
 
 ## Usage
 
-Ask Claude in Russian:
+Ask the agent in Russian:
 
 ```
 Очеловечь этот текст: [paste text]
 Перепиши, звучит как робот: [paste text]
 ```
 
-Triggers: "очеловечь", "убери следы нейросети", "сделай живым", "звучит искусственно", "перепиши как человек".
+Triggers: "очеловечь", "убери следы нейросети", "сделай живым", "звучит искусственно", "перепиши как человек", "убери канцелярит", "слишком формально".
+
+Audit mode (diagnosis only, no rewriting):
+
+```
+Проверь этот текст на AI-маркеры: [paste text]
+```
+
+Targeted fix of one category:
+
+```
+Убери канцелярит из текста: [paste text]
+```
+
+With the plugin installed in Claude Code you also get slash commands:
+
+```
+/humanize <text or file path>   # local editing
+/audit <text or file path>      # audit without editing (scanner + review)
+```
+
+The scanner knows about genre. By default it is strict, tuned for marketing and blog text; for other registers it mutes markers that are legitimate there. `--before` prints the cleanliness score before and after plus the fact lock:
+
+```bash
+python skills/humanizer-ru/scripts/scan.py article.txt --genre academic  # also legal, fiction, news
+python skills/humanizer-ru/scripts/scan.py after.txt --before before.txt  # score before/after + fact lock
+```
+
+Why the genre switch exists: on the external labeled corpus AINL-Eval 2025 (35,158 Russian scientific abstracts) the strict mode left hard bans in 35.9% of human texts against 26.1-35.8% of machine ones, so on academic text the catalog could not tell the author at all. With the genre correction the false positives on humans fall to 4.2% ([eval/AINL-CALIBRATION.md](eval/AINL-CALIBRATION.md)). Two more corpora, M4 and LLMTrace (14,763 texts, 30 generators, GigaChat and YandexGPT included), confirmed the limits: [eval/M4-CALIBRATION.md](eval/M4-CALIBRATION.md), [eval/LLMTRACE-CALIBRATION.md](eval/LLMTRACE-CALIBRATION.md).
 
 ## Before / After
 
@@ -261,6 +321,16 @@ GPTZero, Originality.ai, ZeroGPT and most popular AI-text detectors are trained 
 Even the best Russian-specific detector (RuRoBERTa on the AINL-Eval 2025 benchmark) lands around 86% accuracy, and one verdict in seven is wrong. And detectors don't generalize across domains (verified, see [SOURCES.md](SOURCES.md)).
 
 **What this means for humanizing.** Chasing "detector bypass" on Russian means tuning text to an unreliable, moving target. So humanizer-ru optimizes genuine text quality (removing bureaucratic noun-chains, calques and clichés, restoring author voice and live rhythm) rather than gaming a classifier. Those are measurable language properties (see [`eval/`](eval/)) independent of how bad any given detector is. Perplexity and burstiness rise as a side effect, which is what detectors try (and often fail) to measure. We run detectors against real human Russian texts in the harness and publish the false-positive rate: [eval/RESULTS.md](eval/RESULTS.md).
+
+## FAQ
+
+**Will it get past an AI detector?** There is no such guarantee. Detectors and their thresholds change, and a study of one detector says nothing about your text. humanizer-ru is for editing, not for proving authorship.
+
+**Does the long dash have to go?** By default yes: it is the main typographic marker of machine Russian. If you are an editor and need proper publishing typography, say so, and the skill lifts the ban for that conversation.
+
+**Can I use it without the plugin?** Yes. Download `SKILL.md` and use it as a checklist, or paste it into the system prompt of any LLM.
+
+**Where are the detector benchmarks and calibration tables?** In the Russian [README.md](README.md) and in [`eval/`](eval/).
 
 ## Sources
 
