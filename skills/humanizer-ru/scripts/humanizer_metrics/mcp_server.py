@@ -14,14 +14,19 @@ python -m humanizer_metrics.mcp_server. Логи только в stderr: stdout 
 from __future__ import annotations
 
 import json
+import re
 import sys
 from importlib import metadata
+from pathlib import Path
 
-from . import analyze, cleanliness_score, diff_facts, facts_verdict
-from .markers import (GENRE_MUTED_BANS, GENRE_MUTED_CATEGORIES, GENRES,
-                      effective_hard_bans, mute_by_genre)
+from . import diff_facts, facts_verdict, scan_report
+from .markers import GENRES
 
-PROTOCOL_VERSION = "2025-06-18"
+# Версии протокола MCP, которые сервер действительно поддерживает, новые первыми.
+# Клиент просит свою: если она в списке, отвечаем ею, иначе последней нашей,
+# и клиент сам решает, продолжать ли (так требует спецификация).
+SUPPORTED_PROTOCOL_VERSIONS = ("2025-06-18", "2025-03-26", "2024-11-05")
+PROTOCOL_VERSION = SUPPORTED_PROTOCOL_VERSIONS[0]
 SERVER_NAME = "humanizer-ru"
 
 GENRE_SCHEMA = {
@@ -71,50 +76,38 @@ TOOLS = [
 ]
 
 
+# Файлы с номером релиза, которые ведёт scripts/bump_release.py: SKILL.md
+# рядом со скриптами (скилл установлен отдельно) и pyproject.toml в корне
+# репозитория. Установленный пакет ниже по списку: в venv он бывает старее
+# репозитория, из которого запущен сервер.
+_VERSION_FILES = (("SKILL.md", r"^# Humanizer-RU v(\d+\.\d+\.\d+)"),
+                  ("pyproject.toml", r'^version = "(\d+\.\d+\.\d+)"'))
+
+
 def _version() -> str:
+    for folder in list(Path(__file__).resolve().parents)[:4]:
+        for name, pattern in _VERSION_FILES:
+            path = folder / name
+            if path.is_file():
+                m = re.search(pattern, path.read_text(encoding="utf-8"), re.MULTILINE)
+                if m:
+                    return m.group(1)
     try:
         return metadata.version("ru-humanizer")
     except metadata.PackageNotFoundError:
         return "dev"
 
 
-def _hits(hits) -> list[dict]:
-    return [{"category": h.category, "name": h.marker, "count": h.count,
-             "positions": list(h.positions)} for h in hits]
-
-
 def scan(text: str, genre: str | None = None) -> dict:
-    """Тот же расчёт, что в scan.py: балл по жанру, частотные баны и жанровый фильтр."""
-    genre = genre or "marketing"
-    if genre not in GENRES:
-        raise ValueError(f"неизвестный жанр {genre!r}, допустимы: {', '.join(GENRES)}")
-    rep = analyze(text)
-    sc = cleanliness_score(rep, genre)
-    bans = mute_by_genre(effective_hard_bans(rep.hard_bans, rep.rhythm.words),
-                         genre, GENRE_MUTED_BANS)
-    soft = mute_by_genre(rep.markers, genre, GENRE_MUTED_CATEGORIES)
-    return {
-        "score": sc.score,
-        "band": sc.band,
-        "penalties": [{"reason": r, "points": p} for r, p in sc.penalties],
-        "notes": list(sc.notes),
-        "genre": genre,
-        "words": rep.rhythm.words,
-        "hard_bans": _hits(bans),
-        "hard_ban_count": sum(h.count for h in bans),
-        "markers": _hits(soft),
-        "marker_count": sum(h.count for h in soft),
-        "rhythm": rep.rhythm.as_dict(),
-        "morph": rep.morph.as_dict(),
-        "structure": rep.structure.as_dict(),
-        "lexical": rep.lexical.as_dict(),
-        "repeats": rep.repeats.as_dict(),
-    }
+    """Тот же отчёт, что у scan.py --json (общий конвейер scan_report)."""
+    return scan_report(text.lstrip("\ufeff"), genre).as_dict()
 
 
 def _report(d: dict) -> str:
     lines = [f"ЧИСТОТА: {d['score']}/100  [{d['band']}]  ({d['words']} слов, жанр {d['genre']})",
              "  (≥85 чисто · 60-84 точечная правка · <60 рерайт)"]
+    if "warning" in d:
+        lines.insert(0, f"⚠ {d['warning']}, отчёт ниже не показателен.")
     for p in d["penalties"]:
         lines.append(f"  {p['points']:+d}  {p['reason']}")
     if not d["penalties"]:
@@ -136,6 +129,7 @@ def _report(d: dict) -> str:
 
 
 def compare(before: str, after: str, genre: str | None = None) -> dict:
+    before, after = before.lstrip("\ufeff"), after.lstrip("\ufeff")
     b, a = scan(before, genre), scan(after, genre)
     fd = diff_facts(before, after)
     return {
@@ -169,7 +163,7 @@ def call_tool(name: str, args: dict) -> dict:
         text = args.get("text")
         if not isinstance(text, str):
             raise ValueError("нужен строковый аргумент text")
-        if not text.strip():
+        if not text.lstrip("\ufeff").strip():
             return {"content": [{"type": "text", "text": "Текст пуст, сканировать нечего."}],
                     "structuredContent": {"empty": True}, "isError": False}
         d = scan(text, args.get("genre"))
@@ -200,8 +194,9 @@ def handle(req: dict) -> dict | None:
                                              "error": {"code": code, "message": message}}
 
     if method == "initialize":
+        asked = params.get("protocolVersion")
         return ok({
-            "protocolVersion": params.get("protocolVersion") or PROTOCOL_VERSION,
+            "protocolVersion": asked if asked in SUPPORTED_PROTOCOL_VERSIONS else PROTOCOL_VERSION,
             "capabilities": {"tools": {"listChanged": False}},
             "serverInfo": {"name": SERVER_NAME, "version": _version()},
             "instructions": ("Сканер следов нейросети для русского текста. scan_text даёт балл "

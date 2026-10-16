@@ -10,8 +10,12 @@
 
 from __future__ import annotations
 
+import json
+import os
+import re
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -61,6 +65,67 @@ r = run(["-"], stdin="Я попробовал три раза. Не вышло. 
 check(r.returncode == 0, f"чистый текст: exit 0, получено {r.returncode}")
 check("ЧИСТОТА" in r.stdout, "обычный отчёт печатается")
 
+# --- BOM: не невидимый символ ------------------------------------------------
+_bom_dir = Path(tempfile.mkdtemp())
+_bom = _bom_dir / "bom.txt"
+_bom.write_bytes("\ufeffПривет, как дела? Поедем завтра на дачу.\n".encode("utf-8"))
+
+
+def _tech(stdout: str) -> list:
+    return [h for h in json.loads(stdout)["markers"] if h["category"] == "Технические маркеры"]
+
+
+r = run([str(_bom), "--json"])
+check(r.returncode == 0 and not _tech(r.stdout), f"файл с BOM: 0 технических маркеров, {r.stdout[:200]}")
+r = run(["-", "--json"], stdin="\ufeffПривет, как дела? Поедем завтра на дачу.\n")
+check(r.returncode == 0 and not _tech(r.stdout), "stdin с BOM: 0 технических маркеров")
+check(_tech(run(["-", "--json"], stdin="При\u200bвет, как дела?").stdout),
+      "невидимый символ внутри текста по-прежнему ловится")
+
+# --- CRLF: номера строк и баны как у LF --------------------------------------
+_crlf = _bom_dir / "crlf.txt"
+_crlf.write_bytes("Чистая строка.\r\n\r\nВ современном мире всё сложно.\r\n".encode("utf-8"))
+r = run([str(_crlf)])
+check(r.returncode == 1 and "стр. 3" in r.stdout, f"CRLF: бан найден на строке 3, {r.stdout[-300:]}")
+
+# --- HTML-блок: теги не ломают сканер, текст внутри сканируется --------------
+r = run(["-", "--json"], stdin="<div class=\"note\">\n<p>В современном мире всё сложно.</p>\n</div>\n")
+check(r.returncode == 1 and json.loads(r.stdout)["hard_ban_count"] == 1, "HTML-блок: бан внутри <p> найден")
+
+# --- --genre: жанр снимает законные баны и попадает в отчёт ------------------
+_acad = "Данный метод является основным. Данная модель является базовой. Результат — 5%."
+r = run(["-", "--json"], stdin=_acad)
+check(r.returncode == 1 and json.loads(r.stdout)["genre"] == "marketing", "без жанра строгий режим, exit 1")
+r = run(["-", "--json", "--genre", "academic"], stdin=_acad)
+_j = json.loads(r.stdout)
+check(r.returncode == 0 and _j["genre"] == "academic" and _j["muted_by_genre"]["hard_bans"] >= 2,
+      f"--genre academic снимает «данный», «является», тире: {_j['muted_by_genre']}")
+r = run(["-", "--genre", "academic"], stdin=_acad)
+check("жанр: academic" in r.stdout, "текстовый отчёт называет жанр")
+r = run(["-", "--genre", "poetry"], stdin=_acad)
+check(r.returncode == 2 and "Traceback" not in r.stderr, "неизвестный жанр: ошибка argparse, без трейсбека")
+
+# --- JSON CLI несёт позиции находок -----------------------------------------
+r = run(["-", "--json"], stdin="Чистая строка. В современном мире всё сложно.")
+_ban = json.loads(r.stdout)["hard_bans"][0]
+check(_ban["name"] == "В современном мире" and _ban["positions"] == [15], f"позиция бана в JSON: {_ban}")
+check("warning" not in json.loads(r.stdout), "у русского текста нет предупреждения о языке")
+check("warning" in json.loads(run(["-", "--json"], stdin="Plain English text only.").stdout),
+      "--json на английском несёт warning")
+
+# --- нет прав на чтение: сообщение и exit 2 ----------------------------------
+# На Windows chmod не снимает право чтения, кейс там не моделируется.
+if os.name != "nt" and hasattr(os, "geteuid") and os.geteuid() != 0:
+    _locked = _bom_dir / "locked.txt"
+    _locked.write_text("Текст.", encoding="utf-8")
+    _locked.chmod(0)
+    r = run([str(_locked)])
+    _locked.chmod(0o600)
+    check(r.returncode == 2 and "Traceback" not in r.stderr and "не могу прочитать" in r.stderr,
+          f"PermissionError: exit 2 и сообщение, получено {r.returncode} {r.stderr!r}")
+r = run([str(_bom_dir)])
+check(r.returncode == 2 and "Traceback" not in r.stderr, "папка вместо файла: exit 2 без трейсбека")
+
 # --- факт-замок: --before ---------------------------------------------------
 import tempfile as _tmp  # noqa: E402
 _d = Path(_tmp.mkdtemp())
@@ -73,7 +138,7 @@ _d = Path(_tmp.mkdtemp())
 r = run([str(_d / "invented.txt"), "--before", str(_d / "before.txt")])
 check(r.returncode == 2, f"выдуманный факт даёт exit 2, получено {r.returncode}")
 check("число:13" in r.stdout and "имя:стэнфорд" in r.stdout, "выдуманные число и имя названы")
-check("было 100" in r.stdout or "было " in r.stdout, "печатается «было N, стало M»")
+check(re.search(r"ЧИСТОТА: было \d+, стало \d+/100", r.stdout) is not None, "печатается «было N, стало M»")
 r = run([str(_d / "kept.txt"), "--before", str(_d / "before.txt")])
 check(r.returncode == 0, f"факты сохранены: exit 0, получено {r.returncode}")
 check("изменений в них не найдено" in r.stdout and "ручной сверки" in r.stdout, "совпадение элементов не гарантирует сохранение смысла")
