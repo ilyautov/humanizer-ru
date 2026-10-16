@@ -308,6 +308,20 @@ _BAN_LINE_RE = re.compile(r"^\s*⛔\s+(.+?)\s+×\d+", re.MULTILINE)
 _SCORE_RE = re.compile(r"ЧИСТОТА:\s*(\d+)/100")
 
 
+def extract_score(data: dict) -> int:
+    """Балл из JSON сканера: число или словарь {"score": N, ...} (два формата).
+
+    Не нашёлся ни так, ни так: ValueError, гейт падает, а не молчит.
+    """
+    sc = data.get("score")
+    if isinstance(sc, dict):
+        sc = sc.get("score")
+    if isinstance(sc, bool) or not isinstance(sc, (int, float)):
+        raise ValueError("в JSON сканера нет балла чистоты (ожидалось число "
+                         "в поле score или словарь с ключом score)")
+    return int(sc)
+
+
 def real_scan(text: str) -> dict:
     with tempfile.NamedTemporaryFile("w", suffix=".txt", encoding="utf-8", delete=False) as f:
         f.write(text)
@@ -319,7 +333,7 @@ def real_scan(text: str) -> dict:
         if out.returncode > 1:
             raise RuntimeError(f"scan.py упал (exit {out.returncode}): {out.stderr[-300:]}")
         data = json.loads(out.stdout)
-        data["_score"] = data.get("score", {}).get("score")
+        data["_score"] = extract_score(data)
         return data
     finally:
         Path(name).unlink(missing_ok=True)
@@ -352,7 +366,7 @@ def check_readme_audit(path: Path) -> list[str]:
         errors.append(f"{rel}: баны в примере {sorted(shown)} не совпадают с реальными "
                       f"{sorted(real_names)}")
     for sc in (int(x) for x in _SCORE_RE.findall(section)):
-        if real["_score"] is not None and sc != real["_score"]:
+        if sc != real["_score"]:
             errors.append(f"{rel}: в примере ЧИСТОТА {sc}/100, сканер даёт {real['_score']}/100")
     return errors
 

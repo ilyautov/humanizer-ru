@@ -123,6 +123,16 @@ check("пересказ числа из исходника остаётся за
 _h, _s = ce.check(_pair("Команда росла.", "Команда выросла вдвое."))
 check("одно количество без источника остаётся заметкой", not _h and _s, str((_h, _s)))
 
+# --- check_examples: балл из JSON сканера в обоих форматах ----------------
+check("балл-словарь", ce.extract_score({"score": {"score": 34, "band": "x"}}) == 34)
+check("балл-число", ce.extract_score({"score": 34, "band": "x"}) == 34)
+for _bad in ({}, {"score": {}}, {"score": "34"}, {"score": None}):
+    try:
+        ce.extract_score(_bad)
+        check(f"нет балла падает: {_bad}", False)
+    except ValueError:
+        check(f"нет балла падает: {_bad}", True)
+
 # --- bump_release: счётчики видят числа сквозь HTML-теги -------------------
 check("счётчик паттернов сквозь <b></b><span>",
       br.RE_PATTERN_COUNT.findall('<b>54</b><span>признака AI-текста</span>') == ["54"])

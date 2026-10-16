@@ -196,8 +196,8 @@ def fetch_with_retry(url: str, attempts: int = 3, timeout: int = 60) -> tuple[in
             return fetch(url, timeout=timeout)
         except urllib.error.HTTPError as e:
             last = e
-            if e.code < 500:
-                break  # 4xx повтором не лечится
+            if e.code < 500 and e.code != 429:
+                break  # 4xx повтором не лечится, кроме 429 (лимит)
             if i + 1 < attempts:
                 time.sleep(3)
         except Exception as e:  # noqa: BLE001
