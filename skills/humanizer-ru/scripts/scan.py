@@ -226,6 +226,8 @@ def main() -> int:
             print(f"  ⚠ потеряно: {x}")
         for x in fdiff.claims_added:
             print(f"  ⚠ утверждение появилось: {x}")
+        for x in fdiff.emphasis_lost:
+            print(f"  ℹ снято {x} (шаблонный жирный снимают нарочно, смысловой проверьте)")
         if fdiff.soft_added:
             print(f"  ℹ мелкие количества появились: {', '.join(fdiff.soft_added)} "
                   "(идиомы и пересказ чисел не считаются, проверьте глазами)")
