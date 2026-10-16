@@ -10,7 +10,9 @@ name: Publish to ClawHub
 #   2. создать токен в веб-интерфейсе
 #   3. положить его в Settings -> Secrets and variables -> Actions
 #      под именем CLAWHUB_TOKEN
-# Без токена режим «preview» отработает, «publish» упадёт на авторизации.
+# Без токена релизный запуск пропускается (job check пишет причину в сводку и
+# завершается успешно), ручной preview работает, ручной publish упадёт на
+# авторизации.
 
 on:
   release:
@@ -30,7 +32,28 @@ on:
         default: ""
 
 jobs:
+  # Секреты нельзя читать в if вызова reusable workflow, поэтому наличие токена
+  # проверяет отдельный job и отдаёт флаг skip.
+  check:
+    runs-on: ubuntu-latest
+    outputs:
+      skip: ${{ steps.token.outputs.skip }}
+    steps:
+      - id: token
+        env:
+          CLAWHUB_TOKEN: ${{ secrets.CLAWHUB_TOKEN }}
+          EVENT: ${{ github.event_name }}
+        run: |
+          if [ "$EVENT" = "release" ] && [ -z "$CLAWHUB_TOKEN" ]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "ClawHub: токена нет, публикация пропущена, инструкция в комментарии workflow" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
   clawhub:
+    needs: check
+    if: needs.check.outputs.skip != 'true'
     permissions:
       contents: read
       id-token: write
