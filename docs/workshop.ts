@@ -3,7 +3,7 @@ interface ScanReport {score:number;band:string;words:number;effective_bans:Findi
 declare function humanizerScan(text:string,genre:string):ScanReport;
 declare function humanizerIsRussian(text:string):boolean;
 // hints.js: подсказки к находкам, общие с /proverit-tekst-na-neyroset.html и расширением.
-interface Hints {NOT_RUSSIAN:string;hintFor(kind:string,cat:string,name:string):string;kindLabel(kind:string):string;ruleName(name:string):string;bandOf(r:ScanReport):'good'|'warn'|'bad';nextLine(band:string,hasSpans:boolean,r:ScanReport):string;humanReason(reason:string):string;unmeasuredLine(r:ScanReport):string}
+interface Hints {NOT_RUSSIAN:string;hintFor(kind:string,cat:string,name:string):string;kindLabel(kind:string):string;ruleName(name:string):string;bandOf(r:ScanReport):'good'|'warn'|'bad';nextLine(band:string,hasSpans:boolean,r:ScanReport):string;humanReason(reason:string):string;penaltyCategory(reason:string):string;unmeasuredLine(r:ScanReport):string}
 declare const humanizerHints:Hints;
 interface Span {a:number;b:number;kind:'ban'|'mk';cat:string;name:string}
 declare function humanizerNumericFacts(text:string):Map<string,string>;
@@ -81,7 +81,7 @@ declare const humanizerFacts:{factsDiff(before:string,after:string):FactsDiff}|u
    const list=el('findings');list.replaceChildren();
    for(const {s,n} of unique.slice(0,12)){const li=document.createElement('li');li.className=s.kind;const b=document.createElement('b');b.textContent=spanTitle(s)+(n>1?` ×${n}`:'');li.append(b,document.createTextNode('. '+H.hintFor(s.kind,s.cat,s.name)));list.append(li);}
    if(unique.length>12){const li=document.createElement('li');li.textContent=`Ещё правил с совпадениями: ${unique.length-12}. Полный список в скопированном отчёте и в полном разборе.`;list.append(li);}
-   if(r.penalties.length){for(const p of r.penalties.filter(p=>!/^хард-баны|^маркеры/.test(p.reason))){const li=document.createElement('li');li.textContent=`Структура: ${H.humanReason(p.reason)}, ${p.points}.`;list.append(li);}}
+   if(r.penalties.length){for(const p of r.penalties.filter(p=>!/^хард-баны|^маркеры/.test(p.reason))){const li=document.createElement('li');li.textContent=`${H.penaltyCategory(p.reason)}: ${H.humanReason(p.reason)}, ${p.points}.`;list.append(li);}}
    const gap=H.unmeasuredLine(r);
    reportText=`humanizer-ru / жанр: ${genre.selectedOptions[0].textContent}\nЧистота: ${r.score}/100\n`+unique.map(({s,n})=>`${spanTitle(s)}: ${n}`).join('\n')+'\nШтрафы:\n'+r.penalties.map(p=>`${H.humanReason(p.reason)}: ${p.points}`).join('\n')+(gap?'\n'+gap:'')+'\nБалл не определяет авторство и не подтверждает сохранение смысла.';
   }catch{toast('Сканер не запустился. Обновите страницу или используйте CLI.');}

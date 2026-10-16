@@ -115,3 +115,6 @@
 .lang-note{font-size:13px}
 }
 @media(max-width:370px){.brand{white-space:nowrap}.header nav>a.nav-check{padding:9px 10px;font-size:12px}}
+@media(min-width:761px) and (max-width:1100px){.hero-lead,.hero-note{max-width:480px}.hero-shade{background:linear-gradient(90deg,#131b1bf5 0,#141c1ae6 40%,#151b19b3 56%,#151b1933 72%,transparent 86%),linear-gradient(0deg,#191e1c 0,transparent 25%,transparent 80%,#121b1955)}}
+/* fix1: подписи со смыслом не мельче 11px */
+.brand small{font-size:11px;letter-spacing:.9px;margin-top:6px}.console-label>span:not(.lamp){font-size:11px;letter-spacing:.02em}.console-bottom{font-size:11px;letter-spacing:.06em}@media(max-width:760px){.brand small{display:none}.console-label>span:not(.lamp){display:none}}

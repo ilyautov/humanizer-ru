@@ -375,7 +375,7 @@
     if (sorted.length > MAX) found.push(`- и ещё ${sorted.length - MAX} похожих оборотов.`);
     for (const p of r.penalties) {
       const h = structHint(p.reason);
-      if (h) found.push(`- Структура: ${humanReason(p.reason)}. ${h}`);
+      if (h) found.push(`- ${H.penaltyCategory(p.reason)}: ${humanReason(p.reason)}. ${h}`);
     }
     return [
       "Отредактируй русский текст ниже. Убери шаблонные обороты, канцелярит и нейросетевую манеру, не сломав смысл, факты и голос автора.",

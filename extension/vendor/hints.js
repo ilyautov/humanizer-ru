@@ -7,7 +7,7 @@
 //
 // API: globalThis.humanizerHints = { HINTS, BAN_HINTS, HUMAN_REASONS,
 //   STRUCT_HINTS, NOT_RUSSIAN, num, plural, ruleName, humanReason,
-//   structHint, hintFor, kindLabel, bandOf, genreNote, unmeasuredLine,
+//   structHint, penaltyCategory, hintFor, kindLabel, bandOf, genreNote, unmeasuredLine,
 //   nextLine }.
 (function () {
   "use strict";
@@ -54,6 +54,13 @@
     [/^листикл/, "Часть пунктов перескажите абзацем."],
   ];
   const structHint = (reason) => { const h = STRUCT_HINTS.find(([re]) => re.test(reason)); return h ? h[1] : ""; };
+
+  // Название штрафа берём из данных сканера: начало reason до «:» или «(»
+  // («обвязка чата», «тире», «ровный ритм»), а не одну подпись на всё.
+  const penaltyCategory = (reason) => {
+    const head = String(reason || "").split(/[:(]/)[0].trim();
+    return head ? head[0].toUpperCase() + head.slice(1) : "Штраф";
+  };
 
   // Что делать с находкой: одна фраза на категорию, по каталогу скилла.
   const HINTS = {
@@ -150,7 +157,7 @@
 
   globalThis.humanizerHints = {
     HINTS, BAN_HINTS, HUMAN_REASONS, STRUCT_HINTS, NOT_RUSSIAN, GENERIC_BAN, GENERIC_MK,
-    num, plural, ruleName, humanReason, structHint, hintFor, kindLabel, bandOf,
+    num, plural, ruleName, humanReason, structHint, penaltyCategory, hintFor, kindLabel, bandOf,
     genreNote, unmeasuredLine, nextLine,
   };
 })();

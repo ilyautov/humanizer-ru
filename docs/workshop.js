@@ -191,7 +191,7 @@
             if (r.penalties.length) {
                 for (const p of r.penalties.filter(p => !/^хард-баны|^маркеры/.test(p.reason))) {
                     const li = document.createElement('li');
-                    li.textContent = `Структура: ${H.humanReason(p.reason)}, ${p.points}.`;
+                    li.textContent = `${H.penaltyCategory(p.reason)}: ${H.humanReason(p.reason)}, ${p.points}.`;
                     list.append(li);
                 }
             }
