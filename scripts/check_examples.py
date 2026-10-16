@@ -34,12 +34,17 @@ Exit code 1 при любом нарушении — гейт для CI.
 from __future__ import annotations
 
 import argparse
+import json
 import re
+import subprocess
 import sys
+import tempfile
 from dataclasses import dataclass, field
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT / "skills" / "humanizer-ru" / "scripts"))
+from humanizer_metrics.markers import HARD_BANS  # noqa: E402
 
 FILES = (
     ROOT / "skills" / "humanizer-ru" / "SKILL.md",
@@ -291,6 +296,81 @@ def check(pair: Pair) -> tuple[list[str], list[str]]:
     return new_hard, new_soft
 
 
+# Гейт примера аудита в README: подпись «N жёстких банов», строки «⛔ ...» и
+# «ЧИСТОТА: N/100» обязаны совпадать с тем, что scan.py печатает на тексте «До»
+# из того же README. Класс бага: подпись обещала пять банов, сканер находил три.
+README_AUDIT_FILES = (ROOT / "README.md", ROOT / "README.en.md")
+SCAN_PY = ROOT / "skills" / "humanizer-ru" / "scripts" / "scan.py"
+_BEFORE_RE = re.compile(r"^(?:До|Before):\s*\n>\s*(.+)$", re.MULTILINE)
+# Подпись: «Сработали 3 бана из 21» / «3 of the 21 hard-ban phrases fired».
+_BAN_COUNT_RE = re.compile(r"\b(\d+)\s+(?:бан\w*\s+из|of\s+the)\s+(\d+)", re.IGNORECASE)
+_BAN_LINE_RE = re.compile(r"^\s*⛔\s+(.+?)\s+×\d+", re.MULTILINE)
+_SCORE_RE = re.compile(r"ЧИСТОТА:\s*(\d+)/100")
+
+
+def extract_score(data: dict) -> int:
+    """Балл из JSON сканера: число или словарь {"score": N, ...} (два формата).
+
+    Не нашёлся ни так, ни так: ValueError, гейт падает, а не молчит.
+    """
+    sc = data.get("score")
+    if isinstance(sc, dict):
+        sc = sc.get("score")
+    if isinstance(sc, bool) or not isinstance(sc, (int, float)):
+        raise ValueError("в JSON сканера нет балла чистоты (ожидалось число "
+                         "в поле score или словарь с ключом score)")
+    return int(sc)
+
+
+def real_scan(text: str) -> dict:
+    with tempfile.NamedTemporaryFile("w", suffix=".txt", encoding="utf-8", delete=False) as f:
+        f.write(text)
+        name = f.name
+    try:
+        # exit 1 у scan.py означает «нашёл баны», это штатно
+        out = subprocess.run([sys.executable, str(SCAN_PY), name, "--json"],
+                             capture_output=True, text=True, encoding="utf-8")
+        if out.returncode > 1:
+            raise RuntimeError(f"scan.py упал (exit {out.returncode}): {out.stderr[-300:]}")
+        data = json.loads(out.stdout)
+        data["_score"] = extract_score(data)
+        return data
+    finally:
+        Path(name).unlink(missing_ok=True)
+
+
+def check_readme_audit(path: Path) -> list[str]:
+    """Ошибки примера аудита в одном README (пусто = всё сходится)."""
+    text = path.read_text(encoding="utf-8")
+    rel = path.relative_to(ROOT)
+    m = _BEFORE_RE.search(text)
+    if not m:
+        return [f"{rel}: не найден блок «До:» с исходным текстом примера"]
+    start = m.end()
+    nxt = text.find("\n## ", start)
+    section = text[start: nxt if nxt != -1 else len(text)]
+    real = real_scan(m.group(1))
+    errors: list[str] = []
+    captions = [(int(a), int(b)) for a, b in _BAN_COUNT_RE.findall(section)]
+    if not captions:
+        errors.append(f"{rel}: в подписи к примеру нет числа сработавших банов")
+    for hit, total in captions:
+        if hit != real["hard_ban_count"]:
+            errors.append(f"{rel}: подпись обещает {hit} банов, сканер находит "
+                          f"{real['hard_ban_count']}")
+        if total != len(HARD_BANS):
+            errors.append(f"{rel}: в подписи всего банов {total}, в движке {len(HARD_BANS)}")
+    shown = {x.strip() for x in _BAN_LINE_RE.findall(section)}
+    real_names = {name for name, _ in real["hard_bans"]}
+    if shown != real_names:
+        errors.append(f"{rel}: баны в примере {sorted(shown)} не совпадают с реальными "
+                      f"{sorted(real_names)}")
+    for sc in (int(x) for x in _SCORE_RE.findall(section)):
+        if sc != real["_score"]:
+            errors.append(f"{rel}: в примере ЧИСТОТА {sc}/100, сканер даёт {real['_score']}/100")
+    return errors
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--list", action="store_true", help="показать все найденные пары")
@@ -331,6 +411,12 @@ def main() -> int:
                 notes.append(f"{rel}:{pair.line} — словесные количества "
                              f"({', '.join(new_soft)}), проверьте глазами")
 
+    for readme in README_AUDIT_FILES:
+        try:
+            errors.extend(check_readme_audit(readme))
+        except (RuntimeError, ValueError, OSError) as exc:
+            errors.append(f"пример аудита {readme.name}: не удалось сверить со сканером: {exc}")
+
     print("=== check_examples ===")
     print(f"  пар «До/После»: {total}, из них с меткой «факты автора»: {exempt}")
     if _MORPH is None:
@@ -346,7 +432,7 @@ def main() -> int:
               "  2) если пример намеренно показывает правку с конкретикой от\n"
               "     автора — пометить заголовок: «После (факты автора):».")
         return 1
-    print("\nВсе примеры проходят Факт-замок.")
+    print("\nВсе примеры проходят Факт-замок; пример аудита в README совпадает со сканером.")
     return 0
 
 

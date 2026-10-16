@@ -123,6 +123,16 @@ check("пересказ числа из исходника остаётся за
 _h, _s = ce.check(_pair("Команда росла.", "Команда выросла вдвое."))
 check("одно количество без источника остаётся заметкой", not _h and _s, str((_h, _s)))
 
+# --- check_examples: балл из JSON сканера в обоих форматах ----------------
+check("балл-словарь", ce.extract_score({"score": {"score": 34, "band": "x"}}) == 34)
+check("балл-число", ce.extract_score({"score": 34, "band": "x"}) == 34)
+for _bad in ({}, {"score": {}}, {"score": "34"}, {"score": None}):
+    try:
+        ce.extract_score(_bad)
+        check(f"нет балла падает: {_bad}", False)
+    except ValueError:
+        check(f"нет балла падает: {_bad}", True)
+
 # --- bump_release: счётчики видят числа сквозь HTML-теги -------------------
 check("счётчик паттернов сквозь <b></b><span>",
       br.RE_PATTERN_COUNT.findall('<b>54</b><span>признака AI-текста</span>') == ["54"])
@@ -135,6 +145,18 @@ check("штраф сканера «-27  маркеры: 14» не принима
 check("год перед тегом без существительного не ловится",
       br.RE_PATTERN_COUNT.findall("<b>2026</b><span>год</span>") == [])
 
+check("«23 категории быстрого сканера» считаются как категории сканера",
+      br.RE_SCANNER_CATEGORY_COUNT.findall("23 категории быстрого сканера") == ["23"]
+      and br.RE_CATEGORY_COUNT.findall("23 категории быстрого сканера") == [])
+check("категории каталога не путаются со сканерными",
+      br.RE_CATEGORY_COUNT.findall("67 паттернов в 16 категориях") == ["16"])
+check("«21 жёсткий запрет» и «21 запрещённая конструкция» это счётчики банов",
+      br.RE_BAN_COUNT.findall("21 жёсткий запрет, 21 запрещённая конструкция") == ["21", "21"])
+check("китайская витрина: признаки, баны, категории",
+      br.RE_ZH_PATTERN_COUNT.findall("**67 个俄语 AI 特征**") == ["67"]
+      and br.RE_ZH_BAN_COUNT.findall("**21 条硬性禁用结构**") == ["21"]
+      and br.RE_ZH_CATEGORY_COUNT.findall("（分 16 类）") == ["16"])
+
 # --- check_live_distribution: разбор живых страниц без сети ---------------
 check("версия сайта берётся из подвала",
       cld.parse_site_version('<ul class="foot-meta"><li>humanizer-ru</li><li>v3.20</li><li>MIT</li></ul>') == "3.20")
@@ -145,6 +167,20 @@ check("чужая версия Next.js на карточке не принима
       cld.parse_skills_sh_version('"next":"3.97.75"') == "")
 check("совпадение даёт OK", cld.compare("x", "3.20.0", "3.20.0", True).status == "OK")
 check("расхождение даёт DRIFT", cld.compare("x", "3.20.0", "3.19.2", True).status == "DRIFT")
+
+check("версия PyPI берётся из info.version",
+      cld.parse_pypi_version(b'{"info": {"version": "3.31.5"}}') == "3.31.5")
+_reg = (b'{"servers": ['
+        b'{"server": {"name": "io.github.other/humanizer-ru", "version": "9.9.9"},'
+        b' "_meta": {"io.modelcontextprotocol.registry/official": {"isLatest": true}}},'
+        b'{"server": {"name": "io.github.ilyautov/humanizer-ru", "version": "3.31.4"},'
+        b' "_meta": {"io.modelcontextprotocol.registry/official": {"isLatest": false}}},'
+        b'{"server": {"name": "io.github.ilyautov/humanizer-ru", "version": "3.31.5"},'
+        b' "_meta": {"io.modelcontextprotocol.registry/official": {"isLatest": true}}}]}')
+check("реестр MCP: берётся наша карточка с isLatest, чужая тёзка пропускается",
+      cld.parse_mcp_registry_version(_reg) == "3.31.5")
+check("реестр MCP: нашей карточки нет, версия пустая",
+      cld.parse_mcp_registry_version(b'{"servers": []}') == "")
 
 print("=== test_gates ===")
 if failures:
