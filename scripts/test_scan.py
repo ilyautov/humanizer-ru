@@ -21,6 +21,11 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 SCAN = ROOT / "skills" / "humanizer-ru" / "scripts" / "scan.py"
 
+# Консоль Windows (cp1252, cp1251) не печатает кириллицу и ✓: тест пишет UTF-8.
+for _stream in (sys.stdout, sys.stderr):
+    if hasattr(_stream, "reconfigure"):
+        _stream.reconfigure(encoding="utf-8", errors="replace")
+
 passed = 0
 
 
@@ -32,7 +37,7 @@ def check(cond: bool, msg: str) -> None:
 
 def run(args: list[str], stdin: str | None = None) -> subprocess.CompletedProcess:
     return subprocess.run([sys.executable, str(SCAN), *args],
-                          input=stdin, capture_output=True, text=True)
+                          input=stdin, capture_output=True, text=True, encoding="utf-8")
 
 
 # --- пустой ввод ------------------------------------------------------------

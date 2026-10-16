@@ -18,6 +18,11 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "skills" / "huma
 
 from humanizer_metrics import analyze, cleanliness_score
 
+# Консоль Windows (cp1252, cp1251) не печатает кириллицу и ✓: тест пишет UTF-8.
+for _stream in (sys.stdout, sys.stderr):
+    if hasattr(_stream, "reconfigure"):
+        _stream.reconfigure(encoding="utf-8", errors="replace")
+
 passed = 0
 
 

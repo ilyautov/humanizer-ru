@@ -61,8 +61,10 @@ def _read(src: str) -> str:
 
 def utf8_console() -> None:
     """Отчёт с ≥, ⛔ и ✓ в консоли Windows (cp1251, cp866) падал с
-    UnicodeEncodeError при выводе в файл. Пишем UTF-8, непредставимое заменяем."""
-    for stream in (sys.stdout, sys.stderr):
+    UnicodeEncodeError при выводе в файл. Пишем UTF-8, непредставимое заменяем.
+    Stdin тоже читаем как UTF-8: иначе на Windows текст из трубы декодируется
+    кодировкой локали и кириллица превращается в мусор."""
+    for stream in (sys.stdin, sys.stdout, sys.stderr):
         if hasattr(stream, "reconfigure"):
             stream.reconfigure(encoding="utf-8", errors="replace")
 

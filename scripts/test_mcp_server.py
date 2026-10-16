@@ -24,6 +24,11 @@ sys.path.insert(0, str(SCRIPTS))
 
 from humanizer_metrics import mcp_server as mcp  # noqa: E402
 
+# Консоль Windows (cp1252, cp1251) не печатает кириллицу и ✓: тест пишет UTF-8.
+for _stream in (sys.stdout, sys.stderr):
+    if hasattr(_stream, "reconfigure"):
+        _stream.reconfigure(encoding="utf-8", errors="replace")
+
 passed = 0
 
 
@@ -65,7 +70,7 @@ check("warning" not in sc and "не похож" not in res["content"][0]["text"]
 
 # Тот же отчёт, что у CLI: общий конвейер scan_report.
 cli = subprocess.run([sys.executable, str(SCRIPTS / "scan.py"), "-", "--json"],
-                     input="Чистая строка. В современном мире всё сложно.", capture_output=True, text=True)
+                     input="Чистая строка. В современном мире всё сложно.", capture_output=True, text=True, encoding="utf-8")
 check(json.loads(cli.stdout) == sc, "scan.py --json и scan_text отдают один и тот же отчёт")
 
 res = call("tools/call", {"name": "scan_text",

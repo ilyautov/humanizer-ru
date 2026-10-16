@@ -21,6 +21,11 @@ from humanizer_metrics.markers import GENRE_MUTED_BANS, mute_by_genre
 from humanizer_metrics.markers import (effective_hard_bans, scan_hard_bans,
                                        scan_markers)
 
+# Консоль Windows (cp1252, cp1251) не печатает кириллицу и ✓: тест пишет UTF-8.
+for _stream in (sys.stdout, sys.stderr):
+    if hasattr(_stream, "reconfigure"):
+        _stream.reconfigure(encoding="utf-8", errors="replace")
+
 passed = 0
 
 

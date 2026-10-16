@@ -20,6 +20,11 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 GATE = ROOT / "scripts" / "scan_gate.py"
 
+# Консоль Windows (cp1252, cp1251) не печатает кириллицу и ✓: тест пишет UTF-8.
+for _stream in (sys.stdout, sys.stderr):
+    if hasattr(_stream, "reconfigure"):
+        _stream.reconfigure(encoding="utf-8", errors="replace")
+
 passed = 0
 
 CLEAN = "Я попробовал три раза. Не вышло. Потом понял, в чём дело: забыл про кэш.\n"
@@ -38,7 +43,7 @@ def check(cond: bool, msg: str) -> None:
 def gate(cwd: Path, files: str, *extra: str) -> subprocess.CompletedProcess:
     env = {k: v for k, v in os.environ.items() if k not in ("GITHUB_OUTPUT", "GITHUB_STEP_SUMMARY")}
     return subprocess.run([sys.executable, str(GATE), "--files", files, *extra],
-                          cwd=cwd, capture_output=True, text=True, env=env)
+                          cwd=cwd, capture_output=True, text=True, encoding="utf-8", env=env)
 
 
 def tree(files: dict[str, str | bytes]) -> Path:
@@ -98,7 +103,7 @@ if os.name != "nt" and hasattr(os, "geteuid") and os.geteuid() != 0:
 d = tree({"clean.md": CLEAN})
 out = d / "gh_output"
 r = subprocess.run([sys.executable, str(GATE), "--files", "clean.md"], cwd=d, capture_output=True,
-                   text=True, env={**os.environ, "GITHUB_OUTPUT": str(out)})
+                   text=True, encoding="utf-8", env={**os.environ, "GITHUB_OUTPUT": str(out)})
 check(r.returncode == 0 and out.read_text(encoding="utf-8").startswith("score="),
       "в GITHUB_OUTPUT пишется score")
 
