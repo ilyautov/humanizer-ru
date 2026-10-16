@@ -119,4 +119,4 @@ check(replies[2]["error"]["code"] == -32700, "stdio: невалидный JSON �
 
 
 if __name__ == "__main__":
-    print(f"OK — {passed} проверок прошли.")
+    print(f"OK: {passed} проверок прошли.")

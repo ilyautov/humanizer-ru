@@ -109,4 +109,4 @@ check(r.returncode == 0 and out.read_text(encoding="utf-8").startswith("score=")
 
 
 if __name__ == "__main__":
-    print(f"OK — {passed} проверок прошли.")
+    print(f"OK: {passed} проверок прошли.")
