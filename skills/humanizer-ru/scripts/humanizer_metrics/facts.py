@@ -30,6 +30,11 @@
 выносится отдельным предупреждением: кванторы идиоматичны («первый шаг»,
 «самое время»), поэтому валить проверку автоматически нельзя, но глазами
 такое место обязано проверить.
+
+Разметка: заголовки, пункты списков, строки таблиц и блочные HTML-теги. Правка
+текста не должна съедать структуру документа: пропавший заголовок или пункт
+попадает в потери. Снятое выделение (жирный, курсив, <strong>, <em>) только
+предупреждение: шаблонный жирный сам бывает маркером, его снимают нарочно.
 """
 
 from __future__ import annotations
@@ -105,16 +110,21 @@ HARD_NUMERALS = {
 CLAIM_WORDS = {
     "первый", "единственный", "впервые", "самый", "рекордный", "крупнейший",
     "старейший", "никогда", "никто", "навсегда", "беспрецедентный",
+    "главный",
 }
 CLAIM_PHRASE_RE = re.compile(r"\bдо сих пор\b|\bв мире\b|\bв россии\b", re.IGNORECASE)
 # Оговорки при факте: задают его точность («обычно», «примерно», «от 5000»).
 # Скилл снимал их в 5 ответах из 25 (eval/MODERN-SKILL-CHECK.md), и строка в
 # промпте не помогла, поэтому пропавшая оговорка попадает в список потерь.
 # «Может показаться» это оговорка мнения, её снимать можно.
+# «Риск», «один из», «только», «если», «по данным» тоже оговорки: без них
+# «риск переделок» становится «переделками», условие обещанием, а чужая
+# цифра своей (eval/NEW_CASES_CHECK.md).
 HEDGE_RE = re.compile(
     r"\b(?:может\s+быть|мо(?:жет|гут)(?!\s+показаться)|обычно|как\s+правило|часто|иногда|"
     r"примерно|приблизительно|около|почти|в\s+среднем|не\s+обязательно|не\s+всегда|"
     r"вероятно|скорее\s+всего|по\s+оценкам|предположительно|ожида\w*|"
+    r"риск\w*|(?:один|одн(?:им|ой|ого|ом|у|а|о|и|их))\s+из|только|лишь|если|по\s+данным|"
     r"(?:от|до|свыше|более|менее|больше|меньше)(?=\s+\d))\b",
     re.IGNORECASE)
 # Одна сущность под разными именами не считается новым фактом.
@@ -141,6 +151,7 @@ class FactsDiff:
     kept: int            # жёстких фактов исходника дожило
     soft_added: list[str]
     claims_added: list[str] = field(default_factory=list)  # кванторы, которых в исходнике не было
+    emphasis_lost: list[str] = field(default_factory=list)  # снятое выделение, только предупреждение
 
     @property
     def ok(self) -> bool:
@@ -149,8 +160,9 @@ class FactsDiff:
     def as_dict(self) -> dict:
         return {"ok": self.ok, "lost": self.lost, "added": self.added,
                 "kept": self.kept, "soft_added": self.soft_added,
-                "claims_added": self.claims_added,
-                "status": "review_required" if (self.lost or self.added or self.claims_added or self.soft_added) else "no_detected_changes",
+                "claims_added": self.claims_added, "emphasis_lost": self.emphasis_lost,
+                "status": "review_required" if (self.lost or self.added or self.claims_added
+                                                or self.soft_added or self.emphasis_lost) else "no_detected_changes",
                 "semantic_verified": False,
                 "scope": "Сопоставление извлечённых элементов; смысл и связь чисел с утверждениями не проверены."}
 
@@ -207,7 +219,9 @@ def extract_facts(text: str) -> Facts:
         f.hard.add("месяц:" + m.group(1).lower())
     for m in HEDGE_RE.finditer(body):
         h = re.sub(r"\s+", " ", m.group(0).lower())
-        f.hedges.add("оговорка:" + ("может" if h in ("могут", "может") else "ожидается" if h.startswith("ожида") else h))
+        h = ("может" if h in ("могут", "может") else "ожидается" if h.startswith("ожида") else
+             "риск" if h.startswith("риск") else "один из" if h.endswith(" из") else h)
+        f.hedges.add("оговорка:" + h)
     for m in CLAIM_PHRASE_RE.finditer(body):
         f.claims.add("утверждение:" + m.group(0).lower().replace("ё", "е"))
     f.hard.update(numeric_facts(body))
@@ -236,13 +250,36 @@ def _alias_covered(fact: str, before_words: set[str]) -> bool:
     return any(alias in before_words for alias in ALIASES.get(name, ()))
 
 
+FENCE_RE = re.compile(r"^[ \t]{0,3}(?:`{3,}|~{3,}).*?^[ \t]{0,3}(?:`{3,}|~{3,})[ \t]*$", re.MULTILINE | re.DOTALL)
+STRUCTURE_RE = {
+    "заголовок": re.compile(r"^[ \t]{0,3}#{1,6}[ \t]+\S|<h[1-6][\s>]", re.MULTILINE | re.IGNORECASE),
+    "пункт списка": re.compile(r"^[ \t]*(?:[-*+•]|\d{1,3}[.)])[ \t]+\S|<li[\s>]", re.MULTILINE | re.IGNORECASE),
+    "строка таблицы": re.compile(r"^[ \t]*\|.*\|[ \t]*$|<tr[\s>]", re.MULTILINE | re.IGNORECASE),
+    "блок HTML": re.compile(r"<(?:p|div|blockquote|ul|ol|table|section|pre)[\s>]", re.IGNORECASE),
+}
+EMPHASIS_RE = {
+    "жирный": re.compile(r"\*\*[^*\n]+\*\*|__[^_\n]+__|<(?:strong|b)[\s>]", re.IGNORECASE),
+    "курсив": re.compile(r"(?<![*\w])\*[^*\s][^*\n]*\*(?![*\w])|<(?:em|i)[\s>]", re.IGNORECASE),
+}
+
+
+def markup_counts(text: str) -> tuple[dict[str, int], dict[str, int]]:
+    body = FENCE_RE.sub("", text)
+    return ({k: len(r.findall(body)) for k, r in STRUCTURE_RE.items()},
+            {k: len(r.findall(body)) for k, r in EMPHASIS_RE.items()})
+
+
 def diff_facts(before: str, after: str) -> FactsDiff:
     b, a = extract_facts(before), extract_facts(after)
     lost = sorted(b.hard - a.hard) + sorted(b.claims - a.claims) + sorted(b.hedges - a.hedges)
+    (bs, be), (as_, ae) = markup_counts(before), markup_counts(after)
+    lost += [f"разметка:{k} {bs[k]}→{as_[k]}" for k in bs if as_[k] < bs[k]]
+    emphasis = [f"выделение:{k} {be[k]}→{ae[k]}" for k in be if ae[k] < be[k]]
     added = sorted(x for x in a.hard - b.hard if not _alias_covered(x, b.words))
     return FactsDiff(lost=lost, added=added, kept=len(b.hard & a.hard),
                      soft_added=sorted(a.soft - b.soft),
-                     claims_added=sorted(a.claims - b.claims))
+                     claims_added=sorted(a.claims - b.claims),
+                     emphasis_lost=emphasis)
 
 
 def facts_verdict(d: FactsDiff) -> str:
@@ -251,6 +288,6 @@ def facts_verdict(d: FactsDiff) -> str:
         return f"⚠ появились элементы, которых нет в исходнике: {len(d.added)}. {scope}"
     if d.lost:
         return f"⚠ потеряно элементов исходника: {len(d.lost)}. Проверьте, намеренно ли. {scope}"
-    if d.claims_added or d.soft_added:
+    if d.claims_added or d.soft_added or d.emphasis_lost:
         return f"⚠ появились кванторы или количества; проверьте контекст. {scope}"
     return f"Совпало извлечённых элементов: {d.kept}; изменений в них не найдено. {scope}"
