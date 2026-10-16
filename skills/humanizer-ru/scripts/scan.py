@@ -45,7 +45,11 @@ def _read(src: str) -> str:
     """Текст из файла или stdin. BOM в начале снимается: иначе U+FEFF
     считается невидимым символом и роняет балл чистого текста."""
     if src == "-":
-        return sys.stdin.read().lstrip("\ufeff")
+        try:
+            return sys.stdin.read().lstrip("\ufeff")
+        except UnicodeDecodeError:
+            print("[ошибка] stdin не в кодировке UTF-8, передайте текст в UTF-8", file=sys.stderr)
+            raise SystemExit(2)
     try:
         return Path(src).read_text(encoding="utf-8-sig")
     except FileNotFoundError:
@@ -62,9 +66,11 @@ def _read(src: str) -> str:
 def utf8_console() -> None:
     """Отчёт с ≥, ⛔ и ✓ в консоли Windows (cp1251, cp866) падал с
     UnicodeEncodeError при выводе в файл. Пишем UTF-8, непредставимое заменяем.
-    Stdin тоже читаем как UTF-8: иначе на Windows текст из трубы декодируется
-    кодировкой локали и кириллица превращается в мусор."""
-    for stream in (sys.stdin, sys.stdout, sys.stderr):
+    Stdin читаем как UTF-8 строго: иначе на Windows текст из трубы декодируется
+    кодировкой локали, а с заменой ошибок кириллица молча стала бы «�»."""
+    if hasattr(sys.stdin, "reconfigure"):
+        sys.stdin.reconfigure(encoding="utf-8", errors="strict")
+    for stream in (sys.stdout, sys.stderr):
         if hasattr(stream, "reconfigure"):
             stream.reconfigure(encoding="utf-8", errors="replace")
 
@@ -118,7 +124,7 @@ def main() -> int:
     if args.json:
         out = sr.as_dict()
         if fdiff is not None:
-            out["before"] = {"source": args.before, "score": before_sc.as_dict()}
+            out["before"] = {"source": args.before, "score": before_sc.score, "band": before_sc.band}
             out["facts"] = fdiff.as_dict()
         print(json.dumps(out, ensure_ascii=False, indent=2))
         if fdiff is not None and not fdiff.ok:

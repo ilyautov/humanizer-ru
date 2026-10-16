@@ -127,8 +127,10 @@ NON_RUSSIAN_WARNING = "текст не похож на русский, метр�
 
 
 def cyrillic_share(text: str) -> float:
-    """Доля кириллицы среди букв: ниже NON_RUSSIAN_SHARE текст не русский."""
-    letters = re.findall(r"[^\W\d_]", text)
+    """Доля кириллицы среди букв прозы: ниже NON_RUSSIAN_SHARE текст не русский.
+    Код и цитаты в счёт не идут (strip_foreign): русский гайд с большим блоком
+    Python иначе выглядел бы английским и выпадал из проверки."""
+    letters = re.findall(r"[^\W\d_]", strip_foreign(text))
     if not letters:
         return 0.0
     cyr = sum(1 for ch in letters if "а" <= ch.lower() <= "я" or ch.lower() == "ё")

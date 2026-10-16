@@ -100,6 +100,9 @@ res = call("tools/call", {"name": "compare_texts", "arguments": {
     "after": "Стэнфорд мерил: на 13% продуктивнее, удалёнка с 2023 года."}})["result"]
 added = res["structuredContent"]["facts"]["added"]
 check("число:13" in added and "имя:стэнфорд" in added, f"compare_texts ловит выдуманные факты: {added}")
+_b = res["structuredContent"]["before"]
+check(isinstance(_b["score"], int) and _b["band"] in ("чисто", "правка", "рерайт"),
+      f"compare_texts: «было» числом и полосой, {_b}")
 
 # --- настоящий обмен по stdio ---------------------------------------------------
 lines = [

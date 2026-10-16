@@ -69,6 +69,37 @@ r = gate(tree({"README.md": ENGLISH}), "*.md")
 check(r.returncode == 0 and "проверять нечего" in r.stdout,
       f"только английский: проверять нечего, exit 0: {r.stdout}")
 
+# Блок кода не делает русский документ английским: доля кириллицы считается по
+# прозе, а бан в ней по-прежнему валит гейт.
+_code = "```python\n" + "def handler(request, response):\n    return process(request.body, response)\n" * 40 + "```\n"
+d = tree({"guide.md": "# Гайд\n\nВ современном мире всё сложно. Стоит отметить, что данный подход "
+                      "является ключевым. Таким образом, он открывает новые горизонты.\n\n" + _code})
+r = gate(d, "guide.md", "--min-score", "85")
+check(r.returncode == 1 and "skipped" not in r.stdout,
+      f"русский текст с баном и большим блоком кода даёт exit 1: {r.stdout}")
+
+# Английский файл отсеивается до анализа: scan_report для него не зовётся.
+sys.path.insert(0, str(ROOT / "scripts"))
+sys.path.insert(0, str(ROOT / "skills" / "humanizer-ru" / "scripts"))
+import scan_gate as _gate_mod  # noqa: E402
+
+_calls: list[str] = []
+_orig = _gate_mod.scan_report
+_gate_mod.scan_report = lambda text, genre=None: (_calls.append(text), _orig(text, genre))[1]
+_d = tree({"README.md": ENGLISH, "ru.md": CLEAN})
+_cwd, _argv = os.getcwd(), sys.argv
+_gh = {k: os.environ.pop(k) for k in ("GITHUB_OUTPUT", "GITHUB_STEP_SUMMARY") if k in os.environ}
+try:
+    os.chdir(_d)
+    sys.argv = ["scan_gate.py", "--files", "*.md"]
+    _code_ret = _gate_mod.main()
+finally:
+    os.chdir(_cwd)
+    sys.argv = _argv
+    os.environ.update(_gh)
+    _gate_mod.scan_report = _orig
+check(_code_ret == 0 and _calls == [CLEAN], f"английский README пропущен до анализа, разобрано: {len(_calls)}")
+
 # --- служебные папки не обходятся маской -----------------------------------
 d = tree({"docs/a.md": CLEAN, "node_modules/pkg/README.md": SLOP, ".venv/lib/x.md": SLOP,
           "venv/y.md": SLOP, "vendor/z.md": SLOP, "dist/d.md": SLOP, "build/b.md": SLOP})

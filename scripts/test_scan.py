@@ -87,6 +87,17 @@ check(r.returncode == 0 and not _tech(r.stdout), "stdin с BOM: 0 техниче
 check(_tech(run(["-", "--json"], stdin="При\u200bвет, как дела?").stdout),
       "невидимый символ внутри текста по-прежнему ловится")
 
+# --- stdin не в UTF-8: та же ошибка, что для файла, а не молчаливые «�» ----
+_cp = subprocess.run([sys.executable, str(SCAN), "-"], input="Привет, как дела?".encode("cp1251"),
+                     capture_output=True)
+_err = _cp.stderr.decode("utf-8", "replace")
+check(_cp.returncode == 2 and "не в кодировке UTF-8" in _err and "Traceback" not in _err,
+      f"stdin в cp1251: exit 2 и сообщение, получено {_cp.returncode} {_err!r}")
+(_bom_dir / "cp.txt").write_bytes("Привет".encode("cp1251"))
+_cp = subprocess.run([sys.executable, str(SCAN), str(_bom_dir / "cp.txt")], capture_output=True)
+check(_cp.returncode == 2 and "не в кодировке UTF-8" in _cp.stderr.decode("utf-8", "replace"),
+      "файл в cp1251: та же ошибка")
+
 # --- CRLF: номера строк и баны как у LF --------------------------------------
 _crlf = _bom_dir / "crlf.txt"
 _crlf.write_bytes("Чистая строка.\r\n\r\nВ современном мире всё сложно.\r\n".encode("utf-8"))
@@ -161,6 +172,10 @@ check(r.returncode == 0 and "утверждение появилось: утве
       "появившийся квантор предупреждает, но не валит")
 r = run([str(_d / "kept.txt"), "--before", str(_d / "before.txt"), "--json"])
 check('"facts"' in r.stdout and '"before"' in r.stdout, "--json несёт facts и before")
+_jb = json.loads(r.stdout)
+check(isinstance(_jb["score"], int) and isinstance(_jb["before"]["score"], int)
+      and _jb["before"]["band"] in ("чисто", "правка", "рерайт"),
+      f"«было» в JSON тем же видом, что «стало»: число и полоса, {_jb['before']}")
 
 # --- факт-замок: начало пункта списка и строки разметки не имя ---------------
 sys.path.insert(0, str(SCAN.parent))

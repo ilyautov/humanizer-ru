@@ -26,7 +26,7 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "skills" / "humanizer-ru" / "scripts"))
 
 try:
-    from humanizer_metrics import scan_report
+    from humanizer_metrics import NON_RUSSIAN_SHARE, cyrillic_share, scan_report
     from humanizer_metrics.markers import GENRES
 except ImportError as exc:
     print(f"[ошибка] не хватает зависимостей сканера ({exc.name}).\n"
@@ -91,10 +91,11 @@ def main() -> int:
             continue
         if not text.strip():
             continue
-        sr = scan_report(text, args.genre)
-        if sr.non_russian:
+        # Язык проверяется до разбора: английский файл не гоняется через морфологию.
+        if cyrillic_share(text) < NON_RUSSIAN_SHARE:
             print(f"[гейт] {p}: {SKIPPED_NON_RUSSIAN}")
             continue
+        sr = scan_report(text, args.genre)
         rows.append((sr.score.score, sr.score.band, sr.report.rhythm.words, p))
 
     if unreadable:
