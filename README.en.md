@@ -2,7 +2,7 @@
 
 > [Русская версия: основная](README.md) · [中文](README.zh.md)
 
-Claude Code / Cowork plugin. Cleans bureaucratese and AI-style clichés out of Russian text without touching facts or the author's voice. The English [humanizer](https://github.com/blader/humanizer) won't help here. Russian AI markers are their own beast: bureaucratic noun-chains (канцелярит), English-syntax calques, missing particles like "же" and "ведь" that make Russian sound alive.
+Claude Code / Cowork plugin. Cleans bureaucratese and AI-style clichés out of Russian text without touching facts or the author's voice. General-purpose English editors won't help here. Russian AI markers are their own beast: bureaucratic noun-chains (канцелярит), English-syntax calques, missing particles like "же" and "ведь" that make Russian sound alive.
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Version](https://img.shields.io/badge/version-3.31.5-blueviolet)](https://github.com/ilyautov/humanizer-ru/blob/main/CHANGELOG.md)
@@ -34,7 +34,7 @@ The CLI detects your installed agents and asks where to put the skill. In Claude
 
 Claude.ai, DeepSeek Harness and team rollout are covered in [Install](#install).
 
-📖 **Docs & write-ups (RU):** [humanizer-ru.aifrontier.tech](https://humanizer-ru.aifrontier.tech/): do AI detectors work on Russian, the 67 markers, plagiarism vs AI detection.
+📖 **Docs & write-ups (RU):** [humanizer-ru.aifrontier.tech](https://humanizer-ru.aifrontier.tech/): do AI detectors work on Russian, the catalog of markers, plagiarism vs AI detection.
 
 ## What you get
 
@@ -226,7 +226,7 @@ Before:
 After (author's facts):
 > За последний год я внедрил AI-инструменты в три проекта. Два ускорились вдвое. Третий развалился, потому что команда перестала проверять то, что выдаёт модель. AI работает, когда понимаешь его ограничения.
 
-The scanner finds 3 hard bans in two sentences. Typical.
+3 of the 21 hard-ban phrases fired in two sentences. Typical.
 
 Audit mode on the same text prints (output of `scan.py`, trimmed to the essentials; the Russian labels are the scanner's own):
 
@@ -264,7 +264,7 @@ Even the best Russian-specific detector (RuRoBERTa on the AINL-Eval 2025 benchma
 
 ## Sources
 
-Patterns drawn from 15+ Russian-language sources (Habr, vc.ru, Gramota.ru, HSE stylometry research, Dialog Conference RuATD, TechInsider, Kokoc.com), verified academic papers (DivEye, PIFE, MASH, Antislop, AINL-Eval, RuATD, NeurIPS 2025), and the Wikipedia AI Cleanup Project. Every citation and figure is checked against primary sources; unverified ones were removed. Full provenance: [SOURCES.md](SOURCES.md).
+Patterns drawn from the Wikipedia AI Cleanup Project, the Dialog Conference shared tasks (RuATD-2022, AINL-Eval 2025), verified academic papers (DivEye, PIFE, MASH, Antislop, NeurIPS 2025) and our own measurements on three open corpora (35,158 + 5,759 + 14,763 = 55,680 texts, reports in `eval/`). Every citation and figure is checked against primary sources; unverified ones were removed. Full provenance: [SOURCES.md](SOURCES.md).
 
 Changelog: [CHANGELOG.md](CHANGELOG.md). Metrics and eval harness: [`scripts/`](scripts/) and [`eval/`](eval/). Full Russian documentation: [README.md](README.md).
 

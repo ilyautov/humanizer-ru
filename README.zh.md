@@ -5,6 +5,7 @@
 面向 Claude Code、Cursor、Codex、Gemini CLI 等编程智能体的开源 Skill：去除俄语文本中的 AI 痕迹，让机器生成的俄语读起来像俄罗斯人写的。MIT 许可，无订阅，无 API Key，在你已经在用的智能体里直接运行。
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Version](https://img.shields.io/badge/version-3.31.5-blueviolet)](CHANGELOG.md)
 [![Stars](https://img.shields.io/github/stars/ilyautov/humanizer-ru?style=social)](https://github.com/ilyautov/humanizer-ru/stargazers)
 [![skills.sh](https://skills.sh/b/ilyautov/humanizer-ru)](https://skills.sh/ilyautov/humanizer-ru/humanizer-ru)
 
@@ -21,7 +22,7 @@
 
 所有大模型都是「经由英语」生成俄语的。于是俄语 AI 文本的破绽和英语的不一样：英语式句法的直译（калька）、一句一个「является」、堆叠的名词链公文体（канцелярит）、丢失的语气小词「же」「ведь」「вот」、每隔一句一个长破折号。英语的 humanizer 看不到这些，中文的「去 AI 味」工具也不处理俄语。
 
-这个 Skill 收录了 **64 个俄语 AI 特征**（分 14 类）和 **21 条硬性禁用结构**，每一条都写成编辑规则，而不是简单的词表。附带一个确定性的扫描器，把修改变成可度量的事：「原来 9 分，现在 82 分」。
+这个 Skill 收录了 **67 个俄语 AI 特征**（分 16 类）和 **21 条硬性禁用结构**，每一条都写成编辑规则，而不是简单的词表。附带一个确定性的扫描器，把修改变成可度量的事：「原来 9 分，现在 82 分」。
 
 ## 一分钟安装
 
@@ -65,7 +66,7 @@ python3 skills/humanizer-ru/scripts/scan.py после.txt --before до.txt
 
 ## 里面有什么
 
-- 64 个特征、14 个类别：公文体、英语直译、情感空洞、说服套路、信息节奏、模糊限定词，以及 2025 到 2026 年新出现的模型指纹（单词成句的「碎片式冥想」、伪苏格拉底式自问自答、每个列表项一个装饰性 emoji、伪心理治疗口吻、无生命主语、结尾说教等）。
+- 67 个特征、16 个类别：公文体、英语直译、情感空洞、说服套路、信息节奏、模糊限定词，以及 2025 到 2026 年新出现的模型指纹（单词成句的「碎片式冥想」、伪苏格拉底式自问自答、每个列表项一个装饰性 emoji、伪心理治疗口吻、无生命主语、结尾说教等）。
 - 21 条硬性禁用：出现即删除的结构，包括长破折号、「не просто X, а Y」、「в современном мире」、「играет ключевую роль」。
 - 扫描器：0 到 100 的干净度评分，按类别列出命中，句长节奏、名词动词比、Markdown 感知（代码块和引用不计入）。学术、法律、文学文本有单独的体裁模式 `--genre`，否则正式文本会被误判。
 - 作者声音校准：给几篇你自己写的俄语文本，Skill 会按你的节奏和用词改写，而不是改成千篇一律的「人味」。

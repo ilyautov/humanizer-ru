@@ -135,6 +135,18 @@ check("штраф сканера «-27  маркеры: 14» не принима
 check("год перед тегом без существительного не ловится",
       br.RE_PATTERN_COUNT.findall("<b>2026</b><span>год</span>") == [])
 
+check("«23 категории быстрого сканера» считаются как категории сканера",
+      br.RE_SCANNER_CATEGORY_COUNT.findall("23 категории быстрого сканера") == ["23"]
+      and br.RE_CATEGORY_COUNT.findall("23 категории быстрого сканера") == [])
+check("категории каталога не путаются со сканерными",
+      br.RE_CATEGORY_COUNT.findall("67 паттернов в 16 категориях") == ["16"])
+check("«21 жёсткий запрет» и «21 запрещённая конструкция» это счётчики банов",
+      br.RE_BAN_COUNT.findall("21 жёсткий запрет, 21 запрещённая конструкция") == ["21", "21"])
+check("китайская витрина: признаки, баны, категории",
+      br.RE_ZH_PATTERN_COUNT.findall("**67 个俄语 AI 特征**") == ["67"]
+      and br.RE_ZH_BAN_COUNT.findall("**21 条硬性禁用结构**") == ["21"]
+      and br.RE_ZH_CATEGORY_COUNT.findall("（分 16 类）") == ["16"])
+
 # --- check_live_distribution: разбор живых страниц без сети ---------------
 check("версия сайта берётся из подвала",
       cld.parse_site_version('<ul class="foot-meta"><li>humanizer-ru</li><li>v3.20</li><li>MIT</li></ul>') == "3.20")

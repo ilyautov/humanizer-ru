@@ -43,6 +43,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT / "skills" / "humanizer-ru" / "scripts"))
+from humanizer_metrics.markers import HARD_BANS  # noqa: E402
 
 FILES = (
     ROOT / "skills" / "humanizer-ru" / "SKILL.md",
@@ -300,7 +302,8 @@ def check(pair: Pair) -> tuple[list[str], list[str]]:
 README_AUDIT_FILES = (ROOT / "README.md", ROOT / "README.en.md")
 SCAN_PY = ROOT / "skills" / "humanizer-ru" / "scripts" / "scan.py"
 _BEFORE_RE = re.compile(r"^(?:До|Before):\s*\n>\s*(.+)$", re.MULTILINE)
-_BAN_COUNT_RE = re.compile(r"\b(\d+)\s+(?:жёстк\w+\s+бан\w*|hard\s+bans?)", re.IGNORECASE)
+# Подпись: «Сработали 3 бана из 21» / «3 of the 21 hard-ban phrases fired».
+_BAN_COUNT_RE = re.compile(r"\b(\d+)\s+(?:бан\w*\s+из|of\s+the)\s+(\d+)", re.IGNORECASE)
 _BAN_LINE_RE = re.compile(r"^\s*⛔\s+(.+?)\s+×\d+", re.MULTILINE)
 _SCORE_RE = re.compile(r"ЧИСТОТА:\s*(\d+)/100")
 
@@ -339,13 +342,15 @@ def check_readme_audit(path: Path) -> list[str]:
     section = text[start: nxt if nxt != -1 else len(text)]
     real = real_scan(m.group(1))
     errors: list[str] = []
-    counts = [int(x) for x in _BAN_COUNT_RE.findall(section)]
-    if not counts:
-        errors.append(f"{rel}: в подписи к примеру нет числа жёстких банов")
-    for c in counts:
-        if c != real["hard_ban_count"]:
-            errors.append(f"{rel}: подпись обещает {c} жёстких банов, сканер находит "
+    captions = [(int(a), int(b)) for a, b in _BAN_COUNT_RE.findall(section)]
+    if not captions:
+        errors.append(f"{rel}: в подписи к примеру нет числа сработавших банов")
+    for hit, total in captions:
+        if hit != real["hard_ban_count"]:
+            errors.append(f"{rel}: подпись обещает {hit} банов, сканер находит "
                           f"{real['hard_ban_count']}")
+        if total != len(HARD_BANS):
+            errors.append(f"{rel}: в подписи всего банов {total}, в движке {len(HARD_BANS)}")
     shown = {x.strip() for x in _BAN_LINE_RE.findall(section)}
     real_names = {name for name, _ in real["hard_bans"]}
     if shown and shown != real_names:
