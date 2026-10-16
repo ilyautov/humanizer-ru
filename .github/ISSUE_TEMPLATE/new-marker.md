@@ -2,7 +2,7 @@
 name: Новый маркер AI-текста
 about: Предложить признак машинной генерации, которого нет в каталоге
 title: "[marker] "
-labels: new-marker
+labels: enhancement
 ---
 
 ## Маркер
