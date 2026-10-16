@@ -158,7 +158,7 @@ put the same folder under `.codex/skills/` in your repository.
 gemini extensions install https://github.com/ilyautov/humanizer-ru
 ```
 
-**Cursor.** The plugin manifest is `.cursor-plugin/plugin.json`. The universal path detects Cursor among your installed agents and puts the skill where it belongs:
+**Cursor.** The plugin manifest is `.cursor-plugin/plugin.json`. The `npx skills add` command detects installed agents, Cursor included, and asks where to put the skill:
 
 ```bash
 npx skills add ilyautov/humanizer-ru

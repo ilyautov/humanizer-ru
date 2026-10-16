@@ -319,12 +319,7 @@ def real_scan(text: str) -> dict:
         if out.returncode > 1:
             raise RuntimeError(f"scan.py упал (exit {out.returncode}): {out.stderr[-300:]}")
         data = json.loads(out.stdout)
-        data["_score"] = None
-        out2 = subprocess.run([sys.executable, str(SCAN_PY), name],
-                              capture_output=True, text=True, encoding="utf-8")
-        m = _SCORE_RE.search(out2.stdout)
-        if m:
-            data["_score"] = int(m.group(1))
+        data["_score"] = data.get("score", {}).get("score")
         return data
     finally:
         Path(name).unlink(missing_ok=True)
@@ -353,7 +348,7 @@ def check_readme_audit(path: Path) -> list[str]:
             errors.append(f"{rel}: в подписи всего банов {total}, в движке {len(HARD_BANS)}")
     shown = {x.strip() for x in _BAN_LINE_RE.findall(section)}
     real_names = {name for name, _ in real["hard_bans"]}
-    if shown and shown != real_names:
+    if shown != real_names:
         errors.append(f"{rel}: баны в примере {sorted(shown)} не совпадают с реальными "
                       f"{sorted(real_names)}")
     for sc in (int(x) for x in _SCORE_RE.findall(section)):
