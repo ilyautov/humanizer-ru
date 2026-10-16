@@ -6,8 +6,11 @@
     python scripts/scan_gate.py --files "docs/**/*.md README.md" --min-score 60
     python scripts/scan_gate.py --files "*.md" --genre academic
 
-Маски раскрываются относительно текущей папки, ** обходит подпапки. Файл с
-баллом ниже порога валит запуск (exit 1); пустые файлы пропускаются.
+Маски раскрываются относительно текущей папки, ** обходит подпапки, но не
+заходит в служебные папки (EXCLUDED_DIRS: node_modules, .venv, vendor, dist и
+т. п.). Файл с баллом ниже порога валит запуск (exit 1). Пустые файлы, файлы не
+в UTF-8 и тексты не на русском (доля кириллицы ниже 0,3) пропускаются с
+пометкой. Файл, который не удалось прочитать, даёт exit 2.
 В GitHub Actions пишет минимальный балл в GITHUB_OUTPUT (score) и таблицу в
 GITHUB_STEP_SUMMARY.
 """
@@ -23,27 +26,44 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "skills" / "humanizer-ru" / "scripts"))
 
 try:
-    from humanizer_metrics import analyze, cleanliness_score
+    from humanizer_metrics import NON_RUSSIAN_SHARE, cyrillic_share, scan_report
     from humanizer_metrics.markers import GENRES
 except ImportError as exc:
     print(f"[ошибка] не хватает зависимостей сканера ({exc.name}).\n"
-          "Поставьте один раз: pip install razdel pymorphy3", file=sys.stderr)
+          "Поставьте один раз: pip install -r requirements.txt", file=sys.stderr)
     raise SystemExit(2)
+
+# Папки, куда маска не заходит: зависимости, окружения и сборка не текст автора.
+# Файл, названный явно (не маской), проверяется всегда.
+EXCLUDED_DIRS = frozenset({"node_modules", ".venv", "venv", "vendor", "dist", "build",
+                           ".git", "__pycache__"})
+SKIPPED_NON_RUSSIAN = "skipped: не русский текст"
 
 
 def expand(masks: list[str]) -> list[Path]:
     files: list[Path] = []
     seen: set[Path] = set()
     for mask in masks:
-        found = [Path(mask)] if Path(mask).is_file() else sorted(Path().glob(mask))
+        if Path(mask).is_file():
+            found = [Path(mask)]
+        else:
+            found = [p for p in sorted(Path().glob(mask)) if not EXCLUDED_DIRS & set(p.parts)]
         for p in found:
-            if p.is_file() and p.resolve() not in seen and "__pycache__" not in p.parts:
+            if p.is_file() and p.resolve() not in seen:
                 seen.add(p.resolve())
                 files.append(p)
     return files
 
 
+def utf8_console() -> None:
+    """Таблица с ✓ и ✗ в консоли Windows (cp1251) падала с UnicodeEncodeError."""
+    for stream in (sys.stdout, sys.stderr):
+        if hasattr(stream, "reconfigure"):
+            stream.reconfigure(encoding="utf-8", errors="replace")
+
+
 def main() -> int:
+    utf8_console()
     ap = argparse.ArgumentParser(description="Гейт чистоты humanizer-ru")
     ap.add_argument("--files", required=True,
                     help="файлы или glob-маски через пробел или перенос строки")
@@ -58,20 +78,32 @@ def main() -> int:
         return 0
 
     rows: list[tuple[int, str, int, Path]] = []
+    unreadable = 0
     for p in files:
         try:
-            text = p.read_text(encoding="utf-8")
-        except (UnicodeDecodeError, OSError) as exc:
-            print(f"[гейт] пропущен {p}: {exc}")
+            text = p.read_text(encoding="utf-8-sig")
+        except UnicodeDecodeError:
+            print(f"[гейт] пропущен {p}: файл не в кодировке UTF-8")
+            continue
+        except OSError as exc:
+            print(f"[гейт] ✗ не удалось прочитать {p}: {exc.strerror or exc}", file=sys.stderr)
+            unreadable += 1
             continue
         if not text.strip():
             continue
-        rep = analyze(text)
-        sc = cleanliness_score(rep, args.genre)
-        rows.append((sc.score, sc.band, rep.rhythm.words, p))
+        # Язык проверяется до разбора: английский файл не гоняется через морфологию.
+        if cyrillic_share(text) < NON_RUSSIAN_SHARE:
+            print(f"[гейт] {p}: {SKIPPED_NON_RUSSIAN}")
+            continue
+        sr = scan_report(text, args.genre)
+        rows.append((sr.score.score, sr.score.band, sr.report.rhythm.words, p))
 
+    if unreadable:
+        print(f"[гейт] ✗ не прочитано файлов: {unreadable}, балл не считается", file=sys.stderr)
+        _output("score", "")
+        return 2
     if not rows:
-        print("[гейт] все файлы пустые, проверять нечего")
+        print("[гейт] русских непустых файлов нет, проверять нечего")
         _output("score", "")
         return 0
 
