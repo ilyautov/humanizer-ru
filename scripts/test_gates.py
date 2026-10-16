@@ -158,6 +158,20 @@ check("чужая версия Next.js на карточке не принима
 check("совпадение даёт OK", cld.compare("x", "3.20.0", "3.20.0", True).status == "OK")
 check("расхождение даёт DRIFT", cld.compare("x", "3.20.0", "3.19.2", True).status == "DRIFT")
 
+check("версия PyPI берётся из info.version",
+      cld.parse_pypi_version(b'{"info": {"version": "3.31.5"}}') == "3.31.5")
+_reg = (b'{"servers": ['
+        b'{"server": {"name": "io.github.other/humanizer-ru", "version": "9.9.9"},'
+        b' "_meta": {"io.modelcontextprotocol.registry/official": {"isLatest": true}}},'
+        b'{"server": {"name": "io.github.ilyautov/humanizer-ru", "version": "3.31.4"},'
+        b' "_meta": {"io.modelcontextprotocol.registry/official": {"isLatest": false}}},'
+        b'{"server": {"name": "io.github.ilyautov/humanizer-ru", "version": "3.31.5"},'
+        b' "_meta": {"io.modelcontextprotocol.registry/official": {"isLatest": true}}}]}')
+check("реестр MCP: берётся наша карточка с isLatest, чужая тёзка пропускается",
+      cld.parse_mcp_registry_version(_reg) == "3.31.5")
+check("реестр MCP: нашей карточки нет, версия пустая",
+      cld.parse_mcp_registry_version(b'{"servers": []}') == "")
+
 print("=== test_gates ===")
 if failures:
     print(f"  прошло {passed}, упало {len(failures)}:")

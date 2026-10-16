@@ -2,7 +2,9 @@ name: Publish to ClawHub
 
 # Реестр скиллов OpenClaw: https://clawhub.ai
 #
-# Запускается только руками, сам по коммитам не срабатывает.
+# Срабатывает на каждый опубликованный GitHub Release (публикует в реестр, как
+# npm и PyPI) и вручную через workflow_dispatch (там можно выбрать preview).
+# На коммиты в ветки не реагирует.
 # Разовая настройка, до первого реального выпуска:
 #   1. clawhub.ai -> Sign in with GitHub
 #   2. создать токен в веб-интерфейсе
@@ -11,6 +13,8 @@ name: Publish to ClawHub
 # Без токена режим «preview» отработает, «publish» упадёт на авторизации.
 
 on:
+  release:
+    types: [published]
   workflow_dispatch:
     inputs:
       mode:
@@ -34,6 +38,7 @@ jobs:
     with:
       root: skills
       owner: ${{ inputs.owner }}
-      dry_run: ${{ inputs.mode != 'publish' }}
+      # release публикует всегда, ручной запуск по умолчанию только показывает план
+      dry_run: ${{ github.event_name == 'workflow_dispatch' && inputs.mode != 'publish' }}
     secrets:
       clawhub_token: ${{ secrets.CLAWHUB_TOKEN }}
