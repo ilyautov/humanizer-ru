@@ -40,7 +40,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 sys.path.insert(0, str(ROOT / "skills" / "humanizer-ru" / "scripts"))
-from humanizer_metrics.markers import HARD_BANS  # noqa: E402
+from humanizer_metrics.markers import HARD_BANS, SCANNER  # noqa: E402
 from ru_plural import agreement_drift, fix_agreement  # noqa: E402
 
 SKILL = ROOT / "skills" / "humanizer-ru" / "references" / "catalog.md"
@@ -93,7 +93,10 @@ RE_BAN_COUNT = re.compile(rf"\b{_NUM}(?={_GAP}{BAN_NOUNS})")
 # продолжали обещать «12 категорий» при тринадцати. Тот же класс бага, что
 # «52 паттерна» на свежем коммите, только заметить его труднее.
 CATEGORY_NOUNS = r"(?:категор\w*|categor\w+)"
-RE_CATEGORY_COUNT = re.compile(rf"\b{_NUM}(?={_GAP}{CATEGORY_NOUNS})")
+# «сканер проверяет 170+ правил в 23 категориях» это категории сканера
+# (markers.SCANNER), а не каталога: у них своё число и своя проверка ниже.
+RE_CATEGORY_COUNT = re.compile(rf"(?<!правил в )\b{_NUM}(?={_GAP}{CATEGORY_NOUNS})")
+RE_SCANNER_CATEGORY_COUNT = re.compile(rf"(?<=правил в )\b{_NUM}(?={_GAP}{CATEGORY_NOUNS})")
 
 VERSION_TARGETS = [
     # (файл, regex с одной группой-версией)
@@ -161,6 +164,10 @@ def scan_counts(patterns: int, bans: int, categories: int) -> list[str]:
             if int(m.group(1)) != categories:
                 ctx = s[m.start():m.start() + 40].replace("\n", " ")
                 drift.append(f"{rel}: «{ctx}...» ожидалось {categories} категорий")
+        for m in RE_SCANNER_CATEGORY_COUNT.finditer(s):
+            if int(m.group(1)) != len(SCANNER):
+                ctx = s[m.start():m.start() + 40].replace("\n", " ")
+                drift.append(f"{rel}: «{ctx}...» ожидалось {len(SCANNER)} категорий сканера")
         for _, found, want in agreement_drift(s):
             drift.append(f"{rel}: «{found}» ожидалось «{want}» (падеж при числе)")
     return drift
@@ -199,6 +206,7 @@ def apply_all(patterns: int, bans: int, categories: int, version: str | None) ->
         s = RE_TABLE.sub(rf"\g<1>{patterns}", s)
         s = RE_BAN_COUNT.sub(str(bans), s)
         s = RE_CATEGORY_COUNT.sub(str(categories), s)
+        s = RE_SCANNER_CATEGORY_COUNT.sub(str(len(SCANNER)), s)
         s = fix_agreement(s)
         if s != orig:
             p.write_text(s, encoding="utf-8")

@@ -8,7 +8,8 @@ lint_skill.py проверяет только одобренные пример�
 витрина проверяется тем же движком HARD BANS, что и чужой текст.
 
 Что проверяется: README.md, страницы сайта в docs/, SKILL.md, каталог
-паттернов, команды, попап и README Chrome-расширения.
+паттернов, команды, попап и README Chrome-расширения. Отдельно: строковые
+литералы docs/*.js, docs/*.ts и extension/*.js на длинное тире.
 
 Что вырезается перед проверкой (это цитаты, а не наша речь):
   * блоки кода, инлайн-код, HTML-теги, script/style;
@@ -51,6 +52,92 @@ TARGETS = [
 ]
 
 ALLOW_MARK = "self-scan: ok"
+
+# Строковые литералы скриптов сайта и расширения: они попадают на экран
+# (подсказки, вердикты, отчёт), а HTML-гейт их не видит. Здесь не HARD BANS
+# целиком, а только длинное тире: оно чаще всего пролезает в шаблонные
+# строки вроде «${name} [тире] до N баллов». Комментарии и регулярные
+# выражения не проверяются: это не текст для читателя. Данные-примеры с тире
+# пишутся escape-последовательностью \u2014, как EXAMPLE в popup.js.
+# scan-rules.js не проверяется: его генерирует export_web_rules.py из правил
+# сканера, имена правил с тире интерфейс показывает через ruleName().
+JS_TARGETS = [
+    *sorted(p for p in (ROOT / "docs").glob("*.js") if p.name != "scan-rules.js"),
+    *sorted((ROOT / "docs").glob("*.ts")),
+    *sorted((ROOT / "extension").glob("*.js")),
+]
+EM_DASH = "\u2014"
+
+# После этих символов «/» начинает регулярное выражение, а не деление.
+_REGEX_PREV = set("(,=:[!&|?{};+-*%<>~^") | {""}
+_REGEX_WORDS = ("return", "typeof", "case", "of", "in", "void", "delete", "throw")
+
+
+def js_string_dashes(src: str) -> list[int]:
+    """Номера строк, где длинное тире стоит внутри строкового литерала
+    ('…', "…", `…`) JS/TS. Упрощённый лексер: комментарии и регулярки
+    пропускает, ${…} внутри шаблона считает частью строки."""
+    hits: list[int] = []
+    i, n, line = 0, len(src), 1
+    prev = ""  # последний значимый символ вне строк и комментариев
+    while i < n:
+        c = src[i]
+        if c == "\n":
+            line += 1
+            i += 1
+            continue
+        if c in " \t\r":
+            i += 1
+            continue
+        if src.startswith("//", i):
+            j = src.find("\n", i)
+            i = n if j < 0 else j
+            continue
+        if src.startswith("/*", i):
+            j = src.find("*/", i + 2)
+            j = n if j < 0 else j + 2
+            line += src.count("\n", i, j)
+            i = j
+            continue
+        if c in "'\"`":
+            q, i = c, i + 1
+            while i < n and src[i] != q:
+                if src[i] == "\\":
+                    i += 2
+                    continue
+                if src[i] == "\n":
+                    line += 1
+                elif src[i] == EM_DASH and (not hits or hits[-1] != line):
+                    hits.append(line)
+                i += 1
+            i += 1
+            prev = q
+            continue
+        if c == "/":
+            word = re.search(r"([A-Za-z_$]+)\s*$", src[max(0, i - 12):i])
+            if prev in _REGEX_PREV or (word and word.group(1) in _REGEX_WORDS):
+                i += 1
+                in_class = False
+                while i < n and src[i] != "\n":
+                    ch = src[i]
+                    if ch == "\\":
+                        i += 2
+                        continue
+                    if ch == "[":
+                        in_class = True
+                    elif ch == "]":
+                        in_class = False
+                    elif ch == "/" and not in_class:
+                        break
+                    i += 1
+                i += 1
+                while i < n and src[i].isalpha():
+                    i += 1
+                prev = "/"
+                continue
+        prev = c if not (c.isalnum() or c in "_$") else "a"
+        i += 1
+    return hits
 
 
 # Вырезанное заменяется этим символом, а не пробелом: иначе «От «В современном
@@ -170,8 +257,20 @@ def main() -> int:
                 errors.append(f"{rel}:{line_of(prose, pos)} — HARD BAN «{hit.marker}»: "
                               f"…{snippet(prose, pos)}…")
 
+    js_checked = 0
+    for path in JS_TARGETS:
+        js_checked += 1
+        rel = path.relative_to(ROOT)
+        src_lines = path.read_text(encoding="utf-8").splitlines()
+        for ln in js_string_dashes(path.read_text(encoding="utf-8")):
+            if ALLOW_MARK in src_lines[ln - 1]:
+                continue
+            errors.append(f"{rel}:{ln}: длинное тире в строковом литерале: "
+                          f"{src_lines[ln - 1].strip()[:90]}")
+
     print("=== self_scan ===")
     print(f"  проверено файлов витрины: {checked}")
+    print(f"  проверено скриптов (строки на экран): {js_checked}")
     if errors:
         print(f"\nОШИБКИ: собственная проза нарушает {len(errors)} раз(а) свои же HARD BANS:")
         for e in errors:
