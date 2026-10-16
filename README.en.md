@@ -226,7 +226,28 @@ Before:
 After (author's facts):
 > За последний год я внедрил AI-инструменты в три проекта. Два ускорились вдвое. Третий развалился, потому что команда перестала проверять то, что выдаёт модель. AI работает, когда понимаешь его ограничения.
 
-Five hard bans triggered in two sentences. Typical.
+The scanner finds 3 hard bans in two sentences. Typical.
+
+Audit mode on the same text prints (output of `scan.py`, trimmed to the essentials; the Russian labels are the scanner's own):
+
+```
+ЧИСТОТА: 34/100  [рерайт]
+  -36  хард-баны (фразы): 3
+  -30  маркеры: 4 (15.4/100 слов)
+
+HARD BANS:
+  ⛔ В современном мире ×1 (стр. 1)
+  ⛔ Стоит отметить, что ×1 (стр. 1)
+  ⛔ Данный/Данная/Данное ×1 (стр. 1)
+
+Маркеры (быстрый сканер): 4
+  • [Канцелярит] «оптимизаци» ×1 (стр. 1)
+  • [Кальки] «является» ×1 (стр. 1)
+  • [Кальки] «стоит отметить» ×1 (стр. 1)
+  • [Вводные-открытия] «в современном мире» ×1 (стр. 1)
+```
+
+`scripts/check_examples.py` compares this block with the real scanner output in CI.
 
 ## Do AI detectors work on Russian?
 
