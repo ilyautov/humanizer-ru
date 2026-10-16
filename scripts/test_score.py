@@ -252,5 +252,33 @@ check(not any(n.startswith("повтор фраз") for n in _sc_one.notes), "о
 check(not any("повтор" in r for r, _ in _sc_two.penalties), "повтор фраз в счёт не входит")
 
 
+# --- короткое сообщение не штрафуется по плотности --------------------------
+# Один мягкий маркер на 7 словах давал 14/100 слов и -29: бытовая реплика
+# уходила в «правку». До 50 слов знаменатель плотности 50.
+_short = cleanliness_score(analyze("С другой стороны, можно и завтра съездить."))
+check(_short.score >= 90 and _short.band == "чисто",
+      f"7 слов с одним маркером: не ниже 90 и не «правка», получено {_short.score} [{_short.band}]")
+_long_soft = cleanliness_score(analyze(" ".join(["С другой стороны, можно и завтра съездить."] * 20)))
+check(any(r.startswith("маркеры:") for r, _ in _long_soft.penalties),
+      "на длинном тексте плотность маркеров по-прежнему штрафуется")
+
+# --- один порог ровного ритма для штрафа и вердикта -------------------------
+from humanizer_metrics.burstiness import CV_HUMAN_TARGET, rhythm_verdict  # noqa: E402
+
+check(CV_HUMAN_TARGET == 0.35, f"порог ровного ритма 0.35, получено {CV_HUMAN_TARGET}")
+_even = " ".join(["Мы сделали это быстро и хорошо."] * 3 + ["Мы сделали всё быстро и очень хорошо сегодня."] * 3)
+_rep = analyze(_even)
+_pen = any(r.startswith("ровный ритм") for r, _ in cleanliness_score(_rep).penalties)
+_warn = "⚠ ровный ритм" in rhythm_verdict(_rep.rhythm)
+check(_pen == _warn, f"штраф и вердикт ритма согласованы (CV={_rep.rhythm.cv_len}): штраф {_pen}, ⚠ {_warn}")
+# Раньше CV между 0.35 и 0.45 давал «✓ ритм рваный» и одновременно штраф.
+_mid = analyze("Я пришёл домой поздно. Кот спал на диване у окна весь вечер. Ужин остыл. "
+               "Я поел холодного и лёг спать.")
+check(0.35 <= _mid.rhythm.cv_len < 0.45, f"фикстура между порогами, CV={_mid.rhythm.cv_len}")
+check(not any(r.startswith("ровный ритм") for r, _ in cleanliness_score(_mid).penalties)
+      and "✓ ритм" in rhythm_verdict(_mid.rhythm),
+      f"CV={_mid.rhythm.cv_len} между 0.35 и 0.45: ни штрафа, ни ⚠")
+
+
 if __name__ == "__main__":
     print(f"OK — {passed} проверок прошли.")

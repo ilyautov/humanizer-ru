@@ -155,6 +155,7 @@ def build() -> dict:
             "band_clean": score.BAND_CLEAN,
             "band_edit": score.BAND_EDIT,
             "cv_human_target": burstiness.CV_HUMAN_TARGET,
+            "density_min_words": score.DENSITY_MIN_WORDS,
             "para_cv_ai": structure.PARA_CV_AI,
             "para_min_count": structure.PARA_MIN_COUNT,
             "listicle_share_ai": structure.LISTICLE_SHARE_AI,
