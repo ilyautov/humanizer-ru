@@ -46,6 +46,8 @@ TARGETS = [
     ROOT / "SECURITY.md",
     ROOT / "CONTRIBUTORS.md",
     ROOT / "PRIVACY_POLICY.md",
+    ROOT / "SOURCES.md",
+    ROOT / "eval" / "README.md",
     ROOT / "commands" / "humanize.md",
     ROOT / "commands" / "audit.md",
     *sorted((ROOT / "docs").glob("*.html")),
