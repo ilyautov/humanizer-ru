@@ -12,9 +12,9 @@
 - месяц: названия месяцев как замена дате;
 - ссылка: URL и адреса вида domain.tld/path;
 - код: содержимое инлайн-кода в бэктиках;
-- имя: слово с заглавной не в начале предложения (с pymorphy3 точнее: теги
-  Name/Surn/Geox/Orgn/Patr и незнакомые словарю слова), плюс любая латиница с
-  заглавной («Excel», «GPT-4»).
+- имя: слово с заглавной не в начале предложения, а в начале предложения по
+  тегам pymorphy3 Name/Surn/Geox/Orgn/Patr и незнакомые словарю слова, плюс
+  любая латиница с заглавной («Excel», «GPT-4»).
 
 Мелкие количества («два», «половина», «вдвое») факты мягкие: в русском они
 идиоматичны («с одной стороны») и обычно пересказывают число исходника. Они
@@ -42,12 +42,7 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass, field
 
-try:
-    import pymorphy3
-
-    _MORPH = pymorphy3.MorphAnalyzer()
-except ImportError:  # без словаря сравниваем по основе, грубее, но работает
-    _MORPH = None
+from .morphology import get_morph
 
 PROPER_TAGS = {"Name", "Surn", "Geox", "Orgn", "Patr"}
 
@@ -169,9 +164,7 @@ class FactsDiff:
 
 def _norm(word: str) -> str:
     low = word.lower().replace("ё", "е").strip("-")
-    if _MORPH is None:
-        return low[:5]
-    return _MORPH.parse(low)[0].normal_form.replace("ё", "е")
+    return get_morph().parse(low)[0].normal_form.replace("ё", "е")
 
 
 # Начало строки и всё, что Markdown ставит перед первым словом: маркер списка
@@ -197,9 +190,7 @@ def _is_proper(word: str, at_start: bool) -> bool:
         return False
     if word.isascii():
         return True
-    if _MORPH is None:
-        return not at_start
-    p = _MORPH.parse(word.lower())[0]
+    p = get_morph().parse(word.lower())[0]
     if PROPER_TAGS & set(p.tag.grammemes):
         return True
     if not p.is_known:
@@ -225,7 +216,9 @@ def extract_facts(text: str) -> Facts:
     for m in CLAIM_PHRASE_RE.finditer(body):
         f.claims.add("утверждение:" + m.group(0).lower().replace("ё", "е"))
     f.hard.update(numeric_facts(body))
-    starts = _sentence_starts(body)
+    # Начало предложения с допуском в символ: множество, а не перебор, иначе
+    # на длинном тексте проверка квадратичная (100 КБ шли секунды).
+    starts = {s + d for s in _sentence_starts(body) for d in (-1, 0, 1)}
     for m in TOKEN_RE.finditer(body):
         tok = m.group(0)
         if tok[0].isdigit():
@@ -238,7 +231,7 @@ def extract_facts(text: str) -> Facts:
             f.claims.add("утверждение:" + norm)
         elif norm in HARD_NUMERALS:
             f.hard.add("число словами:" + norm)
-        elif _is_proper(tok, any(abs(m.start() - s) <= 1 for s in starts)):
+        elif _is_proper(tok, m.start() in starts):
             f.hard.add("имя:" + norm)
     return f
 

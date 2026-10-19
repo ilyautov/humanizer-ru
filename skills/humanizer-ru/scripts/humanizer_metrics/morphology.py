@@ -16,7 +16,9 @@ from razdel import tokenize
 
 
 @functools.lru_cache(maxsize=1)
-def _morph() -> "pymorphy3.MorphAnalyzer":
+def get_morph() -> "pymorphy3.MorphAnalyzer":
+    """Один MorphAnalyzer на процесс: словарь грузится заметное время, его
+    делят морфология, структура и факт-замок."""
     return pymorphy3.MorphAnalyzer()
 
 
@@ -43,7 +45,7 @@ def _is_cyrillic_word(tok: str) -> bool:
 
 
 def morph_stats(text: str) -> MorphStats:
-    m = _morph()
+    m = get_morph()
     nouns = verbs = nominal = total = 0
     for t in tokenize(text):
         w = t.text

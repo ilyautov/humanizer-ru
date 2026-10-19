@@ -481,7 +481,7 @@
     const soft = markers.filter((h) => h.category !== S.copy_paste_category && !distinctCats.includes(h.category))
       .reduce((n, h) => n + h.count, 0);
     if (soft) {
-      const pen = Math.min(30, Math.round(2 * per100(soft, words)));
+      const pen = Math.min(30, Math.round(2 * per100(soft, Math.max(words, S.density_min_words))));
       if (pen) { score -= pen; penalties.push({ reason: `маркеры: ${soft} (${per100(soft, words).toFixed(1)}/100 слов)`, points: -pen }); }
     }
 
