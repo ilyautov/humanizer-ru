@@ -9,10 +9,10 @@
 
 Статусы: OK, DRIFT (расходится), UNAVAILABLE (сеть или сервис не ответили,
 это не вердикт). Поверхности двух типов:
-- жёсткие (npm, Release, ZIP, сайт, правила сканера на сайте): DRIFT валит
-  прогон, потому что чинится нашими руками;
-- мягкие (skills.sh): DRIFT только предупреждение, кэш индексатора нам не
-  подчиняется, но знать о нём надо.
+- жёсткие (npm, PyPI, реестр MCP, Release, ZIP, сайт, правила сканера на
+  сайте): DRIFT валит прогон, потому что чинится нашими руками;
+- мягкие (skills.sh, ClawHub, HOL): DRIFT только предупреждение, кэш
+  индексатора или ручная публикация нам не подчиняются, но знать о них надо.
 
 Коды выхода: 0 всё сошлось, 1 есть жёсткий DRIFT, 2 только UNAVAILABLE.
 
@@ -27,6 +27,7 @@ import json
 import os
 import re
 import sys
+import time
 import urllib.error
 import urllib.request
 from dataclasses import asdict, dataclass
@@ -39,6 +40,14 @@ NPM_LATEST = "https://registry.npmjs.org/humanizer-ru/latest"
 RELEASE_LATEST = f"https://api.github.com/repos/{REPO}/releases/latest"
 ZIP_LATEST = f"https://github.com/{REPO}/releases/latest/download/humanizer-ru.zip"
 SKILLS_SH = "https://www.skills.sh/ilyautov/humanizer-ru/humanizer-ru"
+PYPI_JSON = "https://pypi.org/pypi/ru-humanizer/json"
+MCP_NAME = "io.github.ilyautov/humanizer-ru"
+# Поиск по подстроке отдаёт и чужие карточки с тем же именем пакета, поэтому
+# в ответе берётся только запись с точным namespace и пометкой isLatest.
+MCP_REGISTRY = "https://registry.modelcontextprotocol.io/v0.1/servers?search=ilyautov&limit=100"
+CLAWHUB_PAGE = "https://clawhub.ai/ilyautov/humanizer-ru"
+HOL_BADGE = ("https://hol.org/api/registry/badges/plugin"
+             "?slug=ilya-utov%2Fhumanizer-ru&metric=status&style=flat")
 TIMEOUT = 20
 
 RE_SITE_VERSION = re.compile(r"<li>v(\d+\.\d+)</li>")
@@ -61,12 +70,12 @@ def local_version() -> str:
     return data["version"]
 
 
-def fetch(url: str, *, head: bool = False) -> tuple[int, bytes]:
+def fetch(url: str, *, head: bool = False, timeout: int = TIMEOUT) -> tuple[int, bytes]:
     req = urllib.request.Request(url, method="HEAD" if head else "GET")
     req.add_header("User-Agent", "humanizer-ru-live-check")
     if "api.github.com" in url and os.environ.get("GITHUB_TOKEN"):
         req.add_header("Authorization", f"Bearer {os.environ['GITHUB_TOKEN']}")
-    with urllib.request.urlopen(req, timeout=TIMEOUT) as resp:
+    with urllib.request.urlopen(req, timeout=timeout) as resp:
         return resp.status, b"" if head else resp.read()
 
 
@@ -88,6 +97,21 @@ def parse_site_version(html: str) -> str:
 def parse_skills_sh_version(html: str) -> str:
     m = RE_SKILLS_SH_VERSION.search(html)
     return m.group(1) if m else ""
+
+
+def parse_pypi_version(body: bytes) -> str:
+    return str(json.loads(body).get("info", {}).get("version", ""))
+
+
+def parse_mcp_registry_version(body: bytes, name: str = MCP_NAME) -> str:
+    """Версия нашей карточки, помеченной isLatest. Чужие карточки пропускаются."""
+    for entry in json.loads(body).get("servers", []):
+        if entry.get("server", {}).get("name") != name:
+            continue
+        official = entry.get("_meta", {}).get("io.modelcontextprotocol.registry/official", {})
+        if official.get("isLatest"):
+            return str(entry["server"].get("version", ""))
+    return ""
 
 
 def check_npm(version: str) -> Check:
@@ -155,9 +179,72 @@ def check_skills_sh(version: str) -> Check:
         return unavailable("skills.sh, карточка", version, False, e)
 
 
+def check_pypi(version: str) -> Check:
+    try:
+        _, body = fetch(PYPI_JSON)
+        return compare("PyPI ru-humanizer", version, parse_pypi_version(body), hard=True,
+                       note="публикует publish-pypi.yml по релизу, смотрите его запуск")
+    except Exception as e:  # noqa: BLE001
+        return unavailable("PyPI ru-humanizer", version, True, e)
+
+
+def fetch_with_retry(url: str, attempts: int = 3, timeout: int = 60) -> tuple[int, bytes]:
+    """Реестр MCP отвечает то за 20 секунд, то 500: три попытки до вердикта."""
+    last: Exception | None = None
+    for i in range(attempts):
+        try:
+            return fetch(url, timeout=timeout)
+        except urllib.error.HTTPError as e:
+            last = e
+            if e.code < 500 and e.code != 429:
+                break  # 4xx повтором не лечится, кроме 429 (лимит)
+            if i + 1 < attempts:
+                time.sleep(3)
+        except Exception as e:  # noqa: BLE001
+            last = e
+            if i + 1 < attempts:
+                time.sleep(3)
+    assert last is not None
+    raise last
+
+
+def check_mcp_registry(version: str) -> Check:
+    try:
+        _, body = fetch_with_retry(MCP_REGISTRY)
+        return compare(f"реестр MCP {MCP_NAME}", version, parse_mcp_registry_version(body),
+                       hard=True, note="публикует publish-registry.yml после PyPI")
+    except Exception as e:  # noqa: BLE001
+        return unavailable(f"реестр MCP {MCP_NAME}", version, True, e)
+
+
+def check_clawhub() -> Check:
+    # У страницы нет стабильного API версии, поэтому проверяется только то,
+    # что карточка существует. Версию сверяет запуск clawhub.yml.
+    try:
+        status, _ = fetch(CLAWHUB_PAGE, head=True)
+        return compare("ClawHub, карточка", "200", str(status), hard=False,
+                       note="публикуется через clawhub.yml по релизу или вручную")
+    except urllib.error.HTTPError as e:
+        return Check("ClawHub, карточка", "DRIFT", "200", str(e.code), False,
+                     "карточки нет, запустите clawhub.yml")
+    except Exception as e:  # noqa: BLE001
+        return unavailable("ClawHub, карточка", "200", False, e)
+
+
+def check_hol() -> Check:
+    try:
+        _, body = fetch(HOL_BADGE)
+        slug = str(json.loads(body).get("message", ""))
+        return compare("HOL, запись плагина", "ilya-utov/humanizer-ru", slug, hard=False,
+                       note="реестр hol.org не отдаёт нашу запись")
+    except Exception as e:  # noqa: BLE001
+        return unavailable("HOL, запись плагина", "ilya-utov/humanizer-ru", False, e)
+
+
 def run() -> list[Check]:
     v = local_version()
-    return [check_npm(v), check_release(v), check_zip(), check_site(v), check_site_rules(), check_skills_sh(v)]
+    return [check_npm(v), check_pypi(v), check_mcp_registry(v), check_release(v), check_zip(),
+            check_site(v), check_site_rules(), check_skills_sh(v), check_clawhub(), check_hol()]
 
 
 def main() -> int:

@@ -1,27 +1,52 @@
 # humanizer-ru
 
-> [Русская версия: основная](README.md) · [English](README.en.md)
+> [Русская версия: основная и полная](README.md) · [English](README.en.md)
 
-面向 Claude Code、Cursor、Codex、Gemini CLI 等编程智能体的开源 Skill：去除俄语文本中的 AI 痕迹，让机器生成的俄语读起来像俄罗斯人写的。MIT 许可，无订阅，无 API Key，在你已经在用的智能体里直接运行。
+面向 Claude Code、Cursor、Codex、Gemini CLI 等智能体的开源 Skill：编辑俄语文本，去掉机器腔、公文体和模板套话，同时不改变事实和作者的声音。MIT 许可，无订阅，无 API Key，在你已经在用的智能体里直接运行。
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Version](https://img.shields.io/badge/version-3.31.5-blueviolet)](CHANGELOG.md)
 [![Stars](https://img.shields.io/github/stars/ilyautov/humanizer-ru?style=social)](https://github.com/ilyautov/humanizer-ru/stargazers)
 [![skills.sh](https://skills.sh/b/ilyautov/humanizer-ru)](https://skills.sh/ilyautov/humanizer-ru/humanizer-ru)
 
-🧪 **在线试用，无需安装：** [humanizer-ru.aifrontier.tech](https://humanizer-ru.aifrontier.tech/#audit)。粘贴一段俄语，得到 0 到 100 的「干净度」评分和被标出的 AI 套话。扫描器在浏览器里运行，文本不会上传。
+🧪 **在线试用，无需安装：** [humanizer-ru.aifrontier.tech](https://humanizer-ru.aifrontier.tech/#audit)。粘贴一段俄语，得到 0 到 100 的「干净度」评分和被标出的套话。扫描器在浏览器里运行，文本不会上传。
 
-## 给谁用
+## 核心原则：删除，不要补写
 
-- 跨境电商团队：Ozon、Wildberries、Yandex Market、速卖通俄区的商品详情、店铺公告、客服回复。用 DeepSeek、豆包、GPT 生成的俄语文案，俄罗斯买家一眼就看出是机器写的，转化和评分都会受影响。
-- 出海企业的市场和公关：官网、新闻稿、宣传册、社媒帖子的俄语版本。
-- 本地化和翻译团队：机器翻译或 LLM 初稿之后的润色，让文本符合俄语母语者的阅读习惯。
-- 用俄语写邮件、报告、论文的任何人。
+这个 Skill 做的是局部编辑，不是整篇重写。它标出具体位置（引文、为什么妨碍读者、该怎么处理），删掉空洞的开场和包装在论断外面的套话，把绕口的名词链改回动词，然后逐条核对改后的文本与原文。
+
+- 只用原文里已有的词。不为了「生动」而添加原文没有的事实、数字、情绪、语气词或比喻。
+- 事实锁：`--before` 会比较改写前后的文本，列出凭空出现或丢失的数字、日期、人名、链接和断言。编造的数据比任何套话都糟糕。
+- 不改变作者的声音：给几段你自己写的俄语，Skill 会把改动限制在你的节奏和用词之内。
+- 其他场景同样适用：商品详情、官网和新闻稿的俄语版、机器翻译后的润色、邮件和报告。
 
 ## 为什么俄语需要单独的工具
 
-所有大模型都是「经由英语」生成俄语的。于是俄语 AI 文本的破绽和英语的不一样：英语式句法的直译（калька）、一句一个「является」、堆叠的名词链公文体（канцелярит）、丢失的语气小词「же」「ведь」「вот」、每隔一句一个长破折号。英语的 humanizer 看不到这些，中文的「去 AI 味」工具也不处理俄语。
+大模型常常「经由英语」生成俄语，破绽也和英语不同：英语句法的直译（калька）、一句一个「является」、堆叠的名词链公文体（канцелярит）、丢失的语气小词「же」「ведь」「вот」、满篇的长破折号。通用的英语工具看不到这些，中文的「去 AI 味」工具也不处理俄语。
 
-这个 Skill 收录了 **64 个俄语 AI 特征**（分 14 类）和 **21 条硬性禁用结构**，每一条都写成编辑规则，而不是简单的词表。附带一个确定性的扫描器，把修改变成可度量的事：「原来 9 分，现在 82 分」。
+目录收录了 **67 个俄语 AI 特征**（分 16 类）和 **21 条硬性禁用结构**，每一条都写成编辑规则，而不是简单的词表。
+
+## 扫描器
+
+Skill 自带一个确定性的扫描器 `scripts/scan.py`，把修改变成可度量的事：「原来 N 分，现在 M 分」。
+
+- 0 到 100 的干净度评分，按类别列出命中，句长节奏、名词动词比、Markdown 感知（代码块和引用不计入）。
+- 体裁模式 `--genre academic|legal|fiction|news`：在学术、法律、文学、新闻文本里，某些结构是正常的，开启后不再当作问题。
+- 评分是修改的依据，不是「这是 AI 写的」的裁决，也不判定作者身份。
+
+```
+python3 skills/humanizer-ru/scripts/scan.py текст.txt
+python3 skills/humanizer-ru/scripts/scan.py текст.txt --genre academic
+python3 skills/humanizer-ru/scripts/scan.py после.txt --before до.txt
+```
+
+需要 `razdel` 和 `pymorphy3`。在 macOS（Homebrew）和 Debian/Ubuntu 上，直接 `pip install` 会因 PEP 668 报 `externally-managed-environment`，请改用下面任意一种：
+
+```
+uvx ru-humanizer текст.txt          # 无需安装，需要 uv
+pipx install ru-humanizer           # 命令 ru-humanizer 进入 PATH
+python3 -m venv ~/.humanizer-ru && ~/.humanizer-ru/bin/pip install razdel pymorphy3
+```
 
 ## 一分钟安装
 
@@ -31,11 +56,17 @@
 npx skills add ilyautov/humanizer-ru
 ```
 
-CLI 会检测本机已安装的智能体并询问装到哪里。Claude Code 也可以作为插件安装，之后通过 `/plugin` 更新：
+Claude Code 也可以作为插件安装，之后通过 `/plugin` 更新：
 
 ```
 /plugin marketplace add ilyautov/humanizer-ru
 /plugin install humanizer-ru@ilyautov-plugins
+```
+
+Gemini CLI：
+
+```
+gemini extensions install https://github.com/ilyautov/humanizer-ru
 ```
 
 DeepSeek Harness：
@@ -44,50 +75,27 @@ DeepSeek Harness：
 dsh plugin --profile web add humanizer-ru
 ```
 
-Claude.ai 网页版：下载 [humanizer-ru.zip](https://github.com/ilyautov/humanizer-ru/releases/latest/download/humanizer-ru.zip)，在 Settings → Capabilities → Skills 里上传。其他安装方式见[俄语 README](README.md#установка)。
+Claude.ai 网页版：下载 [humanizer-ru.zip](https://github.com/ilyautov/humanizer-ru/releases/latest/download/humanizer-ru.zip)，在 Settings → Capabilities → Skills 里上传。Codex CLI、组织部署、其他智能体、独立扫描器（pip、MCP 服务器、GitHub Action）见[俄语 README](README.md#установка)。
 
 ## 怎么用
 
 装好之后，对智能体说（俄语或中文都可以，但文本本身必须是俄语）：
 
-- 「очеловечь этот текст」或「把这段俄语改得像人写的」：完整改写，五步流程，保留原文事实。
-- 「проверь текст на следы нейросети」或「检查这段俄语的 AI 痕迹」：只做审计，列出发现的特征和优先级，不改写。
+- 「очеловечь этот текст」或「把这段俄语编辑得自然一点」：局部编辑，保留原文事实。
+- 「проверь текст на следы нейросети」或「检查这段俄语的 AI 痕迹」：只做审计，列出发现的问题，不改写。
 - 「убери канцелярит」：只处理指定的一类问题。
 
-也可以在命令行直接跑扫描器（需要 Python 3 和 `pip install razdel pymorphy3`）：
-
-```
-python3 skills/humanizer-ru/scripts/scan.py текст.txt
-python3 skills/humanizer-ru/scripts/scan.py после.txt --before до.txt
-```
-
-第二条命令是「事实锁」：比较改写前后的文本，列出凭空出现或丢失的数字、日期、人名、链接和断言。编造的数据比任何套话都糟糕。
-
-## 里面有什么
-
-- 64 个特征、14 个类别：公文体、英语直译、情感空洞、说服套路、信息节奏、模糊限定词，以及 2025 到 2026 年新出现的模型指纹（单词成句的「碎片式冥想」、伪苏格拉底式自问自答、每个列表项一个装饰性 emoji、伪心理治疗口吻、无生命主语、结尾说教等）。
-- 21 条硬性禁用：出现即删除的结构，包括长破折号、「не просто X, а Y」、「в современном мире」、「играет ключевую роль」。
-- 扫描器：0 到 100 的干净度评分，按类别列出命中，句长节奏、名词动词比、Markdown 感知（代码块和引用不计入）。学术、法律、文学文本有单独的体裁模式 `--genre`，否则正式文本会被误判。
-- 作者声音校准：给几篇你自己写的俄语文本，Skill 会按你的节奏和用词改写，而不是改成千篇一律的「人味」。
-- 四轮审计：检测器视角、路人视角、句子「心电图」、列表「骨架」。
+在 Claude Code 里装了插件后还有斜杠命令：`/humanize <文本或文件路径>`（局部编辑）和 `/audit <文本或文件路径>`（只审计）。
 
 ## 数据校准
 
-规则不是凭感觉定的。目录在三个公开语料上校准过，共 **5.5 万篇**带人机标注的俄语文本，包括 GigaChat 和 YandexGPT 的输出：
-
-| 语料 | 规模 | 发现 |
-|---|---|---|
-| AINL-Eval 2025 | 35 158 篇学术摘要 | 严格模式下规则命中人类作者的比例不低于模型，「является」和「данный」在学术体裁里是正常用法，因此加入了体裁过滤 |
-| M4 | 5 759 对 | 社交媒体和百科文本，gpt-3.5 时代的指纹 |
-| LLMTrace | 14 763 篇，30 个生成器 | 长破折号更取决于体裁而非作者；俄罗斯模型（GigaChat-Max 77%、YandexGPT-5 74%）比 GPT 更爱用破折号；人类每百词 0.29 个特征，模型 0.67 个 |
-
-所有数字可以复现：校准脚本和报告在 `eval/` 目录，语料是公开的。
+规则不是凭感觉定的。目录在三个公开语料上校准过，合计 35 158 + 5 759 + 14 763 = 55 680 篇带人机标注的俄语文本（约 5.6 万），包括 GigaChat 和 YandexGPT 的输出。校准脚本和报告在 `eval/` 目录，语料是公开的，数字可以复现：[AINL](eval/AINL-CALIBRATION.md)、[M4](eval/M4-CALIBRATION.md)、[LLMTrace](eval/LLMTRACE-CALIBRATION.md)。
 
 ## 它不做什么
 
-- 不用来骗过 AI 检测器。不插入错别字，不用拉丁字母替换西里尔字母。为了通过检测而损坏文本，是在欺骗读者。目标只有一个：写出俄罗斯人真的会写的文本。
-- 不编造细节。原文没有数字和案例，Skill 就用节奏、语气和结构让文本活起来，或者问你要材料。
-- 不判定作者身份。扫描器的分数是修改的依据，不是「这是 AI 写的」的裁决。
+- 不是「绕过 AI 检测器」的工具。不插入错别字，不用拉丁字母替换西里尔字母。为了通过检测而损坏文本，是在欺骗读者。目标只有一个：写出俄罗斯人真的会写的文本。
+- 不编造细节。原文没有数字和案例，Skill 就不补，需要的话会向你要材料。
+- 不判定作者身份。
 
 ## 链接
 
@@ -95,5 +103,6 @@ python3 skills/humanizer-ru/scripts/scan.py после.txt --before до.txt
 - 网站与在线扫描：[humanizer-ru.aifrontier.tech](https://humanizer-ru.aifrontier.tech/)
 - 更新日志：[CHANGELOG.md](CHANGELOG.md)
 - 引用的研究来源：[SOURCES.md](SOURCES.md)
+- 完整文档（FAQ、对比、校准细节）：[README.md](README.md)
 
 作者：Ilya Utov（[GitHub](https://github.com/ilyautov)）。欢迎 issue 和 PR，包括中文的。

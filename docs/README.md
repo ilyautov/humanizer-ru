@@ -21,6 +21,8 @@
 - `antiplagiat-i-neyroset.html`: антиплагиат и AI-детектор, в чём разница.
 - `gumanizator-teksta.html`: как выбрать гуманизатор, перефразирование против редактуры.
 - `privacy.html`: приватность расширения Chrome (что хранится и где).
+- `style.css`: общий стиль.
+- `sitemap.xml`, `robots.txt`: для поисковиков.
 
 Служебное: `sitemap.xml` (собирает `scripts/build_sitemap.py`), `robots.txt`, `llms.txt`, `CNAME`, файл-ключ `b4061b69….txt` для поисковиков.
 
@@ -53,6 +55,7 @@ python scripts/check_workshop_build.py --write   # пересобрать worksh
 
 ## Принципы
 
-- В каждой странице: уникальные title и description, canonical, Open Graph, JSON-LD.
+- Чистый HTML5 + один CSS, без фреймворков и внешних JS/CDN.
+- В каждой странице: уникальные title и description, canonical, Open Graph, Twitter card, JSON-LD.
 - Тексты без длинного тире и канцелярита: `scripts/self_scan.py` проверяет страницы и строки скриптов.
 - Честная рамка: балл это повод для правки, а не вердикт об авторстве. Сайт не обещает обход детекторов.

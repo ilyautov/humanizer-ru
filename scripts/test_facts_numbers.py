@@ -44,14 +44,14 @@ class NumericFactsTests(unittest.TestCase):
                'Формат А4.', 'Температура −5 градусов.', '1 500 руб.', '1\u202f500 ₽.',
                '+005', '-0', '10.05.2026', '5000-8000', '10000000000000000000000']
         source="const fs=require('fs'),vm=require('vm');vm.runInThisContext(fs.readFileSync('docs/scan-rules.js','utf8'));vm.runInThisContext(fs.readFileSync('docs/scan.js','utf8'));const texts="+json.dumps(texts)+";process.stdout.write(JSON.stringify(texts.map(t=>Object.fromEntries(humanizerNumericFacts(t)))));"
-        p=subprocess.run(['node','-e',source],cwd=ROOT,text=True,capture_output=True,check=True)
+        p=subprocess.run(['node','-e',source],cwd=ROOT,text=True,encoding='utf-8',capture_output=True,check=True)
         self.assertEqual(json.loads(p.stdout),[numeric_facts(t) for t in texts])
 
     def test_empty_before_json(self):
         import tempfile
         with tempfile.TemporaryDirectory() as tmp:
             p=Path(tmp)/'before';p.write_text('')
-            r=subprocess.run([sys.executable,str(ROOT/'skills/humanizer-ru/scripts/scan.py'),'-','--before',str(p),'--json'],input='Цена 5 рублей.',text=True,capture_output=True)
+            r=subprocess.run([sys.executable,str(ROOT/'skills/humanizer-ru/scripts/scan.py'),'-','--before',str(p),'--json'],input='Цена 5 рублей.',text=True,encoding='utf-8',capture_output=True)
             self.assertNotIn('Traceback',r.stderr)
             self.assertIn('facts',json.loads(r.stdout))
 
