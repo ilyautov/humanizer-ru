@@ -5,7 +5,7 @@
 面向 Claude Code、Cursor、Codex、Gemini CLI 等智能体的开源 Skill：编辑俄语文本，去掉机器腔、公文体和模板套话，同时不改变事实和作者的声音。MIT 许可，无订阅，无 API Key，在你已经在用的智能体里直接运行。
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-3.31.5-blueviolet)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-3.32.0-blueviolet)](CHANGELOG.md)
 [![Stars](https://img.shields.io/github/stars/ilyautov/humanizer-ru?style=social)](https://github.com/ilyautov/humanizer-ru/stargazers)
 [![skills.sh](https://skills.sh/b/ilyautov/humanizer-ru)](https://skills.sh/ilyautov/humanizer-ru/humanizer-ru)
 
