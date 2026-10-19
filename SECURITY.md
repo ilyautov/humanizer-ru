@@ -2,7 +2,7 @@
 
 ## Поверхность атаки
 
-humanizer-ru — локальный Agent Skill без серверной части: промпт (`SKILL.md`)
+humanizer-ru это локальный Agent Skill без серверной части: промпт (`SKILL.md`)
 плюс офлайн-скрипты на Python (`skills/humanizer-ru/scripts/`). Скрипты не
 делают сетевых вызовов, не пишут за пределы переданных путей и не исполняют
 динамический код. Eval-харнес (`eval/`) опционален и в репозиторий-пакет
@@ -19,5 +19,5 @@ humanizer-ru — локальный Agent Skill без серверной час
 **ilyautov@gmail.com** или через
 [GitHub private vulnerability reporting](https://github.com/ilyautov/humanizer-ru/security/advisories/new).
 
-Ответ в течение 7 дней. Если подтверждается — фикс и упоминание в CHANGELOG
+Ответ в течение 7 дней. Если подтверждается, выходит фикс и упоминание в CHANGELOG
 (по желанию, можно анонимно).

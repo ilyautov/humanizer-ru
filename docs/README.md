@@ -12,13 +12,13 @@ SEO/GEO-сайт проекта. Статический HTML, без сборк�
 
 ## Структура
 
-- `index.html` — лендинг.
-- `ai-detektory-na-russkom.html` — работают ли AI-детекторы на русском (GEO-актив).
-- `kak-ubrat-sledy-neyroseti.html` — практический гайд.
-- `52-priznaka-ai-teksta.html` — справочник маркеров AI-текста.
-- `antiplagiat-i-neyroset.html` — антиплагиат против AI-детектора.
-- `style.css` — общий стиль.
-- `sitemap.xml`, `robots.txt` — для поисковиков.
+- `index.html`: лендинг.
+- `ai-detektory-na-russkom.html`: работают ли AI-детекторы на русском (GEO-актив).
+- `kak-ubrat-sledy-neyroseti.html`: практический гайд.
+- `52-priznaka-ai-teksta.html`: каталог признаков AI-текста (число в слаге историческое, адрес менять нельзя: на него ведут ссылки и поисковая выдача; актуальное число признаков в заголовке страницы).
+- `antiplagiat-i-neyroset.html`: антиплагиат против AI-детектора.
+- `style.css`: общий стиль.
+- `sitemap.xml`, `robots.txt`: для поисковиков.
 
 ## Локальный просмотр
 
@@ -32,4 +32,4 @@ cd docs && python3 -m http.server 8000
 
 - Чистый HTML5 + один CSS, без фреймворков и внешних JS/CDN.
 - В каждой странице: уникальные title/description, canonical, Open Graph, Twitter card, JSON-LD.
-- Тексты без длинных тире и канцелярита — сайт сам образец того, что делает скилл.
+- Тексты без длинных тире и канцелярита: сайт сам образец того, что делает скилл.
