@@ -291,9 +291,9 @@ After (author's facts):
 Audit mode on the same text prints (output of `scan.py`, trimmed to the essentials; the Russian labels are the scanner's own):
 
 ```
-ЧИСТОТА: 34/100  [рерайт]
+ЧИСТОТА: 48/100  [рерайт]
   -36  хард-баны (фразы): 3
-  -30  маркеры: 4 (15.4/100 слов)
+  -16  маркеры: 4 (15.4/100 слов)
 
 HARD BANS:
   ⛔ В современном мире ×1 (стр. 1)

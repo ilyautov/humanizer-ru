@@ -361,7 +361,8 @@ def check_readme_audit(path: Path) -> list[str]:
         if total != len(HARD_BANS):
             errors.append(f"{rel}: в подписи всего банов {total}, в движке {len(HARD_BANS)}")
     shown = {x.strip() for x in _BAN_LINE_RE.findall(section)}
-    real_names = {name for name, _ in real["hard_bans"]}
+    # scan.py --json отдаёт список словарей {name, count, ...}; старый формат был парами
+    real_names = {hb["name"] if isinstance(hb, dict) else hb[0] for hb in real["hard_bans"]}
     if shown != real_names:
         errors.append(f"{rel}: баны в примере {sorted(shown)} не совпадают с реальными "
                       f"{sorted(real_names)}")
