@@ -17,7 +17,7 @@ from dataclasses import dataclass
 
 from razdel import sentenize
 
-from .morphology import _morph
+from .morphology import get_morph
 
 # Строка-пункт списка: маркер «- * •» или «1. / 1)» в начале строки.
 _LIST_RE = re.compile(r"^\s*(?:[-*•]|\d+[.)])\s+\S")
@@ -55,7 +55,7 @@ def _is_common_noun_capitalized(word: str) -> bool:
         return False
     if word.lower() in _STOPWORDS:
         return False
-    p = _morph().parse(word.lower())[0]
+    p = get_morph().parse(word.lower())[0]
     if not p.is_known:
         return False
     return not (_PROPER_TAGS & set(p.tag.grammemes))

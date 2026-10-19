@@ -97,6 +97,10 @@ LEX_MUTED_GENRES = frozenset({"news", "academic", "legal"})
 # штраф вывел бы из «чисто» 0,8-2,8% текстов одной Llama-3.3, у людей потери
 # того же порядка (eval/MODERN-SLOP.md). Показываем не больше REPEAT_SHOW фраз.
 REPEAT_SHOW = 3
+# Плотность мягких маркеров на коротком тексте считается так, будто слов не
+# меньше DENSITY_MIN_WORDS: один оборот в реплике из семи слов это не 14 на
+# сотню, а повод посмотреть. Иначе бытовое сообщение уходило в «правку».
+DENSITY_MIN_WORDS = 50
 # Потолок штрафа за номинальность. Именованный, потому что браузерный сканер
 # морфологии не имеет и объявляет ровно эту величину как неизмеренную.
 NV_PENALTY_MAX = 8
@@ -173,7 +177,7 @@ def cleanliness_score(report, genre: str | None = None) -> ScoreResult:
     soft = sum(h.count for h in markers
                if h.category != COPY_PASTE_CATEGORY and h.category not in DISTINCT_CATEGORIES)
     if soft:
-        pen = min(30, round(2 * _per100(soft, words)))
+        pen = min(30, round(2 * _per100(soft, max(words, DENSITY_MIN_WORDS))))
         if pen:
             score -= pen
             penalties.append((f"маркеры: {soft} ({_per100(soft, words):.1f}/100 слов)", -pen))
@@ -201,7 +205,8 @@ def cleanliness_score(report, genre: str | None = None) -> ScoreResult:
             score -= pen
             penalties.append((f"тире: {report.rhythm.em_dash} ({dash_density:.1f}/100 слов)", -pen))
 
-    # 5. Ровный ритм: чем ниже CV относительно цели 0.45, тем больше штраф.
+    # 5. Ровный ритм: чем ниже CV относительно порога 0.35, тем больше штраф.
+    #    Порог тот же, что у вердикта rhythm_verdict: ⚠ и штраф всегда вместе.
     cv = report.rhythm.cv_len
     if report.rhythm.sentences >= 4 and cv < CV_HUMAN_TARGET:
         pen = min(20, round((CV_HUMAN_TARGET - cv) / CV_HUMAN_TARGET * 30))

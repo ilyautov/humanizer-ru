@@ -144,7 +144,7 @@ def _verdict_for(rep_dict: dict) -> str:
     markers = rep_dict["marker_count"]
     cv = rep_dict["rhythm"]["cv_len"]
     nv = rep_dict["morph"]["noun_verb_ratio"]
-    if bans == 0 and markers <= 2 and cv >= 0.45 and nv <= 2.5:
+    if bans == 0 and markers <= 2 and cv >= 0.35 and nv <= 2.5:
         return "чисто"
     if bans > 0 or markers >= 6:
         return "AI"
