@@ -93,14 +93,17 @@ RE_BAN_COUNT = re.compile(rf"\b{_NUM}(?={_GAP}{BAN_NOUNS})")
 # продолжали обещать «12 категорий» при тринадцати. Тот же класс бага, что
 # «52 паттерна» на свежем коммите, только заметить его труднее.
 CATEGORY_NOUNS = r"(?:категор\w*|categor\w+)"
-# «23 категории быстрого сканера» это категории движка (SCANNER в markers.py),
-# а не категории каталога A-N: считаются отдельно, иначе eval/README.md
-# навсегда расходился бы с каталогом (19 против 16, потом 23 против 16).
+# «23 категории быстрого сканера» и «170+ правил в 23 категориях» это категории
+# движка (SCANNER в markers.py), а не категории каталога A-N: считаются отдельно,
+# иначе eval/README.md и сайт навсегда расходились бы с каталогом.
 _SCANNER_TAIL = r"(?:\s+быстрого)?\s+сканера"
+_RULES_HEAD = r"правил в "
+# Одна группа захвата: число берётся либо после «правил в », либо перед «... сканера».
 RE_SCANNER_CATEGORY_COUNT = re.compile(
-    rf"\b{_NUM}(?={_GAP}{CATEGORY_NOUNS}{_SCANNER_TAIL})")
+    rf"(?:(?<={_RULES_HEAD})|(?=\d+{_GAP}{CATEGORY_NOUNS}{_SCANNER_TAIL}))"
+    rf"\b{_NUM}(?={_GAP}{CATEGORY_NOUNS})")
 RE_CATEGORY_COUNT = re.compile(
-    rf"\b{_NUM}(?={_GAP}{CATEGORY_NOUNS}\b(?!{_SCANNER_TAIL}))")
+    rf"(?<!{_RULES_HEAD})\b{_NUM}(?={_GAP}{CATEGORY_NOUNS}\b(?!{_SCANNER_TAIL}))")
 
 # Китайская витрина README.zh.md: «67 个俄语 AI 特征», «16 类», «21 条硬性».
 # Падежей нет, поэтому достаточно трёх фиксированных форм.

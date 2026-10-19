@@ -129,6 +129,10 @@ jobs:
         run: python scripts/export_web_rules.py --check
       - name: Chrome-расширение не отстало от сайта (vendor/ и манифест)
         run: python scripts/build_extension.py --check
+      # Главная грузит workshop.js, а правят workshop.ts: tsc из docs/package.json
+      # собирает исходник во временную папку, результат сравнивается байт в байт.
+      - name: Главная собрана из workshop.ts (tsc во временную папку и diff)
+        run: python scripts/check_workshop_build.py
       - name: Паритет браузерного сканера с Python (test_web_parity)
         run: python scripts/test_web_parity.py
 

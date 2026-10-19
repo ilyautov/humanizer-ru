@@ -186,11 +186,6 @@ pre code { background: none; border: none; padding: 0; }
 .hero-proof { font-family: var(--mono); font-size: 12.5px; color: var(--text-dim); margin: 0 0 1.4em; }
 .hero-proof a { color: var(--text-dim); text-decoration: underline; text-decoration-color: var(--border-strong); }
 .hero-proof a:hover { color: var(--accent); }
-.hero-paper { flex: 0 0 240px; margin: 6px 0 0; }
-.hero-paper img {
-  display: block; width: 100%; height: auto;
-  border-radius: var(--radius-sm); border: 1px solid var(--border);
-}
 .audit-scale-line { margin: 12px 0 0; }
 .audit-result { margin-top: 18px; }
 .audit-privacy { font-family: var(--mono); font-size: 12.5px; color: var(--text-dim); margin: 10px 0 0; }
@@ -290,6 +285,8 @@ pre code { background: none; border: none; padding: 0; }
 .audit-none { color: var(--good); font-size: 0.92em; margin: 0; }
 .audit-sterile { color: var(--text-dim); font-size: 0.86em; margin: 10px 0 0; border-top: 1px solid var(--border); padding-top: 10px; }
 .audit-unmeasured { color: var(--text-dim); font-size: 0.86em; margin: 10px 0 0; border-top: 1px dashed var(--border); padding-top: 10px; }
+/* Текст не на русском: вместо балла предупреждение, цветом «внимание», не «чисто». */
+.audit-lang { color: var(--warn); margin: 0; padding: 12px 14px; border: 1px solid var(--warn); border-radius: var(--radius); font-size: 0.95em; line-height: 1.6; }
 
 .audit-marked { padding: 28px 0 0; }
 .audit-legend { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; font-size: 12.5px; color: var(--text-dim); margin-bottom: 10px; }
@@ -582,7 +579,6 @@ tr:last-child td { border-bottom: none; }
 .small { font-size: 0.9em; }
 
 @media (max-width: 900px) {
-  .hero-paper { display: none; }
   .next-grid, .who { grid-template-columns: 1fr; gap: 18px; }
   .next-grid > div + div, .who > div + div { border-left: 0; padding-left: 0; border-top: 1px solid var(--border); padding-top: 16px; }
   .reading { grid-template-columns: 1fr; gap: 0; }

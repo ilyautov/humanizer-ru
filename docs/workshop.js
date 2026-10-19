@@ -10,6 +10,7 @@
     let currentCase = 0, currentStep = 0;
     const stageTitles = ['Сначала найдём лишнее.', 'Теперь снимем оболочку.', 'И перечитаем рядом с исходником.'];
     const stageNotes = ['Сканер отмечает обороты. Решение о правке зависит от смысла и жанра.', 'Меняем конкретные места. Всё, что уже работает, оставляем.', 'Сверяем утверждения, числа, условия и голос. Одного балла для этого мало.'];
+    // Подсветка в учебном пульте: без подсказок, только место оборота.
     function markText(target, text, findings) {
         const ranges = findings.flatMap(f => f.positions).filter(([a, b]) => a >= 0 && b > a && b <= text.length).sort((a, b) => a[0] - b[0]);
         const merged = [];
@@ -52,6 +53,9 @@
     const input = el('audit-input'), genre = el('genre'), afterInput = el('after-input');
     let reportText = '';
     let toastTimer;
+    let scanTimer;
+    let spans = [];
+    const H = humanizerHints;
     function toast(message) { el('toast').textContent = message; el('toast').hidden = false; window.clearTimeout(toastTimer); toastTimer = window.setTimeout(() => el('toast').hidden = true, 3500); }
     async function copy(text) { try {
         await navigator.clipboard.writeText(text);
@@ -60,71 +64,158 @@
     catch {
         toast('Не удалось скопировать. Выделите текст и скопируйте вручную.');
     } }
-    function russian(text) { const letters = text.match(/\p{L}/gu) || []; return letters.length > 0 && (text.match(/[а-яё]/giu) || []).length / letters.length >= .3; }
-    function invalidate() { reportText = ''; el('char-count').textContent = `${input.value.length.toLocaleString('ru-RU')} / 30 000`; el('compare-result').textContent = ''; if (!el('result-content').hidden) {
-        el('result-content').hidden = true;
-        el('empty-result').hidden = false;
-    } }
-    input.addEventListener('input', invalidate);
-    genre.addEventListener('change', invalidate);
+    const russian = (text) => humanizerIsRussian(text);
+    function showPanel(which) { el('empty-result').hidden = which !== 'empty'; el('lang-note').hidden = which !== 'lang'; el('result-content').hidden = which !== 'result'; }
+    function invalidate() { reportText = ''; el('char-count').textContent = `${input.value.length.toLocaleString('ru-RU')} / 30 000`; el('compare-result').textContent = ''; }
+    // Проверка сама: сразу после вставки и через полсекунды после набора, как на странице-инструменте.
+    function schedule(delay) { window.clearTimeout(scanTimer); scanTimer = window.setTimeout(() => scan(false), delay); }
+    input.addEventListener('input', () => { invalidate(); schedule(500); });
+    input.addEventListener('paste', () => schedule(0));
+    genre.addEventListener('change', () => { invalidate(); if (input.value.trim())
+        scan(false); });
     afterInput.addEventListener('input', () => el('compare-result').textContent = '');
-    function scan() {
-        const text = input.value;
-        if (!text.trim()) {
-            toast('Сначала вставьте текст.');
-            input.focus();
+    // Края подсветки тянем до границы слова только для показа: счёт не меняется.
+    const wordEnd = (text, b) => { while (b < text.length && /[\p{L}\p{M}]/u.test(text[b]))
+        b++; return b; };
+    function collectSpans(text, r) {
+        const all = [];
+        for (const h of r.effective_bans)
+            for (const [a, b] of h.positions)
+                all.push({ a, b: wordEnd(text, b), kind: 'ban', cat: '', name: h.name });
+        for (const h of r.muted_markers)
+            for (const [a, b] of h.positions)
+                all.push({ a, b: wordEnd(text, b), kind: 'mk', cat: h.category, name: h.name });
+        all.sort((x, y) => x.a - y.a || (x.kind === 'ban' ? -1 : 1));
+        const out = [];
+        let pos = 0;
+        for (const s of all) {
+            if (s.a < pos || s.b > text.length)
+                continue;
+            out.push(s);
+            pos = s.b;
+        }
+        return out;
+    }
+    const spanTitle = (s) => H.ruleName(s.kind === 'ban' ? s.name : `${s.cat}: ${s.name}`);
+    // Подчёркивание нажимается: под текстом появляется правило и что с ним сделать.
+    function markInteractive(target, text, list) {
+        target.replaceChildren();
+        let position = 0;
+        list.forEach((s, i) => { target.append(document.createTextNode(text.slice(position, s.a))); const mark = document.createElement('mark'); mark.className = s.kind; mark.tabIndex = 0; mark.setAttribute('role', 'button'); mark.setAttribute('aria-pressed', 'false'); mark.dataset.i = String(i); mark.setAttribute('aria-label', `${H.kindLabel(s.kind)}: ${spanTitle(s)}`); mark.textContent = text.slice(s.a, s.b); target.append(mark); position = s.b; });
+        target.append(document.createTextNode(text.slice(position)));
+    }
+    function showHint(mark) {
+        const s = spans[Number(mark.dataset.i)], hint = el('mark-hint');
+        if (!s)
+            return;
+        const pressed = mark.getAttribute('aria-pressed') === 'true';
+        el('highlighted-text').querySelectorAll('mark[aria-pressed="true"]').forEach(m => m.setAttribute('aria-pressed', 'false'));
+        if (pressed) {
+            hint.hidden = true;
             return;
         }
+        mark.setAttribute('aria-pressed', 'true');
+        hint.replaceChildren();
+        const b = document.createElement('b');
+        b.className = s.kind;
+        b.textContent = `${H.kindLabel(s.kind)}, ${spanTitle(s)}.`;
+        hint.append(b, document.createTextNode(' ' + H.hintFor(s.kind, s.cat, s.name)));
+        hint.hidden = false;
+    }
+    el('highlighted-text').addEventListener('click', e => { const m = e.target.closest('mark'); if (m)
+        showHint(m); });
+    el('highlighted-text').addEventListener('keydown', e => { const m = e.target.closest('mark'); if (!m)
+        return; if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        showHint(m);
+    } if (e.key === 'Escape') {
+        m.setAttribute('aria-pressed', 'false');
+        el('mark-hint').hidden = true;
+    } });
+    function scan(manual = true) {
+        window.clearTimeout(scanTimer);
+        const text = input.value;
+        if (!text.trim()) {
+            showPanel('empty');
+            if (manual) {
+                toast('Сначала вставьте текст.');
+                input.focus();
+            }
+            return;
+        }
+        // Не русский текст: балла нет, иначе английский абзац получил бы 100 «чисто».
         if (!russian(text)) {
-            toast('Сканер рассчитан на русский текст.');
-            input.focus();
+            reportText = '';
+            el('lang-note').textContent = H.NOT_RUSSIAN;
+            showPanel('lang');
             return;
         }
         try {
             const r = humanizerScan(text, genre.value);
-            el('empty-result').hidden = true;
-            el('result-content').hidden = false;
+            showPanel('result');
             el('scan-score').textContent = String(r.score);
-            const band = el('score-band');
-            band.textContent = r.score >= 85 ? 'МАЛО МАРКЕРОВ' : r.score >= 60 ? 'ЕСТЬ ЧТО ПОПРАВИТЬ' : 'МНОГО МАРКЕРОВ';
-            band.dataset.band = r.score >= 85 ? 'good' : r.score >= 60 ? 'mid' : 'bad';
-            const findings = [...r.effective_bans, ...r.muted_markers], seen = new Set();
-            const unique = findings.filter(f => { const key = f.name + JSON.stringify(f.positions); if (seen.has(key))
-                return false; seen.add(key); return true; });
-            el('scan-summary').textContent = unique.length ? `Найдено правил с совпадениями: ${unique.length}. Начните с подчёркнутых мест.` : 'Совпадений с лексическими правилами нет. Прочитайте текст целиком: смысл и польза не измеряются этим баллом.';
-            markText(el('highlighted-text'), text, unique);
+            const bandKey = H.bandOf(r), band = el('score-band');
+            band.textContent = bandKey === 'good' ? 'МАЛО МАРКЕРОВ' : bandKey === 'warn' ? 'ЕСТЬ ЧТО ПОПРАВИТЬ' : 'МНОГО МАРКЕРОВ';
+            band.dataset.band = bandKey === 'warn' ? 'mid' : bandKey;
+            spans = collectSpans(text, r);
+            const groups = new Map();
+            for (const s of spans) {
+                const key = s.kind + '|' + s.cat + '|' + s.name;
+                const g = groups.get(key);
+                if (g)
+                    g.n++;
+                else
+                    groups.set(key, { s, n: 1 });
+            }
+            const unique = [...groups.values()].sort((x, y) => x.s.kind === y.s.kind ? x.s.a - y.s.a : x.s.kind === 'ban' ? -1 : 1);
+            el('scan-summary').textContent = unique.length ? `Найдено правил с совпадениями: ${unique.length}. Нажмите на подчёркнутое, чтобы увидеть подсказку.` : 'Совпадений с лексическими правилами нет. Прочитайте текст целиком: смысл и польза не измеряются этим баллом.';
+            el('scan-next').textContent = H.nextLine(bandKey, spans.length > 0, r);
+            markInteractive(el('highlighted-text'), text, spans);
+            el('mark-hint').hidden = true;
+            el('mark-legend').hidden = !spans.length;
             const list = el('findings');
             list.replaceChildren();
-            for (const f of unique.slice(0, 12)) {
+            for (const { s, n } of unique.slice(0, 12)) {
                 const li = document.createElement('li');
-                li.textContent = `${f.name} · ${f.count}`;
+                li.className = s.kind;
+                const b = document.createElement('b');
+                b.textContent = spanTitle(s) + (n > 1 ? ` ×${n}` : '');
+                li.append(b, document.createTextNode('. ' + H.hintFor(s.kind, s.cat, s.name)));
                 list.append(li);
             }
             if (unique.length > 12) {
                 const li = document.createElement('li');
-                li.textContent = `Ещё правил с совпадениями: ${unique.length - 12}. Полный список будет в скопированном отчёте.`;
+                li.textContent = `Ещё правил с совпадениями: ${unique.length - 12}. Полный список в скопированном отчёте и в полном разборе.`;
                 list.append(li);
             }
-            if (!unique.length && r.penalties.length) {
-                for (const p of r.penalties) {
+            if (r.penalties.length) {
+                for (const p of r.penalties.filter(p => !/^хард-баны|^маркеры/.test(p.reason))) {
                     const li = document.createElement('li');
-                    li.textContent = `${p.reason}: ${p.points}`;
+                    li.textContent = `${H.penaltyCategory(p.reason)}: ${H.humanReason(p.reason)}, ${p.points}.`;
                     list.append(li);
                 }
             }
-            reportText = `humanizer-ru / жанр: ${genre.selectedOptions[0].textContent}\nЧистота: ${r.score}/100\n` + unique.map(f => `${f.name}: ${f.count}`).join('\n') + '\nШтрафы:\n' + r.penalties.map(p => `${p.reason}: ${p.points}`).join('\n') + '\nБалл не определяет авторство и не подтверждает сохранение смысла. Морфология в браузере не измеряется.';
+            const gap = H.unmeasuredLine(r);
+            reportText = `humanizer-ru / жанр: ${genre.selectedOptions[0].textContent}\nЧистота: ${r.score}/100\n` + unique.map(({ s, n }) => `${spanTitle(s)}: ${n}`).join('\n') + '\nШтрафы:\n' + r.penalties.map(p => `${H.humanReason(p.reason)}: ${p.points}`).join('\n') + (gap ? '\n' + gap : '') + '\nБалл не определяет авторство и не подтверждает сохранение смысла.';
         }
         catch {
             toast('Сканер не запустился. Обновите страницу или используйте CLI.');
         }
     }
-    el('scan-button').addEventListener('click', scan);
+    el('scan-button').addEventListener('click', () => scan(true));
     input.addEventListener('keydown', e => { if ((e.ctrlKey || e.metaKey) && e.key === 'Enter')
-        scan(); });
-    el('load-example').addEventListener('click', () => { input.value = cases[currentCase].before; genre.value = cases[currentCase].genre; invalidate(); scan(); });
-    el('clear-button').addEventListener('click', () => { input.value = ''; afterInput.value = ''; invalidate(); input.focus(); });
+        scan(true); });
+    el('load-example').addEventListener('click', () => { input.value = cases[currentCase].before; genre.value = cases[currentCase].genre; invalidate(); scan(true); });
+    el('clear-button').addEventListener('click', () => { input.value = ''; afterInput.value = ''; invalidate(); showPanel('empty'); input.focus(); });
     el('copy-report').addEventListener('click', () => { if (reportText)
         void copy(reportText); });
+    // «Полный разбор» открывает тот же текст на странице-инструменте: черновик
+    // кладётся в localStorage этого браузера по явному клику, как там же делает «Очистить».
+    el('full-review').addEventListener('click', () => { if (!input.value.trim())
+        return; try {
+        localStorage.setItem('humanizer-ru:draft', JSON.stringify({ text: input.value, genre: genre.value === 'marketing' ? '' : genre.value, after: afterInput.value }));
+    }
+    catch { /* хранилище закрыто: страница откроется пустой */ } });
     // Полная проверка фактов из facts.js (числа, имена, месяцы, ссылки, кванторы), как в расширении; без неё только числа.
     function factsOf(before, after) {
         if (typeof humanizerFacts !== 'undefined' && humanizerFacts)

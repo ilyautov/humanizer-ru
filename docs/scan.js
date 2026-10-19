@@ -138,7 +138,7 @@
   // разрезано, «рабочий/учебный» и «Уважаемый(ая)» одним словом). Окно в 10
   // символов, сокращения и порядок правил как у razdel; срезы по кодовым
   // точкам, как в Python. Перевод строки сам по себе границей не считается.
-  const RZ_ENDINGS = ".?!…", RZ_DASHES = "‑–—−-";
+  const RZ_ENDINGS = ".?!…", RZ_DASHES = "‑–\u2014−-";
   const RZ_CLOSE_QUOTES = "»”’", RZ_GENERIC_QUOTES = "\"„'";
   const RZ_QUOTES = "«“‘" + RZ_CLOSE_QUOTES + RZ_GENERIC_QUOTES;
   const RZ_CLOSE_BRACKETS = ")]}";
@@ -605,6 +605,23 @@
     return out;
   }
   globalThis.humanizerNumericFacts = numericFacts;
+
+  // Правила написаны под русский: английский абзац не находит ни одного
+  // оборота и получает 100 «чисто». Интерфейсы (главная, страница-инструмент,
+  // расширение) спрашивают язык здесь и вместо балла показывают предупреждение.
+  // Порог 0,3: русский текст с латинскими терминами и кодом проходит.
+  // Код не считается: русский пост с большим блоком кода остаётся русским.
+  // Вырезаем огороженные блоки ``` и ~~~ (и незакрытый хвост) и инлайн-код.
+  function isRussian(text) {
+    const prose = String(text || "")
+      .replace(/^[ \t]*(```|~~~)[^\n]*\n[\s\S]*?(?:^[ \t]*\1[^\n]*$|(?![\s\S]))/gm, " ")
+      .replace(/`[^`\n]+`/g, " ");
+    const letters = prose.match(/\p{L}/gu);
+    if (!letters) return false;
+    const cyr = letters.filter((c) => /[Ѐ-ӿ]/.test(c)).length;
+    return cyr / letters.length >= 0.3;
+  }
+  globalThis.humanizerIsRussian = isRussian;
 
   globalThis.humanizerScan = humanizerScan;
   globalThis.humanizerScanInternals = { maskForeign, stripForeign, sentences, countWords, lexicalTokens, mattr, repeatStats };
