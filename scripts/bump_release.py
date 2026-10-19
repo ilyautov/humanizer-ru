@@ -40,7 +40,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 sys.path.insert(0, str(ROOT / "skills" / "humanizer-ru" / "scripts"))
-from humanizer_metrics.markers import HARD_BANS  # noqa: E402
+from humanizer_metrics.markers import HARD_BANS, SCANNER  # noqa: E402
 from ru_plural import agreement_drift, fix_agreement  # noqa: E402
 
 SKILL = ROOT / "skills" / "humanizer-ru" / "references" / "catalog.md"
@@ -52,7 +52,7 @@ AGENT_MANIFESTS = sorted(
 # Файлы, где живут СЧЁТЧИКИ (SKILL.md намеренно не здесь: он источник истины,
 # его правит человек, а линт проверяет сплошную нумерацию).
 COUNT_FILES = [
-    "README.md", "README.en.md",
+    "README.md", "README.en.md", "README.zh.md", "eval/README.md",
     "docs/index.html", "docs/52-priznaka-ai-teksta.html",
     "docs/ai-detektory-na-russkom.html", "docs/antiplagiat-i-neyroset.html",
     "docs/kak-ubrat-sledy-neyroseti.html",
@@ -85,7 +85,7 @@ RE_PATTERN_COUNT = re.compile(rf"\b{_NUM}(?={_GAP}{PATTERN_NOUNS})")
 # существительного; вторая колонка — конкурент, не трогается).
 RE_TABLE = re.compile(r"(\|\s*Паттернов\s*\|\s*)(\d+)")
 
-BAN_NOUNS = r"(?:жёстких|запрет\w*|hard[- ]ban\w*|hard-banned)"
+BAN_NOUNS = r"(?:жёстк\w+|запрет\w*|запрещ\w+|hard[- ]ban\w*|hard-banned)"
 RE_BAN_COUNT = re.compile(rf"\b{_NUM}(?={_GAP}{BAN_NOUNS})")
 
 # Категории каталога (A-M). Раньше это число скрипт намеренно не трогал, и оно
@@ -93,7 +93,23 @@ RE_BAN_COUNT = re.compile(rf"\b{_NUM}(?={_GAP}{BAN_NOUNS})")
 # продолжали обещать «12 категорий» при тринадцати. Тот же класс бага, что
 # «52 паттерна» на свежем коммите, только заметить его труднее.
 CATEGORY_NOUNS = r"(?:категор\w*|categor\w+)"
-RE_CATEGORY_COUNT = re.compile(rf"\b{_NUM}(?={_GAP}{CATEGORY_NOUNS})")
+# «23 категории быстрого сканера» и «170+ правил в 23 категориях» это категории
+# движка (SCANNER в markers.py), а не категории каталога A-N: считаются отдельно,
+# иначе eval/README.md и сайт навсегда расходились бы с каталогом.
+_SCANNER_TAIL = r"(?:\s+быстрого)?\s+сканера"
+_RULES_HEAD = r"правил в "
+# Одна группа захвата: число берётся либо после «правил в », либо перед «... сканера».
+RE_SCANNER_CATEGORY_COUNT = re.compile(
+    rf"(?:(?<={_RULES_HEAD})|(?=\d+{_GAP}{CATEGORY_NOUNS}{_SCANNER_TAIL}))"
+    rf"\b{_NUM}(?={_GAP}{CATEGORY_NOUNS})")
+RE_CATEGORY_COUNT = re.compile(
+    rf"(?<!{_RULES_HEAD})\b{_NUM}(?={_GAP}{CATEGORY_NOUNS}\b(?!{_SCANNER_TAIL}))")
+
+# Китайская витрина README.zh.md: «67 个俄语 AI 特征», «16 类», «21 条硬性».
+# Падежей нет, поэтому достаточно трёх фиксированных форм.
+RE_ZH_PATTERN_COUNT = re.compile(r"(?<![-\d.,])(\d+)(?=\s*个(?:俄语\s*AI\s*)?特征)")
+RE_ZH_BAN_COUNT = re.compile(r"(?<![-\d.,])(\d+)(?=\s*条硬性)")
+RE_ZH_CATEGORY_COUNT = re.compile(r"(?<![-\d.,])(\d+)(?=\s*(?:个)?类)")
 
 VERSION_TARGETS = [
     # (файл, regex с одной группой-версией)
@@ -107,16 +123,29 @@ VERSION_TARGETS = [
     ("extension/manifest.json", r'"version":\s*"([\d.]+)"'),
     ("README.md", r"версия-([\d.]+)-blueviolet"),
     ("README.en.md", r"version-([\d.]+)-blueviolet"),
+    ("README.zh.md", r"version-([\d.]+)-blueviolet"),
     # Заголовок скилла. До v3.15.4 здесь жила отдельная «контент-версия»,
     # которая двигалась только при правке промпта и потому отставала (v3.13 при
     # пакете 3.15.3). Версия теперь одна на весь репозиторий: сравнивать две
     # нумерации всё равно было некому, а расхождение читалось как баг.
     ("skills/humanizer-ru/SKILL.md", r"# Humanizer-RU v([\d.]+)"),
-    ("docs/index.html", r"<li>v([\d.]+)</li>"),
     # Пакет PyPI и карточка реестра MCP: версия та же, что у тега.
     ("pyproject.toml", r'\nversion = "([\d.]+)"'),
     ("server.json", r'"version":\s*"([\d.]+)"'),
 ]
+
+
+# Подвалы страниц сайта несут только «vX.Y» (без патча): index и все страницы,
+# где есть <ul class="foot-meta">. Список берётся глобом, чтобы новая страница
+# не выпадала из гейта, как выпали три страницы на v3.25 при релизе 3.31.
+FOOTER_RE = r"<li>v([\d.]+)</li>"
+
+
+def footer_files() -> list[str]:
+    return sorted(
+        str(p.relative_to(ROOT)) for p in (ROOT / "docs").glob("*.html")
+        if re.search(FOOTER_RE, p.read_text(encoding="utf-8"))
+    )
 
 
 def derive_pattern_count() -> int:
@@ -141,7 +170,8 @@ def derive_category_count() -> int:
     return len(letters)
 
 
-def scan_counts(patterns: int, bans: int, categories: int) -> list[str]:
+def scan_counts(patterns: int, bans: int, categories: int,
+                scanner_categories: int | None = None) -> list[str]:
     """Возвращает список расхождений счётчиков по всем файлам."""
     drift = []
     for rel in COUNT_FILES:
@@ -161,6 +191,18 @@ def scan_counts(patterns: int, bans: int, categories: int) -> list[str]:
             if int(m.group(1)) != categories:
                 ctx = s[m.start():m.start() + 40].replace("\n", " ")
                 drift.append(f"{rel}: «{ctx}...» ожидалось {categories} категорий")
+        if scanner_categories is not None:
+            for m in RE_SCANNER_CATEGORY_COUNT.finditer(s):
+                if int(m.group(1)) != scanner_categories:
+                    ctx = s[m.start():m.start() + 44].replace("\n", " ")
+                    drift.append(f"{rel}: «{ctx}...» ожидалось {scanner_categories} "
+                                 "категорий сканера")
+        for rx, want, what in ((RE_ZH_PATTERN_COUNT, patterns, "признаков"),
+                               (RE_ZH_BAN_COUNT, bans, "банов"),
+                               (RE_ZH_CATEGORY_COUNT, categories, "категорий")):
+            for m in rx.finditer(s):
+                if int(m.group(1)) != want:
+                    drift.append(f"{rel}: «{s[m.start():m.start() + 12]}» ожидалось {want} {what}")
         for _, found, want in agreement_drift(s):
             drift.append(f"{rel}: «{found}» ожидалось «{want}» (падеж при числе)")
     return drift
@@ -168,7 +210,7 @@ def scan_counts(patterns: int, bans: int, categories: int) -> list[str]:
 
 def scan_versions() -> tuple[list[str], list[str]]:
     """Полные версии обязаны совпадать; eyebrow сайта = vX.Y от них же."""
-    full, eyebrow, details, drift = set(), None, [], []
+    full, details, drift = set(), [], []
     for rel, rx in VERSION_TARGETS:
         s = (ROOT / rel).read_text(encoding="utf-8")
         m = re.search(rx, s)
@@ -177,20 +219,21 @@ def scan_versions() -> tuple[list[str], list[str]]:
             continue
         v = m.group(1)
         details.append(f"{rel}: {v}")
-        if rel == "docs/index.html":
-            eyebrow = v
-        else:
-            full.add(v)
+        full.add(v)
     if len(full) > 1:
         drift.append(f"версии манифестов/бейджа разъехались: {sorted(full)}")
-    if full and eyebrow is not None:
+    if full:
         short = ".".join(next(iter(full)).split(".")[:2])
-        if eyebrow != short:
-            drift.append(f"eyebrow сайта v{eyebrow} != v{short} из манифестов")
+        for rel in footer_files():
+            m = re.search(FOOTER_RE, (ROOT / rel).read_text(encoding="utf-8"))
+            details.append(f"{rel}: {m.group(1)}")
+            if m.group(1) != short:
+                drift.append(f"подвал сайта {rel} v{m.group(1)} != v{short} из манифестов")
     return drift, details
 
 
-def apply_all(patterns: int, bans: int, categories: int, version: str | None) -> int:
+def apply_all(patterns: int, bans: int, categories: int, version: str | None,
+              scanner_categories: int | None = None) -> int:
     changed = 0
     for rel in COUNT_FILES:
         p = ROOT / rel
@@ -199,6 +242,11 @@ def apply_all(patterns: int, bans: int, categories: int, version: str | None) ->
         s = RE_TABLE.sub(rf"\g<1>{patterns}", s)
         s = RE_BAN_COUNT.sub(str(bans), s)
         s = RE_CATEGORY_COUNT.sub(str(categories), s)
+        if scanner_categories is not None:
+            s = RE_SCANNER_CATEGORY_COUNT.sub(str(scanner_categories), s)
+        s = RE_ZH_PATTERN_COUNT.sub(str(patterns), s)
+        s = RE_ZH_BAN_COUNT.sub(str(bans), s)
+        s = RE_ZH_CATEGORY_COUNT.sub(str(categories), s)
         s = fix_agreement(s)
         if s != orig:
             p.write_text(s, encoding="utf-8")
@@ -210,12 +258,19 @@ def apply_all(patterns: int, bans: int, categories: int, version: str | None) ->
         for rel, rx in VERSION_TARGETS:
             p = ROOT / rel
             s = orig = p.read_text(encoding="utf-8")
-            new = short.lstrip("v") if rel == "docs/index.html" else full
-            s = re.sub(rx, lambda m: m.group(0).replace(m.group(1), new), s)
+            s = re.sub(rx, lambda m: m.group(0).replace(m.group(1), full), s)
             if s != orig:
                 p.write_text(s, encoding="utf-8")
                 changed += 1
-                print(f"[apply] {rel}: версия -> {new}")
+                print(f"[apply] {rel}: версия -> {full}")
+        for rel in footer_files():
+            p = ROOT / rel
+            s = orig = p.read_text(encoding="utf-8")
+            s = re.sub(FOOTER_RE, lambda m: m.group(0).replace(m.group(1), short.lstrip("v")), s)
+            if s != orig:
+                p.write_text(s, encoding="utf-8")
+                changed += 1
+                print(f"[apply] {rel}: подвал -> {short}")
     return changed
 
 
@@ -230,10 +285,12 @@ def main() -> int:
     patterns = derive_pattern_count()
     bans = len(HARD_BANS)
     categories = derive_category_count()
-    print(f"[истина] паттернов: {patterns} (из SKILL.md), hard bans: {bans} (из markers.py)")
+    scanner_categories = len(SCANNER)
+    print(f"[истина] паттернов: {patterns} (из каталога), категорий каталога: {categories}, "
+          f"hard bans: {bans}, категорий сканера: {scanner_categories} (из markers.py)")
 
     if args.check:
-        drift = scan_counts(patterns, bans, categories)
+        drift = scan_counts(patterns, bans, categories, scanner_categories)
         vdrift, details = scan_versions()
         for d in details:
             print(f"[версии] {d}")
@@ -245,7 +302,7 @@ def main() -> int:
         print("[гейт] ✓ счётчики и версия согласованы во всех местах")
         return 0
 
-    changed = apply_all(patterns, bans, categories, args.apply or None)
+    changed = apply_all(patterns, bans, categories, args.apply or None, scanner_categories)
     print(f"[итог] файлов изменено: {changed}")
     print("[напоминание] npm, PyPI и реестр MCP публикует CI по тегу и релизу"
           " (publish-npm.yml, publish-pypi.yml, publish-registry.yml)."

@@ -7,8 +7,8 @@
 
 ## Код
 
-**Филипп Зарубин** ([@zarubinphil](https://github.com/zarubinphil))
-[#53](https://github.com/ilyautov/humanizer-ru/pull/53)
+**Филипп Зарубин** (коммиты в истории репозитория, merge-коммит `4dd7b6b`;
+страница автора и сам PR на GitHub больше не открываются, поэтому ссылок нет)
 
 Категория N «Дискурсный слой», паттерны 59-64, по статье StoryScope
 (arXiv:2604.03136, COLM 2026). Ценность категории не в силе признака, а в его
@@ -62,6 +62,13 @@ arxiv, из которого выросла верифицированная ч�
 **[@xonika9](https://github.com/xonika9)**,
 [#36](https://github.com/ilyautov/humanizer-ru/issues/36): `npx skills add`
 тащил весь репозиторий вместо `skills/humanizer-ru`.
+
+**Michael Minz** ([@MichaelMinz](https://github.com/MichaelMinz)),
+[#160](https://github.com/ilyautov/humanizer-ru/issues/160): встроенный сканер
+безопасности Hermes Agent выдавал скиллу вердикт DANGEROUS и блокировал
+установку, даже с `--force`. Отсюда heredoc вместо пайпа в примерах,
+невидимые символы в `markers.py` записаны как `\N{...}`, а сообщение об
+ошибке зависимостей отсылает к README.
 
 **Viktor** ([@vdovikovva](https://github.com/vdovikovva)),
 [#117](https://github.com/ilyautov/humanizer-ru/issues/117),

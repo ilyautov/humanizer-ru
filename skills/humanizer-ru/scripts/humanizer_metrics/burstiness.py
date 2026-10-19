@@ -111,9 +111,10 @@ def rhythm(text: str) -> RhythmStats:
 
 
 # Эвристические пороги (откалиброваны под русский грубо, см. eval/RESULTS.md).
-# cv_len < 0.35 — слишком ровный ритм, признак AI. Человеческий текст обычно > 0.45.
-CV_AI_THRESHOLD = 0.35
-CV_HUMAN_TARGET = 0.45
+# cv_len < 0.35: слишком ровный ритм, признак AI. Один порог на вердикт и на
+# штраф в score.py: раньше вердикт ставил ✓ с 0.35, а штраф шёл до 0.45, и
+# текст получал «ритм рваный» вместе с минусом за ровный ритм.
+CV_HUMAN_TARGET = 0.35
 
 
 def rhythm_verdict(s: RhythmStats, dash_ok: bool = False) -> str:
@@ -125,7 +126,7 @@ def rhythm_verdict(s: RhythmStats, dash_ok: bool = False) -> str:
         dash = f"⚠ {s.em_dash} длинных тире (норма 0)"
     else:
         dash = "✓ тире чисто"
-    if s.cv_len < CV_AI_THRESHOLD:
+    if s.cv_len < CV_HUMAN_TARGET:
         rhythm_v = f"⚠ ровный ритм (CV={s.cv_len}, цель ≥{CV_HUMAN_TARGET})"
     else:
         rhythm_v = f"✓ ритм рваный (CV={s.cv_len})"
