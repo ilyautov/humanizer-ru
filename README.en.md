@@ -1,0 +1,370 @@
+# humanizer-ru
+
+> [Русская версия: основная](README.md) · [中文](https://github.com/ilyautov/humanizer-ru/blob/main/README.zh.md)
+
+Claude Code / Cowork plugin. Cleans bureaucratese and AI-style clichés out of Russian text without touching facts or the author's voice. The English [humanizer](https://github.com/blader/humanizer) won't help here. Russian AI markers are their own beast: bureaucratic noun-chains (канцелярит), English-syntax calques, missing particles like "же" and "ведь" that make Russian sound alive.
+
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Version](https://img.shields.io/badge/version-3.32.0-blueviolet)](https://github.com/ilyautov/humanizer-ru/blob/main/CHANGELOG.md)
+[![Stars](https://img.shields.io/github/stars/ilyautov/humanizer-ru?style=social)](https://github.com/ilyautov/humanizer-ru/stargazers)
+[![skills.sh](https://skills.sh/b/ilyautov/humanizer-ru)](https://skills.sh/ilyautov/humanizer-ru/humanizer-ru)
+[![npm](https://img.shields.io/npm/v/humanizer-ru?label=npm%20%C2%B7%20dsh)](https://www.npmjs.com/package/humanizer-ru)
+[![HOL](https://img.shields.io/endpoint?url=https%3A%2F%2Fhol.org%2Fapi%2Fregistry%2Fbadges%2Fplugin%3Fslug%3Dilya-utov%252Fhumanizer-ru%26metric%3Dstatus%26style%3Dflat)](https://hol.org/registry/plugins/ilya-utov%2Fhumanizer-ru)
+
+<p align="center">
+  <a href="https://humanizer-ru.aifrontier.tech/">
+    <img src="https://raw.githubusercontent.com/ilyautov/humanizer-ru/main/assets/readme-banner.jpg" alt="humanizer-ru: fewer clichés, more meaning. AI Frontier editorial workshop" width="720">
+  </a>
+</p>
+
+🧪 **Live demo:** [humanizer-ru.aifrontier.tech](https://humanizer-ru.aifrontier.tech/#audit). Paste a Russian text, get a 0-100 cleanliness score and highlighted markers. Same scanner as in the skill, runs in the browser.
+
+**Quick start**, one command for any agent (Claude Code, Cursor, Codex, Copilot, Cline and dozens more):
+
+```
+npx skills add ilyautov/humanizer-ru
+```
+
+The CLI detects your installed agents and asks where to put the skill. In Claude Code you can also install it as a plugin, then updates arrive via `/plugin`:
+
+```
+/plugin marketplace add ilyautov/humanizer-ru
+/plugin install humanizer-ru@ilyautov-plugins
+```
+
+Claude.ai, DeepSeek Harness and team rollout are covered in [Install](#install).
+
+📖 **Docs & write-ups (RU):** [humanizer-ru.aifrontier.tech](https://humanizer-ru.aifrontier.tech/): do AI detectors work on Russian, the catalog of markers, plagiarism vs AI detection.
+
+## What you get
+
+67 patterns across 16 categories: канцелярит, English calques, emotional sterility, persuasion tricks, information rhythm, hedging specifics, plus the 2025-2026 stylistic fingerprints (jagged-meditation single-word sentences, pseudo-Socratic Q-A chains, decorative emoji per list item, pseudo-therapeutic register) and the 2026 formulas (inanimate subject, Title Case headings, mid-sentence truncation, negation triad), plus a discourse layer (explicit final moral, portrait-style character introduction, emotion conveyed only through the body, seamless causal chains, strictly linear chronology, no direct reader address: narrative signals that survive stylistic rewriting, per StoryScope / COLM 2026). 21 hard-banned constructions that scream "GPT wrote this", including em-dashes (detectors count their frequency). A research-backed section on how detectors actually work (perplexity, burstiness, morphology) with verified numbers from DivEye, PIFE, AINL-Eval 2025 (every citation checked, see SOURCES.md). Five article formulas. Voice calibration. Local editing instead of rewriting: mark the exact spot, strip the wrapper around the claim, verify the result against the source (who did what, certainty, conditions, numbers with units). Nothing is added for "liveliness": no invented facts, emotions or particles; a 195-sample blind run (eval/LOCAL_EDIT_CHECK.md) showed that voice quotas produce foreign tone and staged rhetoric.
+
+## Try it without installing
+
+The [site's front page](https://humanizer-ru.aifrontier.tech/#audit) runs the same scanner in JavaScript: paste a text, get a 0-100 cleanliness score, highlighted markers and the install command for your agent. Everything runs in the browser, nothing is uploaded. Rules are exported from `markers.py` by `scripts/export_web_rules.py`; `scripts/test_web_parity.py` keeps the web and Python engines in step in CI.
+
+The same scanner ships as a [Chrome extension](https://chromewebstore.google.com/detail/iaelpnagdohdahkcahippeadohpgobad): select text on any page, pick "Проверить на шаблонные обороты" in the context menu, and the popup shows the score and highlights. Two permissions only, context menu and local storage; no host access, no network. Source in `extension/`, built by `scripts/build_extension.py`.
+
+## Install
+
+Three deployment channels: upload to Claude.ai web UI, roll out across an organization, or install into local agents (Claude Code, Cowork, API).
+
+### 1. Claude.ai (Web UI)
+
+1. Download the packaged skill:
+   [humanizer-ru.zip](https://github.com/ilyautov/humanizer-ru/releases/latest/download/humanizer-ru.zip)
+2. Open Claude.ai → **Settings** → **Capabilities** → **Skills**.
+3. Click **Upload skill** and select the ZIP.
+
+Do not use `archive/refs/heads/main.zip`: the uploader expects the skill folder at the top level of the archive, and in the repo archive it sits inside `humanizer-ru-main/skills/humanizer-ru/`. To build the archive yourself, zip the skill folder itself:
+
+```bash
+git clone https://github.com/ilyautov/humanizer-ru.git
+cd humanizer-ru/skills
+zip -r ../../humanizer-ru.zip humanizer-ru -x '*/__pycache__/*'
+```
+
+### 2. Organizations (Enterprise & Team)
+
+Workspace admins can roll the skill out to the whole team via **Admin Console → Workspace Skills → Add skill**. Upload the same ZIP, no per-user installation needed.
+
+### 3. Claude Code, Cowork, API (local agents)
+
+**Plugin marketplace** (recommended):
+
+```
+/plugin marketplace add ilyautov/humanizer-ru
+/plugin install humanizer-ru@ilyautov-plugins
+```
+
+**skills.sh CLI** (universal across Claude agents):
+
+```bash
+npx skills add https://github.com/ilyautov/humanizer-ru/tree/main/skills/humanizer-ru
+```
+
+The CLI drops `SKILL.md` into `~/.claude/skills/humanizer-ru/` and registers the skill on [skills.sh](https://skills.sh/ilyautov/humanizer-ru/humanizer-ru). The short form works too: `npx skills add ilyautov/humanizer-ru` discovers the skill inside the repository and offers it for install; add `--skill humanizer-ru` to install without prompts.
+
+**API (`/v1/messages` and equivalents):** pass the skill via the `container.skills` parameter. See your client's docs.
+
+**Manual:**
+
+```bash
+git clone --depth 1 https://github.com/ilyautov/humanizer-ru /tmp/humanizer-ru
+mkdir -p ~/.claude/skills
+cp -r /tmp/humanizer-ru/skills/humanizer-ru ~/.claude/skills/
+```
+
+Copy the whole folder, not just SKILL.md: the skill ships with a deterministic
+scanner, `scripts/scan.py` (the machine half of Audit mode). It needs `razdel`
+and `pymorphy3`. Without them the skill falls back to a manual audit and must
+say so; you will not see the "Чистота: N/100" score.
+
+How to install the dependencies. On macOS with Homebrew Python and on
+Debian/Ubuntu a bare `pip install` fails with `externally-managed-environment`
+(PEP 668), so use any of three ways:
+
+```bash
+uvx ru-humanizer file.txt                       # no install, needs uv
+pipx install ru-humanizer                       # the ru-humanizer command in PATH
+python3 -m venv ~/.humanizer-ru && ~/.humanizer-ru/bin/pip install razdel pymorphy3
+~/.humanizer-ru/bin/python ~/.claude/skills/humanizer-ru/scripts/scan.py file.txt
+```
+
+Check that the scanner is alive: `python3 ~/.claude/skills/humanizer-ru/scripts/scan.py --help`
+prints no `[ошибка]` line.
+
+### Package install smoke
+
+Before a release, build the ZIP with the same script used by CI, then run the
+install smoke against that archive. The smoke check copies `skills/humanizer-ru`
+into a clean temporary skills directory, runs the scanner from the installed
+copy, and checks that the ZIP has no `.DS_Store`, `__pycache__`, or `*.pyc`
+files:
+
+```bash
+python3 scripts/build_release_zip.py --output dist/humanizer-ru.zip .
+python3 scripts/install_smoke.py . --zip dist/humanizer-ru.zip
+```
+
+Expected result:
+
+```text
+RESULT: PASS build-release-zip
+RESULT: PASS install-smoke
+```
+
+### 4. Codex CLI (OpenAI)
+
+Codex uses the same Agent Skills format, so no separate build is needed:
+
+```bash
+git clone --depth 1 https://github.com/ilyautov/humanizer-ru
+mkdir -p ~/.codex/skills
+cp -r humanizer-ru/skills/humanizer-ru ~/.codex/skills/
+```
+
+Or from inside Codex via `skill-installer` with the path
+`ilyautov/humanizer-ru/skills/humanizer-ru`. Restart Codex after installing;
+invoke with `$humanizer-ru` or let it auto-trigger. For a per-project install,
+put the same folder under `.codex/skills/` in your repository.
+
+### 5. Gemini CLI and Cursor
+
+**Gemini CLI.** The repository root holds the extension manifest `gemini-extension.json` and the skill lives in `skills/`, so the extension installs straight from the repository:
+
+```bash
+gemini extensions install https://github.com/ilyautov/humanizer-ru
+```
+
+**Cursor.** The plugin manifest is `.cursor-plugin/plugin.json`. The `npx skills add` command detects installed agents, Cursor included, and asks where to put the skill:
+
+```bash
+npx skills add ilyautov/humanizer-ru
+```
+
+If the extension or plugin does not install, copy `skills/humanizer-ru` into the agent's skills directory, as in "Other agents".
+
+### 6. Other agents (shared SKILL.md standard)
+
+The Agent Skills format is now cross-platform, so humanizer-ru runs beyond the packaged stacks. Officially packaged and verified: Claude Code, Codex CLI, Cursor, Gemini CLI, DeepSeek Harness. Other agents read the same `SKILL.md`, no separate build needed.
+
+| How it connects | Agents | What to do |
+|---|---|---|
+| Read `SKILL.md` natively | GitHub Copilot, Cline, Roo Code, Kilo Code, Goose, OpenCode, OpenWork, Kimi Code CLI, OpenClaw, OpenHuman, Hermes | Copy the `skills/humanizer-ru` folder into the agent's skills dir (e.g. `~/.hermes/skills/`, `~/.kimi/skills/`, `.agents/skills/`) |
+| Installer conversion | Windsurf, Trae, Junie | Install via their skill installer, pointing at `ilyautov/humanizer-ru` |
+| Manual paste | Zed, Aider, Continue.dev | Paste the `SKILL.md` body into the agent's rules or instructions file |
+
+Generic path for native readers: drop the skill folder into the directory the agent scans (usually `<project root>/.agents/skills/` or `~/.config/agents/skills/`) and restart it. Same activation triggers.
+
+> Several of these agents (OpenClaw, Kimi, Hermes) have public skill registries (ClawHub and similar). Listing there adds reach with no extra code: the format is shared.
+
+### 7. DeepSeek Harness (dsh)
+
+DeepSeek Harness reads the same Agent Skills format. Two ways to install.
+
+As an npm bundle, one command into the profile you use (`web`, `tui` or `headless`):
+
+```bash
+dsh plugin --profile web add humanizer-ru
+```
+
+The same bundle straight from GitHub, for a specific branch or the freshest main: `dsh plugin --profile web add github:ilyautov/humanizer-ru`.
+
+The bundle is text only: `package.json` with a `dsh.bundle` field and `cordis.patch.yml`, which mounts the stock `dsh-skill-filesystem` provider on the package's `skills/` folder. No executable code, no build step. Verify without running a model: `dsh --profile web --dump-config` shows a `# == humanizer-ru` layer. Remove with `dsh plugin --profile web remove humanizer-ru`.
+
+As a copy into the user skill root:
+
+```bash
+cp -r humanizer-ru/skills/humanizer-ru ~/.agents/skills/
+```
+
+dsh scans `~/.agents/skills` and `~/.dsh/skills` on its own, no restart needed. It ignores the `allowed-tools` frontmatter key and resolves `references/` relative to the skill folder, so the catalog and the edit log open the same way as in Claude Code.
+
+### 8. Scanner on its own: pip, MCP server, GitHub Action
+
+The scanner also ships without the skill, as the [`ru-humanizer`](https://pypi.org/project/ru-humanizer/) package on PyPI (the `humanizer-ru` name on PyPI is taken). Same `scan.py`, as a command:
+
+```bash
+pipx install ru-humanizer   # or with no install: uvx ru-humanizer article.md
+ru-humanizer article.md --genre academic
+ru-humanizer edited.md --before original.md
+```
+
+A bare `pip install ru-humanizer` fails with `externally-managed-environment` (PEP 668) on macOS with Homebrew and on Debian/Ubuntu: use `uvx`, `pipx` or a virtual environment (`python3 -m venv .venv && .venv/bin/pip install ru-humanizer`).
+
+The same package runs an MCP server with two tools: `scan_text` returns the score, penalties, hard bans and markers with positions; `compare_texts` reports "was N, now M" plus the fact lock between source and edit. Works with Claude Desktop, Cursor and any MCP client; in Claude Code it is one command:
+
+```bash
+claude mcp add humanizer-ru -- uvx ru-humanizer mcp
+```
+
+In CI the scanner is a GitHub Action: a cleanliness gate over Markdown and text files that fails below the threshold.
+
+```yaml
+- uses: ilyautov/humanizer-ru@main
+  with:
+    files: "docs/**/*.md"
+    genre: marketing
+    min-score: 60
+```
+
+One-time publishing setup for PyPI and the MCP registry lives in `PUBLISHING.md`.
+
+## Modes
+
+- **Edit** (default): scanner diagnosis, local fixes by priority, verification against the source, "was N, now M" report.
+- **Audit**: diagnosis only, returns detected patterns with priority A-D.
+- **Targeted fix**: works on a specific category only.
+- **Own draft** (silent, unprompted): while the skill is installed, the agent runs the Russian prose it writes itself past the 21 hard bans before you ever see it. No report, no ask. Text that is not the agent's own (your message, a file, a quote, someone's code) is never edited silently: it goes through the three modes above, where the edit is visible. Saying «не правь» turns the mode off for the rest of the conversation.
+
+## Usage
+
+Ask the agent in Russian:
+
+```
+Очеловечь этот текст: [paste text]
+Перепиши, звучит как робот: [paste text]
+```
+
+Triggers: "очеловечь", "убери следы нейросети", "сделай живым", "звучит искусственно", "перепиши как человек", "убери канцелярит", "слишком формально".
+
+Audit mode (diagnosis only, no rewriting):
+
+```
+Проверь этот текст на AI-маркеры: [paste text]
+```
+
+Targeted fix of one category:
+
+```
+Убери канцелярит из текста: [paste text]
+```
+
+With the plugin installed in Claude Code you also get slash commands:
+
+```
+/humanize <text or file path>   # local editing
+/audit <text or file path>      # audit without editing (scanner + review)
+```
+
+The scanner knows about genre. By default it is strict, tuned for marketing and blog text; for other registers it mutes markers that are legitimate there. `--before` prints the cleanliness score before and after plus the fact lock:
+
+```bash
+python skills/humanizer-ru/scripts/scan.py article.txt --genre academic  # also legal, fiction, news
+python skills/humanizer-ru/scripts/scan.py after.txt --before before.txt  # score before/after + fact lock
+```
+
+Why the genre switch exists: on the external labeled corpus AINL-Eval 2025 (35,158 Russian scientific abstracts) the strict mode left hard bans in 35.9% of human texts against 26.1-35.8% of machine ones, so on academic text the catalog could not tell the author at all. With the genre correction the false positives on humans fall to 4.2% ([eval/AINL-CALIBRATION.md](https://github.com/ilyautov/humanizer-ru/blob/main/eval/AINL-CALIBRATION.md)). Two more corpora, M4 and LLMTrace (14,763 texts, 30 generators, GigaChat and YandexGPT included), confirmed the limits: [eval/M4-CALIBRATION.md](https://github.com/ilyautov/humanizer-ru/blob/main/eval/M4-CALIBRATION.md), [eval/LLMTRACE-CALIBRATION.md](https://github.com/ilyautov/humanizer-ru/blob/main/eval/LLMTRACE-CALIBRATION.md).
+
+## Before / After
+
+Before:
+> В современном мире искусственный интеллект играет всё более важную роль в различных сферах деятельности. Стоит отметить, что данная технология является мощным инструментом для оптимизации рабочих процессов.
+
+After (author's facts):
+> За последний год я внедрил AI-инструменты в три проекта. Два ускорились вдвое. Третий развалился, потому что команда перестала проверять то, что выдаёт модель. AI работает, когда понимаешь его ограничения.
+
+3 of the 21 hard-ban phrases fired in two sentences. Typical.
+
+Audit mode on the same text prints (output of `scan.py`, trimmed to the essentials; the Russian labels are the scanner's own):
+
+```
+ЧИСТОТА: 48/100  [рерайт]
+  -36  хард-баны (фразы): 3
+  -16  маркеры: 4 (15.4/100 слов)
+
+HARD BANS:
+  ⛔ В современном мире ×1 (стр. 1)
+  ⛔ Стоит отметить, что ×1 (стр. 1)
+  ⛔ Данный/Данная/Данное ×1 (стр. 1)
+
+Маркеры (быстрый сканер): 4
+  • [Канцелярит] «оптимизаци» ×1 (стр. 1)
+  • [Кальки] «является» ×1 (стр. 1)
+  • [Кальки] «стоит отметить» ×1 (стр. 1)
+  • [Вводные-открытия] «в современном мире» ×1 (стр. 1)
+```
+
+`scripts/check_examples.py` compares this block with the real scanner output in CI.
+
+## Do AI detectors work on Russian?
+
+Short answer: poorly, and it matters.
+
+GPTZero, Originality.ai, ZeroGPT and most popular AI-text detectors are trained mostly on English. On Russian they are unreliable and fail both ways:
+
+- **False positives:** text written by a real human routinely gets flagged as "AI-generated". English perplexity thresholds aren't calibrated for Russian, and Russian's rich morphology inflates "unpredictability" on its own.
+- **False negatives:** careful AI text passes as human.
+
+Even the best Russian-specific detector (RuRoBERTa on the AINL-Eval 2025 benchmark) lands around 86% accuracy, and one verdict in seven is wrong. And detectors don't generalize across domains (verified, see [SOURCES.md](https://github.com/ilyautov/humanizer-ru/blob/main/SOURCES.md)).
+
+**What this means for humanizing.** Chasing "detector bypass" on Russian means tuning text to an unreliable, moving target. So humanizer-ru optimizes genuine text quality (removing bureaucratic noun-chains, calques and clichés, restoring author voice and live rhythm) rather than gaming a classifier. Those are measurable language properties (see [`eval/`](https://github.com/ilyautov/humanizer-ru/blob/main/eval/)) independent of how bad any given detector is. Perplexity and burstiness rise as a side effect, which is what detectors try (and often fail) to measure. We run detectors against real human Russian texts in the harness and publish the false-positive rate: [eval/RESULTS.md](https://github.com/ilyautov/humanizer-ru/blob/main/eval/RESULTS.md).
+
+## FAQ
+
+**Will it get past an AI detector?** There is no such guarantee. Detectors and their thresholds change, and a study of one detector says nothing about your text. humanizer-ru is for editing, not for proving authorship.
+
+**Does the long dash have to go?** By default yes: it is the main typographic marker of machine Russian. If you are an editor and need proper publishing typography, say so, and the skill lifts the ban for that conversation.
+
+**Can I use it without the plugin?** Yes. Download `SKILL.md` and use it as a checklist, or paste it into the system prompt of any LLM.
+
+**Where are the detector benchmarks and calibration tables?** In the Russian [README.md](README.md) and in [`eval/`](https://github.com/ilyautov/humanizer-ru/blob/main/eval/).
+
+## Sources
+
+Patterns drawn from the Wikipedia AI Cleanup Project, the Dialog Conference shared tasks (RuATD-2022, AINL-Eval 2025), verified academic papers (DivEye, PIFE, MASH, Antislop, NeurIPS 2025) and our own measurements on three open corpora (35,158 + 5,759 + 14,763 = 55,680 texts, reports in `eval/`). Every citation and figure is checked against primary sources; unverified ones were removed. Full provenance: [SOURCES.md](https://github.com/ilyautov/humanizer-ru/blob/main/SOURCES.md).
+
+Changelog: [CHANGELOG.md](https://github.com/ilyautov/humanizer-ru/blob/main/CHANGELOG.md). Metrics and eval harness: [`scripts/`](https://github.com/ilyautov/humanizer-ru/blob/main/scripts/) and [`eval/`](https://github.com/ilyautov/humanizer-ru/blob/main/eval/). Full Russian documentation: [README.md](README.md).
+
+## Author
+
+Ilya Utov. I write about AI and working with text on Telegram: [Under the Hood](https://t.me/gorilla_under_hood).
+
+## Contributors
+
+- **Filipp Zarubin**: category N "Discourse layer", patterns 59-64 from StoryScope (COLM 2026). Signals that survive a style rewrite. Plus Russian numeral agreement in the release gate.
+- **iKonushok** ([@ikonushok](https://github.com/ikonushok)): install smoke for the installed surface and release ZIP packaging. It checks what actually reaches the user, not the folder in the repo.
+
+Full list, including bug reports that changed the code: [CONTRIBUTORS.md](https://github.com/ilyautov/humanizer-ru/blob/main/CONTRIBUTORS.md). How to get on it: [CONTRIBUTING.md](https://github.com/ilyautov/humanizer-ru/blob/main/CONTRIBUTING.md).
+
+## License
+
+MIT
+
+---
+
+## Who built this
+
+[Ilya Utov](https://github.com/ilyautov), the [AI Frontier](https://aifrontier.tech) lab. I write about how these tools work inside on [Telegram](https://t.me/gorilla_under_hood) and [LinkedIn](https://www.linkedin.com/in/ilyautov).
+
+**Nearby:**
+
+- [**marketplaces-mcp-ru**](https://github.com/ilyautov/marketplaces-mcp-ru): Wildberries, Ozon, Yandex Market and Avito straight from the agent
+- [**small-business-ru**](https://github.com/ilyautov/small-business-ru): 34 skills for Russian small business, the numbers computed in code
+- [**consilium-principis**](https://github.com/ilyautov/consilium-principis): a board of thinkers where every quote is checked word for word
+- [**hefest**](https://github.com/ilyautov/hefest): chemical safety for an industrial plant, kept inside the plant's own network
+- [**cordon**](https://github.com/ilyautov/cordon): a deterministic layer between untrusted content and agent actions
+
+Everything else: [github.com/ilyautov](https://github.com/ilyautov). Useful? Star it, that is how other people find it.
