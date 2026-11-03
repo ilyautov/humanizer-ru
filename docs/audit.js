@@ -236,7 +236,7 @@
     const rAfter = globalThis.humanizerScan(after, genreEl.value || null);
     const d = rAfter.score - rBefore.score;
     const delta = d > 0 ? `+${d}` : String(d);
-    const fd = factsDiff ? factsDiff(before, after) : { lost: [], added: [], claimsAdded: [], kept: 0, total: 0 };
+    const fd = factsDiff ? factsDiff(before, after) : { lost: [], added: [], claimsAdded: [], swapped: [], kept: 0, total: 0 };
     const aBand = bandOf(rAfter), bBand = bandOf(rBefore);
     const verdict = d > 0 ? "Правка уменьшила штраф по правилам сканера." : d < 0 ? "Правка увеличила штраф по правилам сканера." : "Балл не изменился.";
     const afterLine = factsLine(rAfter), beforeLine = factsLine(rBefore);
@@ -244,10 +244,13 @@
       ? `В правке следов не осталось. В исходнике было: ${beforeLine}.`
       : `В правке осталось: ${afterLine}. В исходнике было: ${beforeLine}.`;
     const factRows = [];
+    if (fd.swapped.length) factRows.push(`<li class="fact-lost"><b>Числа могли поменяться местами</b> ${list(fd.swapped, "lost")}</li>`);
     if (fd.lost.length) factRows.push(`<li class="fact-lost"><b>Пропало</b> ${list(fd.lost, "lost")}</li>`);
     if (fd.added.length) factRows.push(`<li class="fact-added"><b>Появилось</b> ${list(fd.added, "added")}</li>`);
-    if (fd.claimsAdded.length) factRows.push(`<li class="fact-claim"><b>Новый квантор</b> ${list(fd.claimsAdded, "added")}</li>`);
-    const factVerdict = (fd.added.length || fd.lost.length || fd.claimsAdded.length
+    if (fd.claimsAdded.length) factRows.push(`<li class="fact-claim"><b>Новый квантор или цитата</b> ${list(fd.claimsAdded, "added")}</li>`);
+    const factVerdict = (fd.swapped.length
+      ? "Числа на месте, но могли поменяться местами. Сверьте их с исходным текстом. "
+      : fd.added.length || fd.lost.length || fd.claimsAdded.length
       ? "Состав извлечённых элементов изменился. Проверьте различия. "
       : `Совпало извлечённых элементов: ${fd.kept}. `) +
       "Смысл, единицы вне словаря и связь чисел с утверждениями требуют ручной сверки.";
@@ -260,13 +263,14 @@
         <span class="cmp-delta ${d > 0 ? "good" : d < 0 ? "bad" : ""}">${delta}</span>
       </div>
       <p class="cmp-verdict">${esc(verdict)} ${esc(tally)}</p>
-      <p class="cmp-facts ${fd.added.length || fd.lost.length || fd.claimsAdded.length ? "warn" : "neutral"}">${esc(factVerdict)}</p>
+      <p class="cmp-facts ${fd.added.length || fd.lost.length || fd.claimsAdded.length || fd.swapped.length ? "warn" : "neutral"}">${esc(factVerdict)}</p>
       ${factRows.length ? `<ul class="fact-list">${factRows.join("")}</ul>` : ""}`;
     lastCompareReport = [
       `правка: было ${rBefore.score}, стало ${rAfter.score} (${delta})`,
+      fd.swapped.length ? `  числа могли поменяться местами: ${fd.swapped.join(", ")}` : "",
       fd.lost.length ? `  пропало: ${fd.lost.join(", ")}` : "",
       fd.added.length ? `  появилось: ${fd.added.join(", ")}` : "",
-      fd.claimsAdded.length ? `  новый квантор: ${fd.claimsAdded.join(", ")}` : "",
+      fd.claimsAdded.length ? `  новый квантор или цитата: ${fd.claimsAdded.join(", ")}` : "",
       !fd.added.length && !fd.claimsAdded.length && fd.total ? `  совпало элементов: ${fd.kept}/${fd.total}; смысл не проверен` : "",
     ].filter(Boolean).join("\n");
   }

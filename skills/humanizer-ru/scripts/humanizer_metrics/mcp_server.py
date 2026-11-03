@@ -151,6 +151,7 @@ def _compare_report(d: dict) -> str:
              "", "Факт-замок:", f"  {d['facts_verdict']}"]
     f = d["facts"]
     lines += [f"  ✗ новое: {x}" for x in f["added"]]
+    lines += [f"  ⚠ числа могли поменяться местами: {x}" for x in f["swapped"]]
     lines += [f"  ⚠ потеряно: {x}" for x in f["lost"]]
     lines += [f"  ⚠ утверждение появилось: {x}" for x in f["claims_added"]]
     if f["soft_added"]:
