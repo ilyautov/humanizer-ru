@@ -1,0 +1,44 @@
+name: Update directory branch
+
+# Каталог Claude читает ветку directory: только файлы плагина, без сайта, замеров
+# и CI. Она собирается из main скриптом scripts/build_directory.py, руками её не
+# правят. Новый коммит в ней уходит на проверку каталога, поэтому только по релизу.
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+      - name: Собрать дерево и записать коммит в directory
+        env:
+          GIT_AUTHOR_NAME: github-actions[bot]
+          GIT_AUTHOR_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
+          GIT_COMMITTER_NAME: github-actions[bot]
+          GIT_COMMITTER_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
+        run: |
+          python scripts/build_directory.py --check
+          python scripts/build_directory.py "$RUNNER_TEMP/tree"
+          export GIT_INDEX_FILE="$RUNNER_TEMP/index"
+          git --work-tree="$RUNNER_TEMP/tree" add -A
+          tree=$(git write-tree)
+          parent=$(git rev-parse -q --verify origin/directory || true)
+          if [ -n "$parent" ] && [ "$tree" = "$(git rev-parse "$parent^{tree}")" ]; then
+            echo "Дерево не изменилось, коммит не нужен"
+            exit 0
+          fi
+          commit=$(git commit-tree "$tree" ${parent:+-p "$parent"} -m "directory: сборка из ${GITHUB_SHA::7}")
+          git push origin "$commit:refs/heads/directory"
