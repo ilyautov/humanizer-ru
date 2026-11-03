@@ -35,6 +35,10 @@
 текста не должна съедать структуру документа: пропавший заголовок или пункт
 попадает в потери. Снятое выделение (жирный, курсив, <strong>, <em>) только
 предупреждение: шаблонный жирный сам бывает маркером, его снимают нарочно.
+
+Цитаты от трёх слов в кавычках сверяются целиком: изменённая попадает в потери,
+новая в появившиеся утверждения. Цифры не меняются, но «Анна 30, Борис 50» стало
+«Анна 50, Борис 30»: такой обмен выносится отдельным предупреждением.
 """
 
 from __future__ import annotations
@@ -147,6 +151,7 @@ class FactsDiff:
     soft_added: list[str]
     claims_added: list[str] = field(default_factory=list)  # кванторы, которых в исходнике не было
     emphasis_lost: list[str] = field(default_factory=list)  # снятое выделение, только предупреждение
+    swapped: list[str] = field(default_factory=list)  # числа обменялись опорами, только предупреждение
 
     @property
     def ok(self) -> bool:
@@ -156,7 +161,8 @@ class FactsDiff:
         return {"ok": self.ok, "lost": self.lost, "added": self.added,
                 "kept": self.kept, "soft_added": self.soft_added,
                 "claims_added": self.claims_added, "emphasis_lost": self.emphasis_lost,
-                "status": "review_required" if (self.lost or self.added or self.claims_added
+                "swapped": self.swapped,
+                "status": "review_required" if (self.lost or self.added or self.claims_added or self.swapped
                                                 or self.soft_added or self.emphasis_lost) else "no_detected_changes",
                 "semantic_verified": False,
                 "scope": "Сопоставление извлечённых элементов; смысл и связь чисел с утверждениями не проверены."}
@@ -262,23 +268,93 @@ def markup_counts(text: str) -> tuple[dict[str, int], dict[str, int]]:
             {k: len(r.findall(body)) for k, r in EMPHASIS_RE.items()})
 
 
+QUOTE_RE = re.compile(r"«([^«»\n]+)»|„([^„“\n]+)“|“([^“”\n]+)”|\"([^\"\n]+)\"")
+QUOTE_MIN_WORDS = 3  # короче это обычно название, его сверяют имена
+
+
+def _quotes(text: str) -> set[str]:
+    result = set()
+    for m in QUOTE_RE.finditer(CODE_RE.sub(" ", FENCE_RE.sub("", text))):
+        quote = re.sub(r"[*_]", "", next(g for g in m.groups() if g)).lower().replace("ё", "е")
+        quote = " ".join(quote.split()).rstrip(".,;:!?…")
+        if len(quote.split()) >= QUOTE_MIN_WORDS:
+            result.add(quote)
+    return result
+
+
+# Перестановка: все числа на месте, но стоят при чужих словах. Текст режется на
+# части, опора числа это существительные и имена его части. Единицы не опора:
+# они ходят вместе с числом и в перечислении общие.
+PART_RE = re.compile(r",(?!\d)|:(?!\d)|;|\n|[.!?…]+(?=\s|$)|\s(?:и|а|но)\s", re.IGNORECASE)
+UNIT_LEMMAS = {"рубль", "доллар", "евро", "процент", "млн", "млрд", "тыс", "тысяча",
+               "миллион", "миллиард", "человек", "штука", "руб"}
+
+
+def _anchors(part: str) -> set[str]:
+    result = set()
+    for m in TOKEN_RE.finditer(part):
+        tok = m.group(0)
+        if tok[0].isdigit():
+            continue
+        p = get_morph().parse(tok.lower())[0]
+        if tok.isascii() or not p.is_known or p.tag.POS == "NOUN":
+            result.add(p.normal_form.replace("ё", "е"))
+    return result - UNIT_LEMMAS
+
+
+def _number_anchors(text: str) -> dict[str, set[str]]:
+    """Опоры чисел, которые встречаются в тексте один раз и одни в своей части."""
+    body = CODE_RE.sub(" ", URL_RE.sub(" ", LINE_LEAD_RE.sub("", text)))
+    seen: dict[str, int] = {}
+    alone = {}
+    for part in PART_RE.split(body):
+        numbers = [k[6:] for k in numeric_facts(part) if k.startswith("число:")]
+        for n in numbers:
+            seen[n] = seen.get(n, 0) + 1
+        if len(numbers) == 1:
+            alone[numbers[0]] = _anchors(part)
+    return {n: anchors for n, anchors in alone.items() if seen[n] == 1}
+
+
+def number_swaps(before: str, after: str) -> list[str]:
+    """Пары чисел, обменявшихся опорами. Сдвиг только одного числа не считается:
+    его чаще всего даёт перефразировка, а не подмена."""
+    b, a = _number_anchors(before), _number_anchors(after)
+    common = sorted(b.keys() & a.keys())
+    moved: dict[str, str] = {}
+    for x in common:
+        for y in common:
+            if x == y:
+                continue
+            own, other = b[x] - b[y], b[y] - b[x]
+            if own and not own & a[x] and other & a[x]:
+                moved[x] = y
+                break
+    return sorted({" и ".join(sorted((x, y))) for x, y in moved.items() if y in moved})
+
+
 def diff_facts(before: str, after: str) -> FactsDiff:
     b, a = extract_facts(before), extract_facts(after)
     lost = sorted(b.hard - a.hard) + sorted(b.claims - a.claims) + sorted(b.hedges - a.hedges)
+    qb, qa = _quotes(before), _quotes(after)
+    lost += [f"цитата:«{q}»" for q in sorted(qb - qa)]
     (bs, be), (as_, ae) = markup_counts(before), markup_counts(after)
     lost += [f"разметка:{k} {bs[k]}→{as_[k]}" for k in bs if as_[k] < bs[k]]
     emphasis = [f"выделение:{k} {be[k]}→{ae[k]}" for k in be if ae[k] < be[k]]
     added = sorted(x for x in a.hard - b.hard if not _alias_covered(x, b.words))
     return FactsDiff(lost=lost, added=added, kept=len(b.hard & a.hard),
                      soft_added=sorted(a.soft - b.soft),
-                     claims_added=sorted(a.claims - b.claims),
-                     emphasis_lost=emphasis)
+                     claims_added=sorted(a.claims - b.claims) + [f"цитата:«{q}»" for q in sorted(qa - qb)],
+                     emphasis_lost=emphasis,
+                     swapped=number_swaps(before, after))
 
 
 def facts_verdict(d: FactsDiff) -> str:
     scope = "Смысл, единицы вне словаря и связь чисел с утверждениями требуют ручной сверки."
     if d.added:
         return f"⚠ появились элементы, которых нет в исходнике: {len(d.added)}. {scope}"
+    if d.swapped:
+        return f"⚠ числа могли поменяться местами: {len(d.swapped)}. {scope}"
     if d.lost:
         return f"⚠ потеряно элементов исходника: {len(d.lost)}. Проверьте, намеренно ли. {scope}"
     if d.claims_added or d.soft_added or d.emphasis_lost:

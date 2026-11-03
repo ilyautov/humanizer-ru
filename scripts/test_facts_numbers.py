@@ -47,6 +47,42 @@ class NumericFactsTests(unittest.TestCase):
         p=subprocess.run(['node','-e',source],cwd=ROOT,text=True,encoding='utf-8',capture_output=True,check=True)
         self.assertEqual(json.loads(p.stdout),[numeric_facts(t) for t in texts])
 
+    def test_swapped_numbers(self):
+        for a,b in [('Анна получила 30 000 рублей, Борис 50 000 рублей.', 'Анна получила 50 000 рублей, Борис 30 000 рублей.'),
+                    ('Анна получила 30 000 и Борис 50 000.', 'Анна получила 50 000 и Борис 30 000.'),
+                    ('Выручка 10, прибыль 2.', 'Выручка 2, прибыль 10.'),
+                    ('Выручка выросла на 10%. Прибыль упала на 2%.', 'Выручка упала на 2%. Прибыль выросла на 10%.'),
+                    ('Анна получила 30 рублей, Борис 50 долларов.', 'Анна получила 50 долларов, Борис 30 рублей.'),
+                    ('В марте пришло 40 клиентов, в мае 70 клиентов, в июле 90 клиентов.', 'В марте пришло 70 клиентов, в мае 90 клиентов, в июле 40 клиентов.')]:
+            with self.subTest(a=a, b=b):
+                self.assertTrue(diff_facts(a,b).swapped)
+    def test_not_swapped(self):
+        for a,b in [('Анна получила 30 рублей, Борис 50 рублей.', 'Борис получил 50 рублей, Анна 30 рублей.'),
+                    ('Цена 1,5 млн, срок 10 дней.', 'Срок 10 дней, цена 1,5 млн.'),
+                    ('Анна получила 30, Борис 30.', 'Борис получил 30, Анна 30.'),
+                    ('Встреча 10.05.2026 в зале 7.', 'В зале 7 встреча 10.05.2026.')]:
+            with self.subTest(a=a, b=b):
+                self.assertEqual(diff_facts(a,b).swapped, [])
+    def test_quotes_compared(self):
+        d = diff_facts('Директор сказал: «нам придётся закрыть цех».', 'Директор сказал: «нам надо закрыть цех».')
+        self.assertIn('цитата:«нам придется закрыть цех»', d.lost)
+        self.assertIn('цитата:«нам надо закрыть цех»', d.claims_added)
+        same = diff_facts('Он сказал: «нам придётся закрыть цех».', 'Сказал он: «Нам придется **закрыть** цех!»')
+        self.assertFalse([x for x in same.lost + same.claims_added if x.startswith('цитата:')])
+        short = diff_facts('Пекарня «Колос» открыта.', 'Пекарня открыта.')
+        self.assertFalse([x for x in short.lost if x.startswith('цитата:')])
+    def test_browser_swaps_and_quotes(self):
+        cases=[('Анна получила 30 000 рублей, Борис 50 000 рублей.','Анна получила 50 000 рублей, Борис 30 000 рублей.'),
+               ('Анна получила 30 рублей, Борис 50 рублей.','Борис получил 50 рублей, Анна 30 рублей.'),
+               ('Он сказал: «нам придётся закрыть цех».','Он сказал: «нам надо закрыть цех».')]
+        source="const fs=require('fs'),vm=require('vm');for(const f of ['scan-rules','scan','facts'])vm.runInThisContext(fs.readFileSync('docs/'+f+'.js','utf8'));const cases="+json.dumps(cases)+";process.stdout.write(JSON.stringify(cases.map(([a,b])=>humanizerFacts.factsDiff(a,b))));"
+        p=subprocess.run(['node','-e',source],cwd=ROOT,text=True,encoding='utf-8',capture_output=True,check=True)
+        swap,clean,quote=json.loads(p.stdout)
+        self.assertEqual(len(swap['swapped']),1)
+        self.assertEqual(clean['swapped'],[])
+        self.assertTrue(any('цитата' in x for x in quote['lost']))
+        self.assertTrue(any('цитата' in x for x in quote['claimsAdded']))
+
     def test_empty_before_json(self):
         import tempfile
         with tempfile.TemporaryDirectory() as tmp:

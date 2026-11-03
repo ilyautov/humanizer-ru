@@ -59,13 +59,70 @@
     }
     return { hard, claims };
   }
+  // Цитаты от трёх слов сверяются целиком, как _quotes в facts.py.
+  function quotes(text) {
+    const result = new Set();
+    const body = text.replace(/^[ \t]{0,3}(?:`{3,}|~{3,})[^]*?^[ \t]{0,3}(?:`{3,}|~{3,})[ \t]*$/gm, "").replace(CODE_RE, " ");
+    for (const m of body.matchAll(/«([^«»\n]+)»|„([^„“\n]+)“|“([^“”\n]+)”|"([^"\n]+)"/g)) {
+      const q = (m[1] || m[2] || m[3] || m[4]).replace(/[*_]/g, "").toLowerCase().replace(/ё/g, "е").trim().replace(/\s+/g, " ").replace(/[.,;:!?…]+$/, "");
+      if (q.split(" ").length >= 3) result.add(q);
+    }
+    return result;
+  }
+  // Перестановка чисел, как number_swaps в facts.py. Морфологии нет, поэтому
+  // опора числа это основы всех слов его части, глаголы тоже: обмен, где вместе
+  // с числом переехал глагол («выручка упала на 2%»), здесь не виден.
+  const UNIT_STEMS = new Set(["рубль", "рубле", "рубля", "руб", "долла", "евро", "проце", "млн", "млрд", "тыс", "тысяч", "милли", "челов", "штук", "штука", "штуки"]);
+  function numberAnchors(text) {
+    const numeric = globalThis.humanizerNumericFacts;
+    const seen = new Map(), alone = new Map();
+    if (!numeric) return alone;
+    const lead = /^[ \t]*(?:(?:\d{1,3}[.)]|[^\p{L}\p{N}_\s«"'(\[])[ \t]*)*/gmu;
+    const body = text.replace(lead, "").replace(URL_RE, " ").replace(CODE_RE, " ");
+    for (const part of body.split(/,(?!\d)|:(?!\d)|;|\n|[.!?…]+(?=\s|$)|\s(?:и|а|но)\s/i)) {
+      const numbers = [...numeric(part)].map(([k]) => k).filter((k) => k.startsWith("число:")).map((k) => k.slice(6));
+      for (const n of numbers) seen.set(n, (seen.get(n) || 0) + 1);
+      if (numbers.length !== 1) continue;
+      const anchors = new Set();
+      for (const m of part.matchAll(TOKEN_RE)) {
+        if (/^\d/.test(m[0]) || m[0].length < 3) continue;
+        const s = stem(m[0]);
+        if (!UNIT_STEMS.has(s)) anchors.add(s);
+      }
+      alone.set(numbers[0], anchors);
+    }
+    for (const n of [...alone.keys()]) if (seen.get(n) !== 1) alone.delete(n);
+    return alone;
+  }
+  function numberSwaps(before, after) {
+    const a = numberAnchors(before), b = numberAnchors(after);
+    const common = [...a.keys()].filter((n) => b.has(n)).sort();
+    const moved = new Map();
+    for (const x of common) {
+      for (const y of common) {
+        if (x === y) continue;
+        const own = [...a.get(x)].filter((w) => !a.get(y).has(w));
+        const other = [...a.get(y)].filter((w) => !a.get(x).has(w));
+        if (own.length && !own.some((w) => b.get(x).has(w)) && other.some((w) => b.get(x).has(w))) {
+          moved.set(x, y);
+          break;
+        }
+      }
+    }
+    const pairs = new Set();
+    for (const [x, y] of moved) if (moved.has(y)) pairs.add([x, y].sort().join(" и "));
+    return [...pairs].sort();
+  }
   function factsDiff(before, after) {
     const a = extractFacts(before), b = extractFacts(after);
-    const lost = [...a.hard].filter(([k]) => !b.hard.has(k)).map(([, v]) => v);
+    const qa = quotes(before), qb = quotes(after);
+    const lost = [...a.hard].filter(([k]) => !b.hard.has(k)).map(([, v]) => v)
+      .concat([...qa].filter((q) => !qb.has(q)).map((q) => `цитата «${q}»`));
     const added = [...b.hard].filter(([k]) => !a.hard.has(k)).map(([, v]) => v);
-    const claimsAdded = [...b.claims].filter(([k]) => !a.claims.has(k)).map(([, v]) => v);
+    const claimsAdded = [...b.claims].filter(([k]) => !a.claims.has(k)).map(([, v]) => v)
+      .concat([...qb].filter((q) => !qa.has(q)).map((q) => `цитата «${q}»`));
     const kept = [...a.hard].filter(([k]) => b.hard.has(k)).length;
-    return { lost, added, claimsAdded, kept, total: a.hard.size };
+    return { lost, added, claimsAdded, swapped: numberSwaps(before, after), kept, total: a.hard.size };
   }
 
   globalThis.humanizerFacts = { extractFacts, factsDiff };

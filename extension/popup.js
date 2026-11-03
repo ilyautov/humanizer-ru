@@ -457,19 +457,22 @@
     const sum = (xs) => xs.reduce((n, [, c]) => n + c, 0);
     const fd = facts ? facts.factsDiff(checked.text, after) : null;
     const risky = fd && (fd.added.length || fd.claimsAdded.length);
+    const swapped = fd && fd.swapped.length;
     let lockText;
     if (!fd) lockText = "Проверка фактов не загрузилась: сверьте числа и имена глазами.";
+    else if (swapped) lockText = "Числа на месте, но могли поменяться местами. Сверьте их с исходным текстом.";
     else if (risky) lockText = "В исправленном тексте есть числа, имена или обобщения, которых не было в исходном. Проверьте, не выдуманы ли они: выдуманная цифра хуже канцелярита.";
     else if (fd.lost.length) lockText = `Новых фактов нет, но часть исходных пропала: на месте ${fd.kept} из ${fd.total}. Проверьте, не ушёл ли смысл.`;
     else if (fd.total) lockText = `Числа и имена исходного текста на месте (${fd.kept} из ${fd.total}), новых нет. Смысл сверьте глазами: совпадение чисел его не доказывает.`;
     else lockText = "В исходном тексте нет чисел, имён и ссылок, сверять нечего.";
     const lockRows = [];
+    if (swapped) lockRows.push(`<div class="cmp-block"><span class="cap">Могли поменяться местами</span>${chips(fd.swapped.map((x) => [x, 1]), "lost")}</div>`);
     if (fd && fd.lost.length) lockRows.push(`<div class="cmp-block"><span class="cap">Пропало из исходного</span>${chips(fd.lost.map((x) => [x, 1]), "lost")}</div>`);
     if (fd && fd.added.length) lockRows.push(`<div class="cmp-block"><span class="cap">Новое, чего не было</span>${chips(fd.added.map((x) => [x, 1]), "added")}</div>`);
-    if (fd && fd.claimsAdded.length) lockRows.push(`<div class="cmp-block"><span class="cap">Новые обобщения</span>${chips(fd.claimsAdded.map((x) => [x, 1]), "added")}</div>`);
+    if (fd && fd.claimsAdded.length) lockRows.push(`<div class="cmp-block"><span class="cap">Новые обобщения и цитаты</span>${chips(fd.claimsAdded.map((x) => [x, 1]), "added")}</div>`);
     const bBand = bandOf(rBefore), aBand = bandOf(rAfter);
     const verdict = d > 0 ? "Шаблонов стало меньше." : d < 0 ? "После правки шаблонов стало больше." : "Балл не изменился.";
-    const warnLock = risky || (fd && fd.lost.length) || !fd;
+    const warnLock = risky || swapped || (fd && fd.lost.length) || !fd;
     const lockHtml = `<div class="lock ${warnLock ? "warn" : ""}">
         <span class="lock-title">Проверка фактов</span>
         <p>${esc(lockText)}</p>

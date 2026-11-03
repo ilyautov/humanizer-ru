@@ -213,6 +213,8 @@ def main() -> int:
         print(f"  {facts_verdict(fdiff)}")
         for x in fdiff.added:
             print(f"  ✗ новое: {x}")
+        for x in fdiff.swapped:
+            print(f"  ⚠ числа могли поменяться местами: {x}")
         for x in fdiff.lost:
             print(f"  ⚠ потеряно: {x}")
         for x in fdiff.claims_added:
