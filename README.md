@@ -43,6 +43,8 @@ Claude.ai, DeepSeek Harness и раскатка на команду в [разд
 
 📖 **Документация и разборы:** [humanizer-ru.aifrontier.tech](https://humanizer-ru.aifrontier.tech/): [работают ли AI-детекторы на русском](https://humanizer-ru.aifrontier.tech/ai-detektory-na-russkom.html), [каталог признаков AI-текста](https://humanizer-ru.aifrontier.tech/52-priznaka-ai-teksta.html), [антиплагиат и нейросеть](https://humanizer-ru.aifrontier.tech/antiplagiat-i-neyroset.html).
 
+На AI Frontier есть [упражнение по проверке фактов после редактуры](https://aifrontier.tech/materialy/kak-proverit-fakty-posle-redaktury-ii/#uprazhnenie) и [архивный замер сканера v3.16.0 на научных аннотациях](https://aifrontier.tech/materialy/humanizer-proverka-35-tysyach-tekstov/).
+
 🧰 **Остальные инструменты:** MCP-серверы к кабинетам Wildberries, Ozon, Яндекс Маркета и Авито, пять серверов к hh.ru, VK, Диадоку, СБИС и Честному знаку, 34 скилла для малого бизнеса, совет мыслителей с дословной проверкой цитат. Все одним списком: [ilyautov.github.io](https://ilyautov.github.io/).
 
 ## Зачем это нужно
