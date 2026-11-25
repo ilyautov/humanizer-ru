@@ -129,6 +129,8 @@ jobs:
         run: python scripts/export_web_rules.py --check
       - name: Chrome-расширение не отстало от сайта (vendor/ и манифест)
         run: python scripts/build_extension.py --check
+      - name: Дерево плагина для каталога собирается (ветка directory)
+        run: python scripts/build_directory.py --check
       # Главная грузит workshop.js, а правят workshop.ts: tsc из docs/package.json
       # собирает исходник во временную папку, результат сравнивается байт в байт.
       - name: Главная собрана из workshop.ts (tsc во временную папку и diff)
